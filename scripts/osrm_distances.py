@@ -14,7 +14,7 @@ base_url = "http://localhost:5001"
 # coordinates = list(zip(df_stops.latitude, df_stops.longitude))
 # coordinates = [(52.113567, 4.283832), (52.110579, 4.290129), (52.110126, 4.296792), (52.110579, 4.290129)]
 
-df = pd.read_csv("data/inputs/cleaned/HTM_CompleteData.csv")
+df = pd.read_csv("data/inputs/cleaned/HTM_CollapsedData.csv")
 coordinates = list(zip(df.longitude, df.latitude))
 coords_string = ";".join([f"{lon},{lat}" for lon, lat in coordinates])
 params = {"annotations": "duration,distance"}
@@ -25,6 +25,13 @@ r = requests.get(url, params=params, timeout=60)
 r.raise_for_status()
 data = r.json()
 
+distances =  np.array(data["distances"], dtype=np.float64)
+durations =  np.array(data["durations"], dtype=np.float64)
+mask = durations > 0
+speed = distances[mask] / durations[mask]
+print(np.mean(speed))
 
-np.savetxt("data/inputs/cleaned/distances.txt", np.array(data["distances"], dtype=np.float64))
-np.savetxt("data/inputs/cleaned/travel_times.txt", np.array(data["durations"], dtype=np.float64))
+
+
+np.savetxt("data/inputs/cleaned/distances_collapsed.txt", distances)
+np.savetxt("data/inputs/cleaned/travel_times_collapsed.txt", durations)
