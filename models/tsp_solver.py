@@ -59,7 +59,7 @@ def solve_tsp_mtz(stops: list, distances: dict, warmstart: bool, heur: bool, tim
         # Implementing warm start of original route
         if warmstart:
             if heur:
-                obj, tour, tour_tuples = nearest_neighbor_heuristic(arc_lengths=arc_costs, locations=locations, starting_node=1)
+                obj, tour, tour_tuples = nearest_neighbor_heuristic(arc_lengths=arc_costs, locations=locations, starting_node=0)
                 while tour.index(0) != 0:
                     tour.insert(0, tour.pop())
 
@@ -83,7 +83,7 @@ def solve_tsp_mtz(stops: list, distances: dict, warmstart: bool, heur: bool, tim
         placements = [order_vals[i] for i in order_vals.keys()]
         placements.insert(0, 0)
 
-        placement_arr = np.asarray(placements)
+        placement_arr = np.asarray(placements, dtype=int)
         print(placement_arr)
         order = np.argsort(placement_arr)
         print(order)
@@ -94,7 +94,7 @@ def solve_tsp_mtz(stops: list, distances: dict, warmstart: bool, heur: bool, tim
         for i in range(n):
             s += f"{stops_arr[i]}\t{stops_arr[order][i]}\n"
         print(s)
-        return order
+        return placement_arr
 
         
 
