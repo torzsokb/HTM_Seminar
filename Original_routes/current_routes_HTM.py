@@ -48,9 +48,9 @@ print("\nNumber of violated routes:", num_violated_routes)
 
 objective_value = route_times_df.loc[:, 'Total_time'].sum()/50.0/60.0
 print("Objective value", objective_value)
-avg_driving_time = route_times_df.loc[:, 'Total_Driving_Time'].mean()
-print("Average driving time", avg_driving_time)
-max_driving_time = route_times_df.loc[:, 'Total_Driving_Time'].max()
-print("Max driving time", max_driving_time)
-min_driving_time = route_times_df.loc[:, 'Total_Driving_Time'].min()
-print("Min driving time", min_driving_time)
+
+shortest_shift = route_times_df.loc[:, 'Total_time'].min()/60.0
+print("Shortest shift", shortest_shift)
+
+longest_shift = route_times_df.loc[:, 'Total_time'].max()/60.0
+print("Longest shift", longest_shift)
