@@ -5,7 +5,7 @@ from tabulate import tabulate
 
 def main():
 
-    # df_old_routes = pd.read_csv("data/outputs/reordered_route_times.csv")
+    # df_old_routes = pd.read_csv("data/outputs/reordered_route_timesv2.csv")
     # df_old_routes.set_index("route_ID", inplace=True, drop=True, append=False)
     # df_old_routes.drop(columns="Unnamed: 0", inplace=True)
     # df_old_routes.rename(
@@ -14,29 +14,34 @@ def main():
     # print(tabulate(df_old_routes.round(2), headers="keys"))
     # print(tabulate(df_old_routes.describe().round(2), headers="keys"))
 
-    # df_clustered_routes = pd.read_csv("data/outputs/clustered_tsp_times.csv")
-    # df_clustered_routes.set_index("cluster", inplace=True, drop=True, append=False)
-    # df_clustered_routes.drop(columns="Unnamed: 0", inplace=True)
-    # print(tabulate(df_clustered_routes.round(2), headers="keys"))
-    # print(tabulate(df_clustered_routes.describe().round(2), headers="keys"))
+    df_clustered_routes = pd.read_csv("data/outputs/clustered_tsp_timesv2.csv")
+    df_clustered_routes.set_index("cluster", inplace=True, drop=True, append=False)
+    df_clustered_routes.drop(columns="Unnamed: 0", inplace=True)
+    print(tabulate(df_clustered_routes.round(2), headers="keys"))
+    print(tabulate(df_clustered_routes.describe().round(2), headers="keys"))
 
+    # df1 = pd.read_csv("data/outputs/HTM_ClusteredData_reordered.csv")
+    # df2 = pd.read_csv("data/inputs/cleaned/HTM_CollapsedDatav2.csv")
+    # df1["Service_time"] = df2["Service_time"]
+    # # df2["TSP_Order"] = df1["TSP_Order"]
+    # df1.to_csv("data/outputs/HTM_ClusteredDatav2_reordered.csv")
     
 
-    pass
+    # pass
 
     # reorder_routes()
-    # reorder_comparison()
-    # clustered_route_info()
+    # reorder_comparison("v2")
+    # clustered_route_info("v2")
 
     
     
 
-def clustered_route_info():
+def clustered_route_info(v: str=""):
     with open("data/inputs/cleaned/distance_info_cleaned.json", "r") as f:
         distances = json.load(f)
 
 
-    df = pd.read_csv("data/outputs/HTM_ClusteredData_reordered.csv")
+    df = pd.read_csv(f"data/outputs/HTM_ClusteredData{v}_reordered.csv")
     clusters = list(df["cluster"].unique())
     clusters = clusters[1:]
 
@@ -68,15 +73,15 @@ def clustered_route_info():
 
 
     out = pd.DataFrame.from_dict(route_travel_times)
-    out.to_csv("data/outputs/clustered_tsp_times.csv")
+    out.to_csv(f"data/outputs/clustered_tsp_times{v}.csv")
 
 
 
-def reorder_comparison():
+def reorder_comparison(v: str=""):
     with open("data/inputs/cleaned/distance_info_cleaned.json", "r") as f:
         distances = json.load(f)
 
-    df = pd.read_csv("data/outputs/HTM_CollapsedData_reordered.csv")
+    df = pd.read_csv(f"data/outputs/HTM_CollapsedData{v}_reordered.csv")
     routes = list(df["Route"].unique())
     routes = routes[1:]
 
@@ -122,7 +127,7 @@ def reorder_comparison():
 
 
     out = pd.DataFrame.from_dict(route_travel_times)
-    out.to_csv("data/outputs/reordered_route_times.csv")
+    out.to_csv(f"data/outputs/reordered_route_times{v}.csv")
 
 
 def order_clusters():
