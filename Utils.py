@@ -93,7 +93,6 @@ def print_route_metrics_summary(results):
     print(f"Longest shift:        {results['longest_shift_hours']:.5f} h")
     print(f"Violated routes:      {results['violated_routes']} ")
 
-
 def compute_shift_stats(df, max_shift_duration):
     return {
         "num_routes": len(df),
@@ -118,17 +117,17 @@ def print_shift_stats(name, stats):
     print(f"Violated routes:      {stats['violated_routes']}")
 
 
-
 def main():
-    stops = pd.read_csv("data/inputs/cleaned/HTM_ClusteredData_reordered.csv")
-    travel_times = pd.read_csv("data/inputs/cleaned/travel_times_collapsed.txt", header=None, sep="\\s")
+    stops = pd.read_csv("data/outputs/results_LocalSearch_abri.csv")
+    stops_greedy = pd.read_csv("data/inputs/cleaned/results_Greedy_abri.csv")
+    travel_times = pd.read_csv("data/inputs/cleaned/travel_times_collapsedv2.txt", header=None, sep="\\s")
     travel_times = travel_times.to_numpy()
 
-    metrics_cluster = compute_route_metrics(stops, travel_times, route_col="cluster", order_col= "cluster_order")
-    print_route_metrics_summary(metrics_cluster)
+    # metrics_cluster = compute_route_metrics(stops, travel_times, route_col="cluster", order_col= "cluster_order")
+    # print_route_metrics_summary(metrics_cluster)
 
-    # metrics_original = compute_route_metrics(stops, travel_times)
-    # print_route_metrics_summary(metrics_original)
+    metrics = compute_route_metrics(stops, travel_times)
+    print_route_metrics_summary(metrics)
 
 if __name__ == "__main__":
     main()

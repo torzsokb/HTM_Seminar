@@ -10,7 +10,16 @@ import numpy as np
 
 OSRM_BASE_URL = "http://localhost:5001" 
 
-def plot_routes_from_csv(csv_path, output_html="routes_map.html", route_number = "Route", order_number = "Order", depot_name="Depot", zoom_start=12, split_day_and_night = False, OSRM = True):
+def plot_routes_from_csv(csv_path, 
+                        output_html="routes_map.html", 
+                        route_number = "Route", 
+                        order_number = "Order", 
+                        depot_name="Depot", 
+                        zoom_start=12, 
+                        split_day_and_night = False, 
+                        OSRM = True, 
+                        show_only = "All",
+                        folium_map_background = "Black_White"):
     df = pd.read_csv(csv_path)
 
     depot_stop = df.iloc[0]
@@ -31,7 +40,7 @@ def plot_routes_from_csv(csv_path, output_html="routes_map.html", route_number =
     m = folium.Map(
         location=[depot.latitude, depot.longitude],
         zoom_start=zoom_start,
-        tiles="OpenStreetMap"
+        tiles= "CartoDB Positron" if folium_map_background == "Black_White" else "OpenStreetMap"
     )
     # If we want more/other colours, change this
     if split_day_and_night == True:
@@ -51,13 +60,24 @@ def plot_routes_from_csv(csv_path, output_html="routes_map.html", route_number =
         ])
     
     else:
-        colors = cycle(["red", "blue", "green", "purple", "orange", "darkred", "cadetblue"])
+        colors = cycle([
+            "#990f26", "#b33e52", "#cc7a88", "#e6b8bf", "#99600f", "#b3823e", "#ccaa7a", "#e6d2b8", "#54990f", "#78b33e",
+            "#a3cc7a", "#cfe6b8", "#0f8299", "#3e9fb3", "#7abecc", "#b8dee6", "#3d0f99", "#653eb3", "#967acc", "#c7b8e6",
+            "#333333", "#666666", "#999999", "#882d71", "#ffed21"
+        ])
     
     for route_id, route_df in df.groupby("Route"):
         route_df = route_df.sort_values("Order")
 
-        # if route_df[route_number].iloc[0] not in ("REI-D201"):
-          #  continue
+        if show_only == "Day":
+            if route_df["Night_shift"].iloc[0] != 0:
+                continue
+        elif show_only == "Night":
+            if route_df["Night_shift"].iloc[0] != 1:
+                continue
+
+        # if route_df[route_number].iloc[0] not in ("REI-D304"):
+            # continue
 
         if split_day_and_night == True:
             is_night = route_df["Night_shift"].iloc[0] == 1
@@ -74,7 +94,7 @@ def plot_routes_from_csv(csv_path, output_html="routes_map.html", route_number =
             route_df = pd.concat([route_df, depot_stop.to_frame().T], ignore_index=True)
         
         coords = list(zip(route_df.latitude, route_df.longitude))
-
+        
         if OSRM:
             coords = osrm_route(coords)
 
@@ -131,10 +151,8 @@ def osrm_route(points, host=OSRM_BASE_URL, profile="driving"):
     return [[lat, lon] for lon, lat in geometry]
 
 def main():
-
     csv_path = "data/inputs/cleaned/HTM_CollapsedDatav2.csv"
-    plot_routes_from_csv(csv_path, split_day_and_night=True, OSRM=True)
+    plot_routes_from_csv(csv_path, split_day_and_night=False, OSRM=True, show_only= "Night")
 
 if __name__ == "__main__":
     main()
-
