@@ -1,0 +1,309 @@
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class SolveGreedy {
+    static final double shiftLength = 7 * 60;
+
+
+    public static void main(String[] args) {
+        File data = new File("data_collapsed_vabri.txt");
+        File travelTimesFile = new File("travel_times_collapsedv2.txt");
+        try {
+            TransportInstance allStops = TransportInstance.read(data);
+
+            /*
+            // Change service times
+            List<Stop> stops = allStops.getStops();
+
+            // Change service times if we want to consider less than 20
+            stops.get(0).serviceTime = 0.0;
+            int singleStops = 0;
+            int doubleStops = 0;
+            int tripleStops = 0;
+            int quadrupleStops = 0;
+            for (int i = 1; i < stops.size(); i++) {
+                if (stops.get(i).serviceTime == 20.0) {
+                    stops.get(i).serviceTime = 17.5;
+                    singleStops++;
+                } else if (stops.get(i).serviceTime == 30.0) {
+                    stops.get(i).serviceTime = 25.0;
+                    doubleStops++;
+                } else if (stops.get(i).serviceTime == 40.0) {
+                    stops.get(i).serviceTime = 32.5;
+                    tripleStops++;
+                } else if (stops.get(i).serviceTime == 50.0) {
+                    stops.get(i).serviceTime = 40.0;
+                    quadrupleStops++;
+                }
+            }
+            System.out.println(singleStops + ", " + doubleStops + ", " + tripleStops + ", "+ quadrupleStops);
+             */
+
+            long startTime = System.currentTimeMillis();
+
+            try {
+                System.out.println("Reading travel times ");
+                double[][] travelTimes = readTravelTimes(travelTimesFile);
+
+                System.out.println("Solving Greedy Algorithm ");
+                List<Integer> nightIdx = getAllowedIndices(allStops, 1);
+                List<Integer> dayIdx   = getAllowedIndices(allStops, 0);
+
+                List<Shift> shifts = new ArrayList<>();
+
+                System.out.println("Solving night shifts");
+                List<Shift> nightShifts = solveGreedy(allStops, travelTimes, nightIdx, 1);
+
+                System.out.println("Solving day shifts");
+                List<Shift> dayShifts = solveGreedy(allStops, travelTimes, dayIdx, 0);
+
+                shifts.addAll(nightShifts);
+                shifts.addAll(dayShifts);
+
+                double obj = totalObj(shifts);
+                long endTime = System.currentTimeMillis();
+                long runTime = endTime - startTime;
+
+                System.out.println("Nightshifts:");
+                for (int r = 0; r < nightShifts.size(); r++) {
+                    Shift shift = nightShifts.get(r);
+                    System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
+                    System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                }
+
+                System.out.println("Dayshifts:");
+                for (int r = 0; r < dayShifts.size(); r++) {
+                    Shift shift = dayShifts.get(r);
+                    System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
+                    System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                }
+
+                System.out.println("\nObjective (total time): " + (obj / 60.0) + " hours.");
+                System.out.println("Number of shifts: " + shifts.size());
+                System.out.println("Average duration of shift: " + ((obj / 60.0) /shifts.size()) + " hours.");
+                System.out.println("Average time spent cleaning per shift: " + ((totalCleaningTime(shifts) / 60.0) / shifts.size()));
+                System.out.println("Total runtime: " + runTime);
+
+
+                // Make csv file
+                resultsToCSV(shifts, allStops, "results_Greedy_abri.csv");
+
+            } catch (IOException ex) {
+                System.out.println("There was an error reading file " + travelTimesFile);
+                ex.printStackTrace();
+            }
+
+        } catch (IOException ex) {
+            System.out.println("There was an error reading file " + data);
+            ex.printStackTrace();
+        }
+    }
+
+    public static List<Shift> solveGreedy(TransportInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
+        int n = instance.getNStops();
+        int depot = 0;
+
+        boolean[] isAllowed = new boolean[n];
+        for (int idx : allowed) isAllowed[idx] = true;
+
+        boolean[] visited = new boolean[n];
+        visited[depot] = true;
+
+        int remaining = allowed.size();
+        List<Shift> shifts = new ArrayList<>();
+
+        while (remaining > 0) {
+            List<Integer> route = new ArrayList<>();
+            route.add(depot);
+
+            int current = depot;
+
+            double travelTime = 0.0;
+            double serviceTime = 0.0;
+            double elapsed = 0.0;
+
+            while (true) {
+                int next = -1;
+                double best = Double.POSITIVE_INFINITY;
+
+                for (int j = 1; j < n; j++) {
+                    if (!isAllowed[j] || visited[j]) continue;
+
+                    double toJ = travelTimes[current][j];
+                    double back = travelTimes[j][depot];
+
+                    double elapsedIfGoAndClean = elapsed + toJ + instance.getStops().get(j).serviceTime;
+                    double totalIfReturn = elapsedIfGoAndClean + back;
+
+                    if (totalIfReturn <= shiftLength && toJ < best) {
+                        best = toJ;
+                        next = j;
+                    }
+                }
+
+                // No feasible next stop
+                if (next == -1) {
+                    // close route
+                    double back = travelTimes[current][depot];
+                    travelTime += back;
+                    route.add(depot);
+
+                    shifts.add(new Shift(route, travelTime, serviceTime, nightFlag));
+                    break;
+                }
+
+                // go to next
+                double toNext = travelTimes[current][next];
+                double cleanNext = instance.getStops().get(next).serviceTime;
+
+                travelTime += toNext;
+                serviceTime += cleanNext;
+                elapsed += toNext + cleanNext;
+
+                current = next;
+                route.add(current);
+                visited[current] = true;
+                remaining--;
+            }
+        }
+
+        return shifts;
+    }
+
+    static String formatRoute(TransportInstance instance, List<Integer> routeIdx) {
+        StringBuilder sb = new StringBuilder();
+        for (int k = 0; k < routeIdx.size(); k++) {
+            Stop s = instance.getStops().get(routeIdx.get(k));
+            sb.append(s.idMaximo);
+            if (k < routeIdx.size() - 1) sb.append(" -> ");
+        }
+        return sb.toString();
+    }
+
+    public static double totalObj(List<Shift> shifts) {
+        double sum = 0.0;
+        for (Shift shift : shifts) {
+            sum += shift.totalTime;
+        }
+        return sum;
+    }
+
+    public static double totalCleaningTime(List<Shift> shifts) {
+        double sum = 0.0;
+        for (Shift shift : shifts) {
+            sum += shift.serviceTime;
+        }
+        return sum;
+    }
+
+    private static List<Integer> getAllowedIndices(TransportInstance instance, int nightFlag) {
+        List<Integer> idx = new ArrayList<>();
+        for (int i = 0; i < instance.getNStops(); i++) {
+            if (i == 0) continue; // skip depot as a "to visit" stop
+            if (instance.getStops().get(i).nightShift == nightFlag) {
+                idx.add(i);
+            }
+        }
+        return idx;
+    }
+
+    public static double[][] readTravelTimes(File file) throws IOException {
+        ArrayList<double[]> rows = new ArrayList<>();
+        int cols = -1;
+
+        try (BufferedReader br = Files.newBufferedReader(file.toPath())) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                String[] parts = line.split("[,\\s]+");
+                if (cols == -1) cols = parts.length;
+                if (parts.length != cols) {
+                    throw new IllegalArgumentException("Ragged row: expected " + cols + " values, got " + parts.length);
+                }
+
+                double[] row = new double[cols];
+                for (int j = 0; j < cols; j++) {
+                    row[j] = Double.parseDouble(parts[j]) / 60.0;
+                }
+                rows.add(row);
+            }
+        }
+
+        double[][] matrix = new double[rows.size()][cols];
+        for (int i = 0; i < rows.size(); i++) matrix[i] = rows.get(i);
+        return matrix;
+    }
+
+    public static void resultsToCSV(List<Shift> allShifts, TransportInstance instance, String fileName) {
+        // Build lookup: objectId -> Stop (fast)
+        Map<Integer, Stop> byId = new HashMap<>();
+        for (Stop s : instance.getStops()) {
+            byId.put(s.objectId, s);
+        }
+
+        Stop depot = instance.getDepot();
+
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
+            // Header
+            out.println("ID_MAXIMO,Route,Order,Night_shift,longitude,latitude,ID,Service_time");
+
+            // Depot row once
+            out.printf("%s,%s,%s,%d,%s,%s,%d,%s%n",
+                    escapeCsv(depot.idMaximo),
+                    "NA",
+                    "NA",
+                    100,
+                    depot.longitude,
+                    depot.latitude,
+                    depot.objectId,
+                    depot.serviceTime
+            );
+
+            // Each shift (name shift by index: 1..k)
+            for (int shiftIdx = 0; shiftIdx < allShifts.size(); shiftIdx++) {
+                Shift shift = allShifts.get(shiftIdx);
+                int routeName = shiftIdx + 1;
+
+                // Each stop in the route, in order
+                for (int order = 0; order < shift.route.size(); order++) {
+                    int stopId = shift.route.get(order);
+
+                    Stop stop = byId.get(stopId);
+                    if (stop == null) {
+                        throw new IllegalArgumentException("No Stop found for objectId=" + stopId
+                                + " (shift " + routeName + ", order " + (order + 1) + ")");
+                    }
+
+                    if (stop.objectId != 0) {
+                        out.printf("%s,%s,%s,%d,%s,%s,%d,%s%n",
+                                escapeCsv(stop.idMaximo),
+                                routeName,
+                                order,
+                                shift.nightShift,
+                                stop.longitude,
+                                stop.latitude,
+                                stop.objectId,
+                                stop.serviceTime
+                        );
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to write CSV to " + fileName, e);
+        }
+    }
+
+    private static String escapeCsv(String s) {
+        if (s == null) return "";
+        boolean mustQuote = s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r");
+        if (!mustQuote) return s;
+        return "\"" + s.replace("\"", "\"\"") + "\"";
+    }
+}
