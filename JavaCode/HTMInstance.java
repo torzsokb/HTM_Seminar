@@ -2,13 +2,14 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-public class TransportInstance {
+public class HTMInstance {
     private final List<Stop> stops;
 
     // Constructor
-    public TransportInstance(List<Stop> stops) {
+    public HTMInstance(List<Stop> stops) {
         this.stops = stops;
     }
 
@@ -25,28 +26,8 @@ public class TransportInstance {
         return stops.get(0);
     }
 
-    public List<Stop> getNightShifts() {
-        List<Stop> nightShifts = new ArrayList<>();
-        for (Stop stop : stops) {
-            if (stop.nightShift == 1) {
-                nightShifts.add(stop);
-            }
-        }
-        return nightShifts;
-    }
-
-    public List<Stop> getDayShifts() {
-        List<Stop> dayShifts = new ArrayList<>();
-        for (Stop stop : stops) {
-            if (stop.nightShift == 0) {
-                dayShifts.add(stop);
-            }
-        }
-        return dayShifts;
-    }
-
     // Construct a transport instance by reading from a file
-    public static TransportInstance read(File instanceFileName) throws IOException {
+    public static HTMInstance read(File instanceFileName, String cleaningIndicator, String nightStopIndicator) throws IOException {
         List<Stop> stops = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(instanceFileName))) {
@@ -55,7 +36,7 @@ public class TransportInstance {
             // Read header (and ignore it)
             line = br.readLine();
             if (line == null) {
-                return new TransportInstance(stops);
+                return new HTMInstance(stops);
             }
 
             // Loop over all stops to obtain their information
@@ -64,18 +45,47 @@ public class TransportInstance {
 
                 String[] c = line.split("\t");
 
+                // Choose cleaning time: {20, code, abri}
+                double cleaningTime = 0.0;
+                switch (cleaningIndicator) {
+                    case "20":
+                        cleaningTime = Double.parseDouble(c[6]);
+                        break;
+                    case "code":
+                        cleaningTime = Double.parseDouble(c[7]);
+                        break;
+                    case "abri":
+                        cleaningTime = Double.parseDouble(c[8]);
+                        break;
+                    default:
+                        System.out.println("Invalid cleaning indicator.");
+                        break;
+                }
+
+                // Choose night stop indicator: {Night_shift, Type_halte}
+                int nightStop = 0;
+                if (nightStopIndicator.equals("Night_shift")) {
+                    nightStop = Integer.parseInt(c[4]);
+                } else if (nightStopIndicator.equals("Type_halte")) {
+                    if (c[5].equals("Tramhalte")) {
+                        nightStop = 1;
+                    }
+                } else {
+                    System.out.println("Invalid night stop indicator.");
+                }
+
                 stops.add(new Stop(
                         Integer.parseInt(c[0]),
                         c[1],
                         Double.parseDouble(c[2]),
                         Double.parseDouble(c[3]),
-                        Integer.parseInt(c[4]),
-                        Double.parseDouble(c[5])
+                        nightStop,
+                        cleaningTime
                 ));
             }
-
+            stops.sort(Comparator.comparingInt(s -> s.objectId));
             // Create instance with the obtained information
-            return new TransportInstance(stops);
+            return new HTMInstance(stops);
         }
     }
 
@@ -106,3 +116,5 @@ public class TransportInstance {
 
 
 }
+
+

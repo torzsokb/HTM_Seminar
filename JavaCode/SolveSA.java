@@ -8,13 +8,18 @@ public class SolveSA {
 
     static final double totalShiftLength = 8 * 60;
 
+    // Choose cleaning time: {20, code, abri}
+    static final String cleaningIndicator = "abri";
+
+    // Choose night stop indicator: {Night_shift, Type_halte}
+    static final String nightIndicator = "Night_shift";
 
     public static void main(String[] args) {
-        File data = new File("data_collapsed_vabri.txt");
+        File data = new File("data_all.txt");
         File travelTimesFile = new File("travel_times_collapsedv2.txt");
-        try {
-            TransportInstance allStops = TransportInstance.read(data);
 
+        try {
+            HTMInstance allStops = HTMInstance.read(data, cleaningIndicator, nightIndicator);
             /*
             // Change service times
             List<Stop> stops = allStops.getStops();
@@ -68,11 +73,29 @@ public class SolveSA {
                 long endTime = System.currentTimeMillis();
                 long runTime = endTime - startTime;
 
+                double shortestShiftLength = 1000.0;
+                double longestShiftLength = 0.0;
+
+                double shortestCleaningTime = 1000.0;
+                double longestCleaningTime = 0.0;
+
                 System.out.println("Nightshifts:");
                 for (int r = 0; r < nightShifts.size(); r++) {
                     Shift shift = nightShifts.get(r);
                     System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
                     System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                    if (shift.totalTime > longestShiftLength) {
+                        longestShiftLength = (shift.totalTime) ;
+                    } else if (shift.totalTime < shortestShiftLength) {
+                        shortestShiftLength = (shift.totalTime) ;
+                    }
+
+                    if (shift.serviceTime > longestCleaningTime) {
+                        longestCleaningTime = (shift.serviceTime) ;
+                    } else if (shift.serviceTime < shortestCleaningTime) {
+                        shortestCleaningTime = (shift.serviceTime) ;
+                    }
+
                 }
 
                 System.out.println("Dayshifts:");
@@ -80,45 +103,82 @@ public class SolveSA {
                     Shift shift = dayShifts.get(r);
                     System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
                     System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                    if (shift.totalTime > longestShiftLength) {
+                        longestShiftLength = (shift.totalTime) ;
+                    } else if (shift.totalTime < shortestShiftLength) {
+                        shortestShiftLength = (shift.totalTime) ;
+                    }
+
+                    if (shift.serviceTime > longestCleaningTime) {
+                        longestCleaningTime = (shift.serviceTime) ;
+                    } else if (shift.serviceTime < shortestCleaningTime) {
+                        shortestCleaningTime = (shift.serviceTime) ;
+                    }
                 }
 
                 System.out.println("\nObjective (total time): " + (obj / 60.0) + " hours.");
                 System.out.println("Number of shifts: " + shifts.size());
                 System.out.println("Average duration of shift: " + ((obj / 60.0) /shifts.size()) + " hours.");
-                System.out.println("Average time spent cleaning per shift: " + ((totalCleaningTime(shifts) / 60.0) / shifts.size()));
+                System.out.println("Shortest shift length: " + shortestShiftLength / 60.0 + " hours.");
+                System.out.println("Longest shift length: " + longestShiftLength / 60.0 + " hours.");
+                System.out.println("Shortest cleaning time: " + shortestCleaningTime / 60.0 + " hours.");
+                System.out.println("Longest cleaning time: " + longestCleaningTime / 60.0 + " hours.");
                 System.out.println("Total runtime: " + runTime);
 
 
                 // Do the SA
+                System.out.println("\nSolving SA:");
                 long saStartRunTime = System.currentTimeMillis();
                 List<Shift> saShifts = solveSA(shifts, allStops, travelTimes);
                 long saEndRunTime = System.currentTimeMillis();
                 long saRunTime = saEndRunTime - saStartRunTime;
 
+                shortestShiftLength = 1000.0;
+                longestShiftLength = 0.0;
+
+                shortestCleaningTime = 1000.0;
+                longestCleaningTime = 0.0;
+
                 int nNight = 0;
                 for (Shift shift : saShifts) {
-                    if (shift.nightShift == 1) {
-                        nNight++;
-                    } else if (isNightShift(shift, allStops)){
+                    if (isNightShift(shift, allStops)){
                         shift.nightShift = 1;
                         nNight++;
+                    } else {
+                        shift.nightShift = 0;
+                    }
+
+                    if (shift.totalTime > longestShiftLength) {
+                        longestShiftLength = (shift.totalTime) ;
+                    } else if (shift.totalTime < shortestShiftLength) {
+                        shortestShiftLength = (shift.totalTime) ;
+                    }
+
+                    if (shift.serviceTime > longestCleaningTime) {
+                        longestCleaningTime = (shift.serviceTime) ;
+                    } else if (shift.serviceTime < shortestCleaningTime) {
+                        shortestCleaningTime = (shift.serviceTime) ;
                     }
                 }
                 double newObj = totalObj(saShifts);
-                System.out.println("\nObjective (total time): " + (newObj / 60.0) + " hours.");
-                System.out.println("Improvement: " + ((obj - newObj) / 60.0) + " hours.");
-                System.out.println("Number of nightshifts: " + nNight);
-                System.out.println("Average duration of shift: " + ((newObj / 60.0) / saShifts.size()) + " hours.");
-                System.out.println("Average time spent cleaning per shift: " + ((totalCleaningTime(saShifts) / 60.0) / saShifts.size()));
-                System.out.println("Total runtime for SA: " + saRunTime);
                 for (int r = 0; r < saShifts.size(); r++) {
                     Shift shift = saShifts.get(r);
                     System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
                     System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
                 }
 
+                System.out.println("\nObjective (total time): " + (newObj / 60.0) + " hours.");
+                System.out.println("Improvement: " + ((obj - newObj) / 60.0) + " hours.");
+                System.out.println("Number of nightshifts: " + nNight);
+                System.out.println("Average duration of shift: " + ((newObj / 60.0) / saShifts.size()) + " hours.");
+                System.out.println("Shortest shift length: " + shortestShiftLength / 60.0 + " hours.");
+                System.out.println("Longest shift length: " + longestShiftLength / 60.0 + " hours.");
+                System.out.println("Shortest cleaning time: " + shortestCleaningTime / 60.0 + " hours.");
+                System.out.println("Longest cleaning time: " + longestCleaningTime / 60.0 + " hours.");
+                System.out.println("Total runtime for SA: " + saRunTime);
+
                 // Make csv file
-                resultsToCSV(saShifts, allStops, "results_SA_1002.csv");
+                //resultsToCSV(saShifts, allStops, "results_SA_1102.csv");
 
             } catch (IOException ex) {
                 System.out.println("There was an error reading file " + travelTimesFile);
@@ -131,7 +191,7 @@ public class SolveSA {
         }
     }
 
-    public static List<Shift> solveGreedy(TransportInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
+    public static List<Shift> solveGreedy(HTMInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
         int n = instance.getNStops();
         int depot = 0;
 
@@ -202,7 +262,7 @@ public class SolveSA {
         return shifts;
     }
 
-    static String formatRoute(TransportInstance instance, List<Integer> routeIdx) {
+    static String formatRoute(HTMInstance instance, List<Integer> routeIdx) {
         StringBuilder sb = new StringBuilder();
         for (int k = 0; k < routeIdx.size(); k++) {
             Stop s = instance.getStops().get(routeIdx.get(k));
@@ -220,15 +280,7 @@ public class SolveSA {
         return sum;
     }
 
-    public static double totalCleaningTime(List<Shift> shifts) {
-        double sum = 0.0;
-        for (Shift shift : shifts) {
-            sum += shift.serviceTime;
-        }
-        return sum;
-    }
-
-    private static List<Integer> getAllowedIndices(TransportInstance instance, int nightFlag) {
+    private static List<Integer> getAllowedIndices(HTMInstance instance, int nightFlag) {
         List<Integer> idx = new ArrayList<>();
         for (int i = 0; i < instance.getNStops(); i++) {
             if (i == 0) continue; // skip depot as a "to visit" stop
@@ -268,13 +320,14 @@ public class SolveSA {
         return matrix;
     }
 
-    public static List<Shift> solveSA(List<Shift> initialShifts, TransportInstance instance, double[][] travelTimes) {
+    public static List<Shift> solveSA(List<Shift> initialShifts, HTMInstance instance, double[][] travelTimes) {
         // SA parameters
         double T = 6000.0;
         double Tstep = 0.95;
         int MaxN = 2000;
         int MaxNe = 400;
-        int MaxIt = 20000000;
+        int MaxIt = 30000000;
+        int timeLimit = 180000;
 
         Random rng = new Random(420);
 
@@ -283,6 +336,8 @@ public class SolveSA {
         List<Shift> currentBest = deepCopy(initialShifts, instance, travelTimes);
 
         List<Shift> improvedShifts = deepCopy(currentBest, instance, travelTimes);
+
+        double currentObj = totalObj(currentBest);
 
         int rejectedInfeasible = 0;
         int accepted = 0;
@@ -294,15 +349,18 @@ public class SolveSA {
         int it_p = 0;
         int nb_ne = 0;
 
+        // Either use time limit or max iterations
+        long startSA = System.currentTimeMillis();
+
         // Do the SA loop
-        while (it < MaxIt) {
+
+        while (System.currentTimeMillis() - startSA < timeLimit) {
+            //while(it < MaxIt) {
             it++;
             it_p++;
 
             // Make neighbour
-            List<Shift> neighbour = deepCopy(currentBest, instance, travelTimes);
-
-            double currentObj = totalObj(neighbour);
+            List<Shift> neighbour = new ArrayList<>(currentBest);
 
             // Choose two random stops from random shifts
             int stopId1 =  pickRandomStop(neighbour, rng);
@@ -314,16 +372,31 @@ public class SolveSA {
             }
             if (stopId1 == stopId2) continue;
 
+            double[] deltaOut = new double[1];
+            int[] idxOut = new int[2];       // for 1 or 2 changed shifts
+            idxOut[0] = idxOut[1] = -1;
+
             // Choose neighbourhood
             boolean moved = false;
 
             double rMove = rng.nextDouble();
-            if (rMove < 0.50) {
-                moved = intraSwap(neighbour, instance, travelTimes, rng);
-            } else if (rMove < 0.85) {
-                moved = insertBest(neighbour, instance, travelTimes, rng);
-            } else {
-                moved = swapAndInsert(neighbour, instance, travelTimes, rng);
+
+            if (nightIndicator.equals("Night_shift")) {
+                if (rMove < 0.50) {
+                    moved = intraSwap(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                } else if (rMove < 0.85) {
+                    moved = insertBest(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                } else {
+                    moved = swapAndInsert(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                }
+            } else if (nightIndicator.equals("Type_halte")) {
+                if (rMove < 0.40) {
+                    moved = intraSwap(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                } else if (rMove < 0.80) {
+                    moved = insertBest(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                } else {
+                    moved = swapAndInsert(neighbour, instance, travelTimes, rng, deltaOut, idxOut);
+                }
             }
 
             if (!moved) continue;
@@ -343,7 +416,7 @@ public class SolveSA {
             }
 
             // Accept / reject decision
-            double newObj = totalObj(neighbour);
+            double newObj = currentObj + deltaOut[0];
             if (Math.abs(newObj - currentObj) < 1e-9) unchanged++;
 
             if (newObj < currentObj) {
@@ -410,7 +483,7 @@ public class SolveSA {
         return new int[]{-1, -1};
     }
 
-    private static boolean intraSwap(List<Shift> neighbour, TransportInstance instance, double[][] travelTimes, Random rng) {
+    private static boolean intraSwap(List<Shift> neighbour, HTMInstance instance, double[][] travelTimes, Random rng, double[] deltaOut, int[] idxOut) {
         // pick a shift with at least 2 non-depot stops
         int tries = 0;
         int sIdx;
@@ -427,19 +500,24 @@ public class SolveSA {
         if (i == j) return false;
 
         // swap
-        int tmp = s.route.get(i);
-        s.route.set(i, s.route.get(j));
-        s.route.set(j, tmp);
+        List<Integer> newRoute = new ArrayList<>(s.route);
+        int tmp = newRoute.get(i);
+        newRoute.set(i, newRoute.get(j));
+        newRoute.set(j, tmp);
 
-        Shift rebuilt = buildShiftFromRoute(new ArrayList<>(s.route), s.nightShift, instance, travelTimes);
+        Shift rebuilt = buildShiftFromRoute(newRoute, instance, travelTimes);
         if (rebuilt.totalTime > totalShiftLength) return false;
 
         neighbour.set(sIdx, rebuilt);
+
+        deltaOut[0] = rebuilt.totalTime - s.totalTime;
+        idxOut[0] = sIdx;
+        idxOut[1] = -1;
         return true;
     }
 
-    private static boolean insertBest(List<Shift> neighbour, TransportInstance instance, double[][] travelTimes, Random rng) {
-        // pick from shift with at least one customer
+
+    private static boolean insertBest(List<Shift> neighbour, HTMInstance instance, double[][] travelTimes, Random rng, double[] deltaOut, int[] idxOut) {
         int fromIdx, toIdx;
         Shift from, to;
 
@@ -450,39 +528,35 @@ public class SolveSA {
             from = neighbour.get(fromIdx);
         } while (from.route.size() < 3);
 
-        // pick a stop position in from (exclude depots)
+        // choose stop to move (exclude depots)
         int removePos = 1 + rng.nextInt(from.route.size() - 2);
         int stopId = from.route.get(removePos);
 
-        // remove it
-        from.route.remove(removePos);
-
-        // if from becomes [0,0] that’s okay (empty route), but you might want to avoid it:
-        if (from.route.size() < 2) return false;
-
-        // pick to shift (random)
+        // choose destination shift
         toIdx = rng.nextInt(neighbour.size());
+        if (toIdx == fromIdx) return false;
         to = neighbour.get(toIdx);
 
-        // Check day and night route feasibility
-        int currentNightShifts = 0;
-        for (Shift shift : neighbour) {
-            if (shift.nightShift == 1) {
-                currentNightShifts++;
-            } else if (isNightShift(shift, instance)) {
-                currentNightShifts++;
-            }
-        }
-        if (from.nightShift != to.nightShift || currentNightShifts > 25) {
-            return false;
-        }
+        // Stop type
+        boolean movingStopIsNight = (instance.getStops().get(stopId).nightShift == 1);
 
-        // find best insertion position in to (between 1..size-1)
+        boolean fromWasNight = isNightShift(from, instance);
+        boolean toWasNight   = isNightShift(to, instance);
+
+        // Mutate routes
+        List<Integer> fromRoute = new ArrayList<>(from.route);
+        List<Integer> toRoute   = new ArrayList<>(to.route);
+
+        fromRoute.remove(removePos);
+
+        // avoid empty-from shift
+        if (fromRoute.size() < 3) return false;
+
+        // best insertion position into toRoute
         int bestPos = -1;
         double bestDelta = Double.POSITIVE_INFINITY;
-
-        for (int pos = 1; pos < to.route.size(); pos++) {
-            double delta = insertionDelta(to.route, pos, stopId, travelTimes);
+        for (int pos = 1; pos < toRoute.size(); pos++) {
+            double delta = insertionDelta(toRoute, pos, stopId, travelTimes);
             if (delta < bestDelta) {
                 bestDelta = delta;
                 bestPos = pos;
@@ -490,22 +564,41 @@ public class SolveSA {
         }
         if (bestPos == -1) return false;
 
-        to.route.add(bestPos, stopId);
+        toRoute.add(bestPos, stopId);
 
-        // rebuild affected shifts & check feasibility
-        Shift rebuiltFrom = buildShiftFromRoute(new ArrayList<>(from.route), from.nightShift, instance, travelTimes);
-        Shift rebuiltTo   = buildShiftFromRoute(new ArrayList<>(to.route),   to.nightShift,   instance, travelTimes);
+        // Rebuild shifts
+        Shift rebuiltFrom = buildShiftFromRoute(fromRoute, instance, travelTimes);
+        Shift rebuiltTo   = buildShiftFromRoute(toRoute,   instance, travelTimes);
 
-        if (rebuiltFrom.totalTime > totalShiftLength || rebuiltTo.totalTime > totalShiftLength) {
-            return false;
+        // Time feasibility
+        if (rebuiltFrom.totalTime > totalShiftLength || rebuiltTo.totalTime > totalShiftLength) return false;
+
+        // Night limit feasibility
+        boolean fromIsNight = isNightShift(rebuiltFrom, instance);
+        boolean toIsNight   = isNightShift(rebuiltTo,   instance);
+
+        // Check night limit if needed
+        if (movingStopIsNight && !toWasNight && toIsNight) {
+            int currentNightCount = countNightShiftsDerived(neighbour, instance);
+
+            int nextNightCount = currentNightCount
+                    - (fromWasNight ? 1 : 0) - (toWasNight ? 1 : 0)
+                    + (fromIsNight  ? 1 : 0) + (toIsNight  ? 1 : 0);
+
+            if (nextNightCount > 25) return false;
         }
 
+        // insert
         neighbour.set(fromIdx, rebuiltFrom);
         neighbour.set(toIdx, rebuiltTo);
+
+        deltaOut[0] = (rebuiltFrom.totalTime + rebuiltTo.totalTime) - (from.totalTime + to.totalTime);
+        idxOut[0] = fromIdx;
+        idxOut[1] = toIdx;
         return true;
     }
 
-    private static boolean swapAndInsert(List<Shift> neighbour, TransportInstance instance, double[][] travelTimes, Random rng) {
+    private static boolean swapAndInsert(List<Shift> neighbour, HTMInstance instance, double[][] travelTimes, Random rng, double[] deltaOut, int[] idxOut) {
         // pick two different shifts with at least one customer each
         int tries = 0;
         int aIdx, bIdx;
@@ -520,140 +613,89 @@ public class SolveSA {
         a = neighbour.get(aIdx);
         b = neighbour.get(bIdx);
 
-        // Check day and night route feasibility
-        int currentNightShifts = 0;
-        for (Shift shift : neighbour) {
-            if (shift.nightShift == 1) {
-                currentNightShifts++;
-            } else if (isNightShift(shift, instance)) {
-                currentNightShifts++;
-            }
-        }
-        if (a.nightShift != b.nightShift || currentNightShifts > 25) {
-            return false;
-        }
-
         if (a.route.size() < 3 || b.route.size() < 3) return false;
 
-        // pick random customer positions
+        // BEFORE night statuses
+        boolean aWasNight = isNightShift(a, instance);
+        boolean bWasNight = isNightShift(b, instance);
+
+        // pick customer positions
         int aPos = 1 + rng.nextInt(a.route.size() - 2);
         int bPos = 1 + rng.nextInt(b.route.size() - 2);
 
         int aStop = a.route.get(aPos);
         int bStop = b.route.get(bPos);
 
-        // remove them (remove larger index first if same list, but here different lists)
-        a.route.remove(aPos);
-        b.route.remove(bPos);
+        boolean aStopIsNight = (instance.getStops().get(aStop).nightShift == 1);
+        boolean bStopIsNight = (instance.getStops().get(bStop).nightShift == 1);
 
-        // best insertion of aStop into b
+        // Work on copies
+        List<Integer> aRoute = new ArrayList<>(a.route);
+        List<Integer> bRoute = new ArrayList<>(b.route);
+
+        aRoute.remove(aPos);
+        bRoute.remove(bPos);
+
+        // insert aStop into bRoute best place
         int bestPosInB = -1;
         double bestDeltaB = Double.POSITIVE_INFINITY;
-        for (int pos = 1; pos < b.route.size(); pos++) {
-            double delta = insertionDelta(b.route, pos, aStop, travelTimes);
+        for (int pos = 1; pos < bRoute.size(); pos++) {
+            double delta = insertionDelta(bRoute, pos, aStop, travelTimes);
             if (delta < bestDeltaB) {
                 bestDeltaB = delta;
                 bestPosInB = pos;
             }
         }
         if (bestPosInB == -1) return false;
-        b.route.add(bestPosInB, aStop);
+        bRoute.add(bestPosInB, aStop);
 
-        // best insertion of bStop into a
+        // insert bStop into aRoute best place
         int bestPosInA = -1;
         double bestDeltaA = Double.POSITIVE_INFINITY;
-        for (int pos = 1; pos < a.route.size(); pos++) {
-            double delta = insertionDelta(a.route, pos, bStop, travelTimes);
+        for (int pos = 1; pos < aRoute.size(); pos++) {
+            double delta = insertionDelta(aRoute, pos, bStop, travelTimes);
             if (delta < bestDeltaA) {
                 bestDeltaA = delta;
                 bestPosInA = pos;
             }
         }
         if (bestPosInA == -1) return false;
-        a.route.add(bestPosInA, bStop);
+        aRoute.add(bestPosInA, bStop);
 
-        Shift rebuiltA = buildShiftFromRoute(new ArrayList<>(a.route), a.nightShift, instance, travelTimes);
-        Shift rebuiltB = buildShiftFromRoute(new ArrayList<>(b.route), b.nightShift, instance, travelTimes);
+        // Rebuild
+        Shift rebuiltA = buildShiftFromRoute(aRoute, instance, travelTimes);
+        Shift rebuiltB = buildShiftFromRoute(bRoute, instance, travelTimes);
 
-        if (rebuiltA.totalTime > totalShiftLength || rebuiltB.totalTime > totalShiftLength) {
-            return false;
+        if (rebuiltA.totalTime > totalShiftLength || rebuiltB.totalTime > totalShiftLength) return false;
+
+        // Night limit check
+        boolean aIsNight = isNightShift(rebuiltA, instance);
+        boolean bIsNight = isNightShift(rebuiltB, instance);
+
+        // Check night limit if needed
+        boolean createsNewNightShift =
+                (!aWasNight && aIsNight && bStopIsNight) || (!bWasNight && bIsNight && aStopIsNight);
+
+        if (createsNewNightShift) {
+            int currentNightCount = countNightShiftsDerived(neighbour, instance);
+
+            int nextNightCount = currentNightCount
+                    - (aWasNight ? 1 : 0) - (bWasNight ? 1 : 0)
+                    + (aIsNight  ? 1 : 0) + (bIsNight  ? 1 : 0);
+
+            if (nextNightCount > 25) return false;
         }
 
+        // Commit
         neighbour.set(aIdx, rebuiltA);
         neighbour.set(bIdx, rebuiltB);
+
+        deltaOut[0] = (rebuiltA.totalTime + rebuiltB.totalTime) - (a.totalTime + b.totalTime);
+        idxOut[0] = aIdx;
+        idxOut[1] = bIdx;
         return true;
     }
 
-
-    private static boolean swap(List<Shift> neighbour, TransportInstance instance, double[][] travelTimes, int stopId1, int stopId2) {
-        // Don't swap if depot or same stop
-        if (stopId1 == 0 || stopId2 == 0) return false;
-        if (stopId1 == stopId2) return false;
-
-        int[] loc1 = findStop(neighbour, stopId1);
-        int[] loc2 = findStop(neighbour, stopId2);
-        if (loc1[0] < 0 || loc2[0] < 0) return false;
-
-        Shift s1 = neighbour.get(loc1[0]);
-        Shift s2 = neighbour.get(loc2[0]);
-
-        int i1 = loc1[1];
-        int i2 = loc2[1];
-
-        if (s1.route.get(i1) == 0 || s2.route.get(i2) == 0) return false;
-
-        s1.route.set(i1, stopId2);
-        s2.route.set(i2, stopId1);
-
-        neighbour.set(loc1[0], buildShiftFromRoute(new ArrayList<>(s1.route), s1.nightShift, instance, travelTimes));
-        if (loc2[0] != loc1[0]) {
-            neighbour.set(loc2[0], buildShiftFromRoute(new ArrayList<>(s2.route), s2.nightShift, instance, travelTimes));
-        }
-        return true;
-    }
-
-    private static boolean insert(List<Shift> neighbour,
-                               TransportInstance instance, double[][] travelTimes,
-                               int stopId1, int stopId2) {
-
-        // Don't swap if depot or same stop
-        if (stopId1 == 0 || stopId2 == 0) return false;
-        if (stopId1 == stopId2) return false;
-
-        int[] loc1 = findStop(neighbour, stopId1);
-        int[] loc2 = findStop(neighbour, stopId2);
-        if (loc1[0] < 0 || loc2[0] < 0) return false;
-
-        Shift from = neighbour.get(loc1[0]);
-        Shift to   = neighbour.get(loc2[0]);
-
-        int idxA = loc1[1];
-        int idxB = loc2[1];
-
-        // safety: don't remove depot, don't insert after depot at end incorrectly
-        if (from.route.get(idxA) == 0 || to.route.get(idxB) == 0) return false;
-
-        // Remove stop1
-        int removed = from.route.remove(idxA);
-
-        // If same shift and we removed before stop2, stop2 index shifts left
-        if (loc1[0] == loc2[0] && idxA < idxB) idxB--;
-
-        // Insert immediately after stop2
-        int insertPos = idxB + 1;
-
-        // keep last element as depot (0). If insertPos would go past end, clamp.
-        if (insertPos > to.route.size() - 1) insertPos = to.route.size() - 1;
-
-        to.route.add(insertPos, removed);
-
-        // Rebuild both affected shifts
-        neighbour.set(loc1[0], buildShiftFromRoute(new ArrayList<>(from.route), from.nightShift, instance, travelTimes));
-        if (loc2[0] != loc1[0]) {
-            neighbour.set(loc2[0], buildShiftFromRoute(new ArrayList<>(to.route), to.nightShift, instance, travelTimes));
-        }
-        return true;
-    }
 
     private static double insertionDelta(List<Integer> route, int pos, int stopId, double[][] tt) {
         int prev = route.get(pos - 1);
@@ -666,19 +708,19 @@ public class SolveSA {
      * @param shifts the shifts to be copied
      * @return a copy of the schedule
      */
-    private static List<Shift> deepCopy(List<Shift> shifts, TransportInstance instance, double[][] travelTimes) {
+    private static List<Shift> deepCopy(List<Shift> shifts, HTMInstance instance, double[][] travelTimes) {
         List<Shift> copy = new ArrayList<>(shifts.size());
         for (Shift s : shifts) {
             List<Integer> newRoute = new ArrayList<>(s.route);
-            Shift rebuilt = buildShiftFromRoute(newRoute, s.nightShift, instance, travelTimes);
+            Shift rebuilt = buildShiftFromRoute(newRoute, instance, travelTimes);
             copy.add(rebuilt);
         }
         return copy;
     }
 
-    private static Shift buildShiftFromRoute(List<Integer> route, int nightFlag,TransportInstance instance, double[][] travelTimes) {
+    private static Shift buildShiftFromRoute(List<Integer> route, HTMInstance instance, double[][] travelTimes) {
         double travel = 0.0;
-        double service = 0.0;
+        double cleaning = 0.0;
 
         for (int i = 0; i < route.size() - 1; i++) {
             int a = route.get(i);
@@ -686,30 +728,32 @@ public class SolveSA {
             travel += travelTimes[a][b];
         }
 
-        // count service for non-depot stops
+        boolean night = false;
         for (int id : route) {
-            if (id != 0) service += instance.getStops().get(id).serviceTime;
+            if (id != 0) cleaning += instance.getStops().get(id).serviceTime;
+            if (id != 0 && instance.getStops().get(id).nightShift == 1) night = true;
         }
 
-        return new Shift(route, travel, service, nightFlag);
+        return new Shift(route, travel, cleaning, night ? 1 : 0);
     }
 
-    public static boolean isNightShift(Shift shift, TransportInstance instance) {
-        for (int i = 0; i < shift.route.size(); i++) {
-            if (shift.nightShift == 1) {
+    private static int countNightShiftsDerived(List<Shift> shifts, HTMInstance instance) {
+        int c = 0;
+        for (Shift s : shifts) if (isNightShift(s, instance)) c++;
+        return c;
+    }
+
+    public static boolean isNightShift(Shift shift, HTMInstance instance) {
+        for (int stopId : shift.route) {
+            if (stopId != 0 && instance.getStops().get(stopId).nightShift == 1) {
                 return true;
-            } else {
-                int stopID = shift.route.get(i);
-                if (instance.getStops().get(stopID).nightShift == 1) {
-                    return true;
-                }
             }
         }
         return false;
     }
 
-    public static void resultsToCSV(List<Shift> allShifts, TransportInstance instance, String fileName) {
-        // Build lookup: objectId -> Stop (fast)
+    public static void resultsToCSV(List<Shift> allShifts, HTMInstance instance, String fileName) {
+        // Build lookup: objectId -> Stop
         Map<Integer, Stop> byId = new HashMap<>();
         for (Stop s : instance.getStops()) {
             byId.put(s.objectId, s);
@@ -775,4 +819,5 @@ public class SolveSA {
     }
 
 }
+
 

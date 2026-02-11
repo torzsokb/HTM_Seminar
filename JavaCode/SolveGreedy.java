@@ -1,20 +1,25 @@
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SolveGreedy {
     static final double shiftLength = 7 * 60;
 
 
     public static void main(String[] args) {
-        File data = new File("data_collapsed_vabri.txt");
+        File data = new File("data_all.txt");
         File travelTimesFile = new File("travel_times_collapsedv2.txt");
+
+        // Choose cleaning time: {20, code, abri}
+        String cleaningIndicator = "abri";
+
+        // Choose night stop indicator: {Night_shift, Type_halte}
+        String nightIndicator = "Night_shift";
+
         try {
-            TransportInstance allStops = TransportInstance.read(data);
+            HTMInstance allStops = HTMInstance.read(data, cleaningIndicator, nightIndicator);
+
 
             /*
             // Change service times
@@ -69,11 +74,28 @@ public class SolveGreedy {
                 long endTime = System.currentTimeMillis();
                 long runTime = endTime - startTime;
 
+                double shortestShiftLength = 1000.0;
+                double longestShiftLength = 0.0;
+
+                double shortestCleaningTime = 1000.0;
+                double longestCleaningTime = 0.0;
+
                 System.out.println("Nightshifts:");
                 for (int r = 0; r < nightShifts.size(); r++) {
                     Shift shift = nightShifts.get(r);
                     System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
                     System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                    if (shift.totalTime > longestShiftLength) {
+                        longestShiftLength = (shift.totalTime) ;
+                    } else if (shift.totalTime < shortestShiftLength) {
+                        shortestShiftLength = (shift.totalTime) ;
+                    }
+
+                    if (shift.serviceTime > longestCleaningTime) {
+                        longestCleaningTime = (shift.serviceTime) ;
+                    } else if (shift.serviceTime < shortestCleaningTime) {
+                        shortestCleaningTime = (shift.serviceTime) ;
+                    }
                 }
 
                 System.out.println("Dayshifts:");
@@ -81,17 +103,31 @@ public class SolveGreedy {
                     Shift shift = dayShifts.get(r);
                     System.out.println("Shift " + (r + 1) + ": " + formatRoute(allStops, shift.route));
                     System.out.println("Takes " + (shift.totalTime / 60.0) + " hours.");
+                    if (shift.totalTime > longestShiftLength) {
+                        longestShiftLength = (shift.totalTime) ;
+                    } else if (shift.totalTime < shortestShiftLength) {
+                        shortestShiftLength = (shift.totalTime) ;
+                    }
+
+                    if (shift.serviceTime > longestCleaningTime) {
+                        longestCleaningTime = (shift.serviceTime) ;
+                    } else if (shift.serviceTime < shortestCleaningTime) {
+                        shortestCleaningTime = (shift.serviceTime) ;
+                    }
                 }
 
                 System.out.println("\nObjective (total time): " + (obj / 60.0) + " hours.");
                 System.out.println("Number of shifts: " + shifts.size());
                 System.out.println("Average duration of shift: " + ((obj / 60.0) /shifts.size()) + " hours.");
-                System.out.println("Average time spent cleaning per shift: " + ((totalCleaningTime(shifts) / 60.0) / shifts.size()));
+                System.out.println("Shortest shift length: " + shortestShiftLength / 60.0 + " hours.");
+                System.out.println("Longest shift length: " + longestShiftLength / 60.0 + " hours.");
+                System.out.println("Shortest cleaning time: " + shortestCleaningTime / 60.0 + " hours.");
+                System.out.println("Longest cleaning time: " + longestCleaningTime / 60.0 + " hours.");
                 System.out.println("Total runtime: " + runTime);
 
 
                 // Make csv file
-                resultsToCSV(shifts, allStops, "results_Greedy_abri.csv");
+                // resultsToCSV(shifts, allStops, "results_Greedy_abri.csv");
 
             } catch (IOException ex) {
                 System.out.println("There was an error reading file " + travelTimesFile);
@@ -104,7 +140,7 @@ public class SolveGreedy {
         }
     }
 
-    public static List<Shift> solveGreedy(TransportInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
+    public static List<Shift> solveGreedy(HTMInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
         int n = instance.getNStops();
         int depot = 0;
 
@@ -175,7 +211,7 @@ public class SolveGreedy {
         return shifts;
     }
 
-    static String formatRoute(TransportInstance instance, List<Integer> routeIdx) {
+    static String formatRoute(HTMInstance instance, List<Integer> routeIdx) {
         StringBuilder sb = new StringBuilder();
         for (int k = 0; k < routeIdx.size(); k++) {
             Stop s = instance.getStops().get(routeIdx.get(k));
@@ -193,15 +229,7 @@ public class SolveGreedy {
         return sum;
     }
 
-    public static double totalCleaningTime(List<Shift> shifts) {
-        double sum = 0.0;
-        for (Shift shift : shifts) {
-            sum += shift.serviceTime;
-        }
-        return sum;
-    }
-
-    private static List<Integer> getAllowedIndices(TransportInstance instance, int nightFlag) {
+    private static List<Integer> getAllowedIndices(HTMInstance instance, int nightFlag) {
         List<Integer> idx = new ArrayList<>();
         for (int i = 0; i < instance.getNStops(); i++) {
             if (i == 0) continue; // skip depot as a "to visit" stop
@@ -241,8 +269,8 @@ public class SolveGreedy {
         return matrix;
     }
 
-    public static void resultsToCSV(List<Shift> allShifts, TransportInstance instance, String fileName) {
-        // Build lookup: objectId -> Stop (fast)
+    public static void resultsToCSV(List<Shift> allShifts, HTMInstance instance, String fileName) {
+        // Build lookup: objectId -> Stop
         Map<Integer, Stop> byId = new HashMap<>();
         for (Stop s : instance.getStops()) {
             byId.put(s.objectId, s);
@@ -307,3 +335,5 @@ public class SolveGreedy {
         return "\"" + s.replace("\"", "\"\"") + "\"";
     }
 }
+
+
