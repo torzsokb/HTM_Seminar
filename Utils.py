@@ -73,6 +73,7 @@ def compute_route_metrics(
     return {
         "routes_df": routes_df,
         "objective_value_hours": routes_df["total_time_min"].mean() / 60,
+        "total_obj_value_hours": (routes_df["total_time_min"].mean()/60+1)*50,
         "shortest_shift_hours": routes_df["total_time_min"].min() / 60,
         "longest_shift_hours": routes_df["total_time_min"].max() / 60,
         "total_travel_time_hours": total_travel_time / 60,
@@ -89,6 +90,7 @@ def print_route_metrics_summary(results):
 
     print("\n Overall:")
     print(f"Avg shift length:     {results['objective_value_hours']:.5f} h")
+    print(f"Total length all:     {results['total_obj_value_hours']:.5f} h")
     print(f"Shortest shift:       {results['shortest_shift_hours']:.5f} h")
     print(f"Longest shift:        {results['longest_shift_hours']:.5f} h")
     print(f"Violated routes:      {results['violated_routes']} ")
@@ -120,13 +122,18 @@ def print_shift_stats(name, stats):
 def main():
     stops = pd.read_csv("data/outputs/results_LocalSearch_abri.csv")
     stops_greedy = pd.read_csv("data/inputs/cleaned/results_Greedy_abri.csv")
+    stops_stans = pd.read_csv("data/outputs/results_LocalSearch_abri_Stans.csv")
+
+
+    stops_original = pd.read_csv("data/inputs/cleaned/HTM_CollapsedData_vabri.csv")
+    stops_LS_check = pd.read_csv("data/outputs/results_LocalSearch_abri_new.csv")
     travel_times = pd.read_csv("data/inputs/cleaned/travel_times_collapsedv2.txt", header=None, sep="\\s")
     travel_times = travel_times.to_numpy()
 
     # metrics_cluster = compute_route_metrics(stops, travel_times, route_col="cluster", order_col= "cluster_order")
     # print_route_metrics_summary(metrics_cluster)
 
-    metrics = compute_route_metrics(stops, travel_times)
+    metrics = compute_route_metrics(stops_LS_check, travel_times)
     print_route_metrics_summary(metrics)
 
 if __name__ == "__main__":

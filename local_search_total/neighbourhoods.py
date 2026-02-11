@@ -7,7 +7,6 @@ def greedy_accept_fn(improvement, current_obj, new_obj):
 def inter_shift(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -59,7 +58,7 @@ def inter_shift(
             route_duration[r_name] = travel + service
         
         stop_search = False
-
+        
         for r1_name, r1 in routes.items():
             if stop_search:
                 break
@@ -174,7 +173,6 @@ def inter_shift(
 def inter_route_swap(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -358,7 +356,6 @@ def inter_route_swap(
 def intra_route_swap(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -497,11 +494,9 @@ def intra_route_swap(
 
     return stops
 
-
 def intra_route_shift(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -623,11 +618,9 @@ def intra_route_shift(
 
     return stops
 
-
 def intra_route_2opt(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -739,7 +732,6 @@ def intra_route_2opt(
 def inter_route_2opt_star(
     stops: pd.DataFrame,
     travel_time_matrix: np.ndarray,
-    *,
     route_col="Route",
     order_col="Order",
     id_col="ID",
@@ -874,8 +866,6 @@ def inter_route_2opt_star(
             improved = True
 
     return stops
-
-
 
 def main():
     stops = pd.read_csv("data/inputs/cleaned/results_Greedy_abri.csv")
