@@ -16,3 +16,4 @@ class Stop {
         this.serviceTime = serviceTime;
     }
 }
+

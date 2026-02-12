@@ -18,6 +18,5 @@ public class Shift {
         this.totalTime = travelTime + serviceTime + breakTime + prepTime;
         this.nightShift = nightShift;
     }
-
-
 }
+
