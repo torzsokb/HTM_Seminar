@@ -26,7 +26,7 @@ public class HTMInstance {
         return stops.get(0);
     }
 
-    // Construct a transport instance by reading from a file
+    // Construct a transport instance by reading from a file (specifically the data_all text file)
     public static HTMInstance read(File instanceFileName, String cleaningIndicator, String nightStopIndicator) throws IOException {
         List<Stop> stops = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class HTMInstance {
                         break;
                 }
 
-                // Choose night stop indicator: {Night_shift, Type_halte}
+                // Choose what should be considered a night stop: {Night_shift, Type_halte}
                 int nightStop = 0;
                 if (nightStopIndicator.equals("Night_shift")) {
                     nightStop = Integer.parseInt(c[4]);
@@ -74,6 +74,7 @@ public class HTMInstance {
                     System.out.println("Invalid night stop indicator.");
                 }
 
+                // Add new stop to the list
                 stops.add(new Stop(
                         Integer.parseInt(c[0]),
                         c[1],
@@ -83,7 +84,9 @@ public class HTMInstance {
                         cleaningTime
                 ));
             }
+            // Sort list based on ID of the stops (just an insurance check)
             stops.sort(Comparator.comparingInt(s -> s.objectId));
+
             // Create instance with the obtained information
             return new HTMInstance(stops);
         }

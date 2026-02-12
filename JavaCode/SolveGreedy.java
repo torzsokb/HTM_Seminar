@@ -20,7 +20,6 @@ public class SolveGreedy {
         try {
             HTMInstance allStops = HTMInstance.read(data, cleaningIndicator, nightIndicator);
 
-
             /*
             // Change service times
             List<Stop> stops = allStops.getStops();
@@ -56,6 +55,8 @@ public class SolveGreedy {
                 double[][] travelTimes = readTravelTimes(travelTimesFile);
 
                 System.out.println("Solving Greedy Algorithm ");
+
+                // Do the greedy on night stops or day stops
                 List<Integer> nightIdx = getAllowedIndices(allStops, 1);
                 List<Integer> dayIdx   = getAllowedIndices(allStops, 0);
 
@@ -140,12 +141,23 @@ public class SolveGreedy {
         }
     }
 
+    /**
+     * Solves the greedy algorithm
+     *
+     * @param instance the HTM instance with all stops
+     * @param travelTimes the travel times
+     * @param allowed the ids of the stops currently allowed (either night or day stops)
+     * @param nightFlag 1 if night shifts are made, 0 if day shifts are made
+     * @return a list of shifts
+     */
     public static List<Shift> solveGreedy(HTMInstance instance, double[][] travelTimes, List<Integer> allowed, int nightFlag) {
         int n = instance.getNStops();
         int depot = 0;
 
         boolean[] isAllowed = new boolean[n];
-        for (int idx : allowed) isAllowed[idx] = true;
+        for (int idx : allowed) {
+            isAllowed[idx] = true;
+        }
 
         boolean[] visited = new boolean[n];
         visited[depot] = true;
@@ -173,6 +185,7 @@ public class SolveGreedy {
                     double toJ = travelTimes[current][j];
                     double back = travelTimes[j][depot];
 
+                    // Must be able to return to the depot in the time allowed
                     double elapsedIfGoAndClean = elapsed + toJ + instance.getStops().get(j).serviceTime;
                     double totalIfReturn = elapsedIfGoAndClean + back;
 
@@ -211,16 +224,28 @@ public class SolveGreedy {
         return shifts;
     }
 
-    static String formatRoute(HTMInstance instance, List<Integer> routeIdx) {
+    /**
+     * Method that formats the route; nice for viewing the results in Java
+     *
+     * @param instance the HTM instance that contains all the stops
+     * @param shiftId the IDs of the stops in the shift
+     * @return string of the route that can be printed
+     */
+    static String formatRoute(HTMInstance instance, List<Integer> shiftId) {
         StringBuilder sb = new StringBuilder();
-        for (int k = 0; k < routeIdx.size(); k++) {
-            Stop s = instance.getStops().get(routeIdx.get(k));
+        for (int k = 0; k < shiftId.size(); k++) {
+            Stop s = instance.getStops().get(shiftId.get(k));
             sb.append(s.idMaximo);
-            if (k < routeIdx.size() - 1) sb.append(" -> ");
+            if (k < shiftId.size() - 1) sb.append(" -> ");
         }
         return sb.toString();
     }
 
+    /**
+     * Calculates the total objective (= total time of all shifts)
+     * @param shifts the shifts
+     * @return the objective
+     */
     public static double totalObj(List<Shift> shifts) {
         double sum = 0.0;
         for (Shift shift : shifts) {
@@ -229,17 +254,34 @@ public class SolveGreedy {
         return sum;
     }
 
+    /**
+     * Returns the ids of the stops that are allowed in the greedy instance (day stops vs night stops)
+     *
+     * @param instance the HTMinstance containing all the stops
+     * @param nightFlag == 1 if night shift, == 0 if day shift
+     * @return list of allowed indices
+     */
     private static List<Integer> getAllowedIndices(HTMInstance instance, int nightFlag) {
-        List<Integer> idx = new ArrayList<>();
+        List<Integer> id = new ArrayList<>();
         for (int i = 0; i < instance.getNStops(); i++) {
-            if (i == 0) continue; // skip depot as a "to visit" stop
+            // skip depot as a "to visit" stop
+            if (i == 0) continue;
+
+            // Get only shifts with the correct nightFlag
             if (instance.getStops().get(i).nightShift == nightFlag) {
-                idx.add(i);
+                id.add(i);
             }
         }
-        return idx;
+        return id;
     }
 
+    /**
+     * Reads the text file with the travel times
+     *
+     * @param file the file to be read
+     * @return an array containing all travel times
+     * @throws IOException if the file is incorrectly read
+     */
     public static double[][] readTravelTimes(File file) throws IOException {
         ArrayList<double[]> rows = new ArrayList<>();
         int cols = -1;
@@ -269,7 +311,14 @@ public class SolveGreedy {
         return matrix;
     }
 
-    public static void resultsToCSV(List<Shift> allShifts, HTMInstance instance, String fileName) {
+    /**
+     * Exports the results to a CSV file in the desired format
+     *
+     * @param shifts list of shifts
+     * @param instance HTMinstance containing information on the stops
+     * @param fileName the name of the file (change in main)
+     */
+    public static void resultsToCSV(List<Shift> shifts, HTMInstance instance, String fileName) {
         // Build lookup: objectId -> Stop
         Map<Integer, Stop> byId = new HashMap<>();
         for (Stop s : instance.getStops()) {
@@ -294,25 +343,26 @@ public class SolveGreedy {
                     depot.serviceTime
             );
 
-            // Each shift (name shift by index: 1..k)
-            for (int shiftIdx = 0; shiftIdx < allShifts.size(); shiftIdx++) {
-                Shift shift = allShifts.get(shiftIdx);
-                int routeName = shiftIdx + 1;
+            // Each shift
+            for (int shiftId = 0; shiftId < shifts.size(); shiftId++) {
+                Shift shift = shifts.get(shiftId);
+                int shiftName = shiftId + 1;
 
-                // Each stop in the route, in order
+                // Each stop in the shift, in order
                 for (int order = 0; order < shift.route.size(); order++) {
                     int stopId = shift.route.get(order);
 
                     Stop stop = byId.get(stopId);
                     if (stop == null) {
                         throw new IllegalArgumentException("No Stop found for objectId=" + stopId
-                                + " (shift " + routeName + ", order " + (order + 1) + ")");
+                                + " (shift " + shiftName + ", order " + (order + 1) + ")");
                     }
 
+                    // Save in the desired format
                     if (stop.objectId != 0) {
                         out.printf("%s,%s,%s,%d,%s,%s,%d,%s%n",
                                 escapeCsv(stop.idMaximo),
-                                routeName,
+                                shiftName,
                                 order,
                                 shift.nightShift,
                                 stop.longitude,
@@ -328,6 +378,11 @@ public class SolveGreedy {
         }
     }
 
+    /**
+     * Necessary for writing ID_MAXIMO so it is correctly exported to the csv file
+     * @param s string containing the ID_MAXIMO
+     * @return the correct output for the csv file
+     */
     private static String escapeCsv(String s) {
         if (s == null) return "";
         boolean mustQuote = s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r");
