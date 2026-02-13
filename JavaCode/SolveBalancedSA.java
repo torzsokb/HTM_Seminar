@@ -8,7 +8,7 @@ public class SolveBalancedSA {
     static final double totalShiftLength = 8 * 60;
 
     // Penalty weights for the balanced objective function
-    static final double lambdaL = 0.0;
+    static final double lambdaL = 0.05;
     static final double lambdaC = 0.05;
 
     // Choose cleaning time: {20, code, abri}
