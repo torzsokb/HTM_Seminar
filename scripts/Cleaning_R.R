@@ -890,30 +890,51 @@ type_category_counts <- analysis_codeCat %>%
 type_category_counts
 
 ##### ONE FILE DIFFERENT TIMES #####
-data_collapsedv2_unique <- data_collapsedv2 %>%
-  group_by(ID_MAXIMO) %>%
-  summarise(Service_time = max(Service_time, na.rm = TRUE), .groups = "drop")
-
-data_collapsedvabri_unique <- data_collapsed_vabri %>%
-  group_by(ID_MAXIMO) %>%
-  summarise(Service_time = max(Service_time, na.rm = TRUE), .groups = "drop")
-
 data_allCleaningTimes <- data_collapsed %>%
   rename(Cleaning_time_20 = Service_time) %>%
-  left_join(data_collapsedv2_unique %>% select(ID_MAXIMO, Service_time) %>% rename(Cleaning_time_code = Service_time), by = "ID_MAXIMO") %>%
-  left_join(data_collapsedvabri_unique %>% select(ID_MAXIMO, Service_time) %>% rename(Cleaning_time_abri = Service_time), by = "ID_MAXIMO")
+  left_join(data_collapsedv2 %>% select(ID, Service_time) %>% rename(Cleaning_time_code = Service_time), by = "ID") %>%
+  left_join(data_collapsed_vabri %>% select(ID, Service_time) %>% rename(Cleaning_time_abri = Service_time), by = "ID")
 
 write.csv(data_allCleaningTimes, "HTM_dataCleaningTimes.csv", row.names=FALSE, quote = FALSE)
 
 ### Also include the type stop 
 
-data_typeStop_unique <- data_typeStop %>%
-  distinct(ID_MAXIMO, Type_halte)
-
 data_allCleaningTimes_typeStop <- data_allCleaningTimes %>%
   left_join(
-    data_typeStop_unique %>% select(ID_MAXIMO, Type_halte),
-    by = "ID_MAXIMO"
+    data_typeStop %>% select(ID, Type_halte),
+    by = "ID"
   )
 
 write.csv(data_allCleaningTimes_typeStop, "HTM_dataCleaningTimes_typeStop.csv", row.names=FALSE, quote = FALSE)
+
+
+### Check equality 
+cmp <- data_allCleaningTimes_typeStop %>%
+  select(ID, Cleaning_time_abri, Night_shift) %>%
+  rename(abri_aCT = Cleaning_time_abri, night_aCT = Night_shift) %>%
+  inner_join(
+    data_collapsed_vabri %>%
+      select(ID, Service_time, Night_shift) %>%
+      rename(abri_vabri = Service_time, night_vabri = Night_shift),
+    by = "ID"
+  )
+
+mismatches <- cmp %>%
+  filter(abri_aCT != abri_vabri | night_aCT != night_vabri)
+
+mismatches
+
+
+## Text for coding purposes
+columns_for_text_all <- c("ID", "ID_MAXIMO", "latitude", "longitude", "Night_shift", "Type_halte", "Cleaning_time_20", "Cleaning_time_code", "Cleaning_time_abri")
+
+data_all_text <- data_allCleaningTimes_typeStop[, columns_for_text_all]
+
+write.table(data_all_text,"data_all.txt",sep="\t",row.names=FALSE, quote = FALSE)
+
+## Initial routes columns 
+columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "longitude", "latitude", "ID", "Cleaning_time_abri")
+
+data_initRes <- data_allCleaningTimes_typeStop[, columns_for_text_initRes]
+
+write.csv(data_initRes, "HTM_data_initRes.csv", row.names=FALSE, quote = FALSE)
