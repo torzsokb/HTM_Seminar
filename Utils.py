@@ -123,18 +123,24 @@ def main():
     stops = pd.read_csv("data/outputs/results_LocalSearch_abri.csv")
     stops_greedy = pd.read_csv("data/inputs/cleaned/results_Greedy_abri.csv")
     stops_stans = pd.read_csv("data/outputs/results_LocalSearch_abri_Stans.csv")
-
-
     stops_original = pd.read_csv("data/inputs/cleaned/HTM_CollapsedData_vabri.csv")
-    stops_LS_check = pd.read_csv("data/outputs/results_LocalSearch_abri_new.csv")
+    stops_vnd = pd.read_csv("data/outputs/results_VND_abri.csv")
     travel_times = pd.read_csv("data/inputs/cleaned/travel_times_collapsedv2.txt", header=None, sep="\\s")
     travel_times = travel_times.to_numpy()
 
     # metrics_cluster = compute_route_metrics(stops, travel_times, route_col="cluster", order_col= "cluster_order")
     # print_route_metrics_summary(metrics_cluster)
+    greedy_metrics = compute_route_metrics(stops_greedy, travel_times)
+    print_route_metrics_summary(greedy_metrics)
+    greedy_total_obj = greedy_metrics["total_obj_value_hours"]
+    print(greedy_total_obj)
 
-    metrics = compute_route_metrics(stops_LS_check, travel_times)
-    print_route_metrics_summary(metrics)
+    metrics_vnd = compute_route_metrics(stops_vnd, travel_times)
+    vnd_total_obj = metrics_vnd["total_obj_value_hours"]
+    improvement = greedy_total_obj-vnd_total_obj
+    print("Improvement = ", improvement)
+
+    # print_route_metrics_summary(metrics_vnd)
 
 if __name__ == "__main__":
     main()

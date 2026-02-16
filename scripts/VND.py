@@ -950,8 +950,8 @@ def inter_route_2opt_star(
 
 
 def main():
-    stops = pd.read_csv(r"C:\Users\Nijs\Downloads\results_Greedy_abri.csv")
-    travel_times = pd.read_csv(r"C:\Users\Nijs\Downloads\travel_times_collapsedv2.txt", header=None, sep="\s+")
+    stops = pd.read_csv("data/inputs/cleaned/results_Greedy_abri.csv")
+    travel_times = pd.read_csv("data/inputs/cleaned/travel_times_collapsedv2.txt", header=None, sep="\\s")
 
     travel_times = travel_times.to_numpy()
     

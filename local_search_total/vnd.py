@@ -3,7 +3,6 @@ from local_search_total.utils import total_cost
 
 import time
 
-
 def vnd(
     stops,
     travel_times,
