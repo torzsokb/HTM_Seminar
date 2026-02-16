@@ -217,7 +217,7 @@ public class SolveBalancedSA {
                 System.out.println("Balanced improvement: "  + (GreedyF - SAF) / 60.0 + " hours.");
 
                 // Make csv file
-                // resultsToCSV(saShifts, allStops, "results_SA_3min.csv");
+                // resultsToCSV(saShifts, allStops, "results_BalancedSA_3min.csv");
 
             } catch (IOException ex) {
                 System.out.println("There was an error reading file " + travelTimesFile);

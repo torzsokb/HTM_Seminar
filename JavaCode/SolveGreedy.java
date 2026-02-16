@@ -15,7 +15,7 @@ public class SolveGreedy {
         String cleaningIndicator = "abri";
 
         // Choose night stop indicator: {Night_shift, Type_halte}
-        String nightIndicator = "Night_shift";
+        String nightIndicator = "Type_halte";
 
         try {
             HTMInstance allStops = HTMInstance.read(data, cleaningIndicator, nightIndicator);

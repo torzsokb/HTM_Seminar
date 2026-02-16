@@ -15,6 +15,10 @@ public class EvaluateSolutions {
 
         File greedyResultsFile = new File("results_Greedy_abri.csv");
 
+        File SAResultsFile = new File("results_SA_3min.csv");
+
+        File BalancedSAResultsFile = new File("results_BalancedSA_3min.csv");
+
         try {
             System.out.println("Reading travel times ");
             double[][] travelTimes = readTravelTimes(travelTimesFile);
@@ -24,11 +28,19 @@ public class EvaluateSolutions {
 
                 List<Shift> initShifts = readShifts(initResultsFile, travelTimes);
 
-                evaluateShifts(initShifts);
+                evaluateShifts(initShifts, initResultsFile);
 
                 List<Shift> greedyShifts = readShifts(greedyResultsFile, travelTimes);
 
-                evaluateShifts(greedyShifts);
+                evaluateShifts(greedyShifts, greedyResultsFile);
+
+                List<Shift> SAShifts = readShifts(SAResultsFile, travelTimes);
+
+                evaluateShifts(SAShifts, SAResultsFile);
+
+                List<Shift> BalancedSAShifts = readShifts(BalancedSAResultsFile, travelTimes);
+
+                evaluateShifts(BalancedSAShifts, BalancedSAResultsFile);
 
 
             } catch (IOException ex) {
@@ -43,12 +55,14 @@ public class EvaluateSolutions {
     }
 
 
-    public static void evaluateShifts(List<Shift> shifts) {
+    public static void evaluateShifts(List<Shift> shifts, File fileName) {
         System.out.println("");
+        System.out.println("Evaluating file " + fileName + ".");
 
         double obj = totalObj(shifts);
 
         int violated = 0;
+        int overtime = 0;
         int nightShifts = 0;
         double longestShiftLength = 0.0;
         double shortestShiftLength = 100000000.0;
@@ -59,6 +73,7 @@ public class EvaluateSolutions {
             nightShifts += shift.nightShift;
             if (shift.totalTime > totalShiftLength) {
                 violated++;
+                overtime += shift.totalTime - totalShiftLength;
             }
 
             if (shift.totalTime < shortestShiftLength) {
@@ -77,6 +92,7 @@ public class EvaluateSolutions {
             System.out.println("No violated shifts ! :D ");
         } else {
             System.out.println("Number of violated shifts: " + violated + ".");
+            System.out.println("Hours of overtime: " + overtime / 60.0 + ".");
         }
 
         System.out.println("Objective: " + obj / 60.0 + " hours.");
