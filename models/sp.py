@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+from numba import njit
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB
@@ -187,6 +188,24 @@ class GurobiSP(SubProblem):
         return result
 
 
+class HeuristicSP(SubProblem):
+    def __init__(self, stops, distances, cleaning_times, k, max_duration, min_duration, max_n_stops, min_n_stops):
+        super().__init__(stops, distances, cleaning_times, k, max_duration, min_duration, max_n_stops, min_n_stops)
+
+    def update_duals(self, new_duals) -> None:
+        self.duals = new_duals
+
+    def get_new_route(self):
+        pass
+
+@njit
+def rcespp(distances: np.ndarray, cleaning_times: np.ndarray, duals: np.ndarray, max_duration: int, min_duration: int):
+    route = [0]
+    time = 0
+    cost = duals[0]
+    
+    return 1
 
 
-        
+
+    

@@ -3,6 +3,8 @@ import gurobipy as gp
 from gurobipy import GRB
 from models.route import Route
 
+BIG_M = 999999
+
 class RestrictedMasterProblem:
     
     def __init__(
@@ -17,33 +19,49 @@ class RestrictedMasterProblem:
         self.distances = distances
         self.cleaning_times = cleaning_times
         self.k = k
+        self.big_m = 0
 
         self.model = gp.Model()
         self.x = {}
+        self.dummy_vars = {}
         self.routes = initital_routes
         self.constraints = []
 
     def setup(self):
+        
         self.model.ModelSense = GRB.MINIMIZE
         self.model.params.OutputFlag = 1
-        
-        expr = gp.LinExpr()
-        for i, route in enumerate(self.routes):
-            print(route)
-            self.x[i] = self.model.addVar(lb=0, ub=1, vtype=GRB.CONTINUOUS, obj=route.travel_time, name=f"x_{i}")
-            expr += self.x[i]
-        self.constraints.append(self.model.addConstr(expr <= self.k * 2, name=f"max_routes"))
 
+        
+        self.dummy_vars[0] = self.model.addVar(
+            vtype=GRB.CONTINUOUS, 
+            lb=0, ub=1,obj=0,name="dummy_0"
+            )
+        self.constraints.append(25 * self.dummy_vars[0] <= self.k, name="number_of_shifts")
+        
+        
         for i, stop in enumerate(self.stops):
             if stop == "Depot":
                 continue
-            lhs = gp.LinExpr()
-            for j, route in enumerate(self.routes):
-                if route.covers(stop):
-                    lhs += self.x[j]
-            self.constraints.append(self.model.addConstr(lhs >= 1, name=f"c_{stop}"))
+
+            self.dummy_vars[i] = self.model.addVar(
+                vtype=GRB.CONTINUOUS, 
+                lb=0, ub=1,
+                obj=self.big_m,
+                name=f"dummy_{stop}"
+                )
+            
+            self.constraints.append(self.model.addConstr(
+                self.dummy_vars[i] >= 1,
+                name=f"cover_stop_{stop}"
+                ))
+
 
         self.model.update()
+
+
+    def set_big_m(self) -> None:
+        self.big_m = BIG_M
 
 
     def get_duals(self) -> np.ndarray:
@@ -52,7 +70,7 @@ class RestrictedMasterProblem:
         duals = [c.Pi for c in self.constraints]
         return np.array(duals)
     
-    def solve(self, TimeLimit: int=None, OutputFlag: int=None):
+    def solve(self, TimeLimit: int=None, OutputFlag: int=None) -> None:
         
         if not TimeLimit is None:
             self.model.params.TimeLimit = TimeLimit
@@ -62,6 +80,10 @@ class RestrictedMasterProblem:
 
         self.model.optimize()
         print(f"obj: {self.model.ObjVal:.3f}")
+
+    def add_columns(self, routes: list[Route]) -> None:
+        for route in routes:
+            self.add_column(route)
 
     def add_column(self, route: Route) -> None:
         
