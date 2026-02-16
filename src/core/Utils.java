@@ -140,10 +140,8 @@ public class Utils {
     
         if (!s.route.isEmpty()) {
     
-            // depot -> first
             travel += travelTimes[0][s.route.get(0)];
-    
-            // internal arcs
+
             for (int k = 0; k < s.route.size() - 1; k++) {
                 int a = s.route.get(k);
                 int b = s.route.get(k + 1);
@@ -169,8 +167,6 @@ public class Utils {
         }
     }
     
-    
-
     public static List<Shift> buildGreedyShifts(
             HTMInstance instance,
             double[][] travelTimes,

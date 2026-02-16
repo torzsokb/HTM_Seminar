@@ -12,9 +12,6 @@ import java.util.List;
 public class FindingBestOrderLocalSearch {
 
     public static void main(String[] args) throws Exception {
-        // ----------------------------
-        // Load instance and travel times
-        // ----------------------------
         String instancePath = "src/core/data_all.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
@@ -24,7 +21,7 @@ public class FindingBestOrderLocalSearch {
         List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
         List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
 
-        double shiftLength = 7 * 60; // in minutes
+        double shiftLength = 7 * 60; 
 
         List<Shift> nightShifts = Utils.buildGreedyShifts(instance, travelTimes, nightIdx, 1, shiftLength);
         List<Shift> dayShifts   = Utils.buildGreedyShifts(instance, travelTimes, dayIdx, 0, shiftLength);
@@ -54,25 +51,15 @@ public class FindingBestOrderLocalSearch {
 
         RouteCompatibility compatibility = Compatibility.sameNightShift();
 
-        // ----------------------------
-        // Improvement choices
-        // ----------------------------
         ImprovementChoice[] choices = {ImprovementChoice.FIRST, ImprovementChoice.BEST};
 
-        // ----------------------------
-        // Acceptance function (greedy)
-        // ----------------------------
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
 
-        // ----------------------------
-        // Generate all permutations of neighborhoods
-        // ----------------------------
+
         List<List<Neighborhood>> allOrders = new ArrayList<>();
         generatePermutations(neighborhoods, 0, allOrders);
 
-        // ----------------------------
-        // Grid search over orders and FIRST/BEST
-        // ----------------------------
+    
         double bestObj = Double.MAX_VALUE;
         List<Shift> bestSolution = null;
         List<Neighborhood> bestOrder = null;
@@ -112,9 +99,6 @@ public class FindingBestOrderLocalSearch {
             }
         }
 
-        // ----------------------------
-        // Report best configuration
-        // ----------------------------
         System.out.println("\n=== BEST CONFIGURATION ===");
         System.out.println("Best objective: " + bestObj);
         System.out.println("Best improvement choice: " + bestChoice);
@@ -127,9 +111,6 @@ public class FindingBestOrderLocalSearch {
         Utils.checkFeasibility(bestSolution, instance, shiftLength);
     }
 
-    // ----------------------------
-    // Recursive permutation generator
-    // ----------------------------
     public static void generatePermutations(List<Neighborhood> arr, int k, List<List<Neighborhood>> result) {
         if (k == arr.size()) {
             result.add(new ArrayList<>(arr));
