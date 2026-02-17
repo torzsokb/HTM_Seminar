@@ -6,6 +6,7 @@ import java.util.List;
 
 public class SolveGreedy {
     static final double shiftLength = 7 * 60;
+    static final double totalShiftLength = 8 * 60;
 
     public static void main(String[] args) throws Exception {
         String instancePath = "src/core/data_all.txt";
@@ -25,10 +26,10 @@ public class SolveGreedy {
         greedy.addAll(dayShifts);
 
         // Print and save results
-        Utils.printShiftStatistics(greedy, instance, shiftLength);
-        Utils.checkFeasibility(greedy, instance, shiftLength);
+        Utils.printShiftStatistics(greedy, instance, totalShiftLength);
+        Utils.checkFeasibility(greedy, instance, totalShiftLength);
 
-        double obj = Utils.totalObjective(greedy) + 50.0;
+        double obj = Utils.totalObjective(greedy);
         System.out.println("Total objective value: " + obj);
 
         // Utils.resultsToCSV(greedy, instance, "results_Greedy_abri.csv");
