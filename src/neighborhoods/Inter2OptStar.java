@@ -13,6 +13,9 @@ public class Inter2OptStar implements Neighborhood {
     private static final double EPS = 1e-6;
     private final int MAX_NIGHT_SHIFTS = 25;
 
+    public final double breakTime = 30.0;
+    public final double prepTime = 30.0;
+
     @Override
     public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
         List<Move> moves = new ArrayList<>();
@@ -153,6 +156,9 @@ public class Inter2OptStar implements Neighborhood {
         // Service times
         for (int id : route)
             t += instance.getStops().get(id).serviceTime;
+
+        // Add break and prep time
+        t = t + breakTime + prepTime;
     
         return t;
     }
