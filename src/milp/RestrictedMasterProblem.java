@@ -12,11 +12,11 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
     protected final HTMInstance instance;
     protected final List<Stop> stops;
     protected final double[][] distances;
-    protected final int k;
+    protected final int numberOfShifts;
     protected final double bigM;
 
-    protected final int maxDuration;
-    protected final int minDuration;
+    protected double maxDuration;
+    protected double minDuration;
 
     protected final GRBEnv env;
     protected final GRBModel model;
@@ -25,17 +25,18 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         HTMInstance instance,
         List<Stop> stops, 
         double[][] distances,
-        int maxDuration,
-        int minDuration,
-        int k,
-        double bigM) throws GRBException {
+        double maxDuration,
+        double minDuration,
+        int numberOfShifts,
+        double bigM
+    ) throws GRBException {
         
         this.instance = instance;
         this.stops = stops;
         this.distances = distances;
         this.maxDuration = maxDuration;
         this.minDuration = minDuration;
-        this.k = k;
+        this.numberOfShifts = numberOfShifts;
         this.bigM = bigM;
         
         this.env = new GRBEnv(true);
@@ -46,11 +47,55 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         this.model.set(GRB.IntAttr.ModelSense, GRB.MINIMIZE);
     }
 
-    public abstract void setup() throws GRBException;
+    
 
-    public abstract double[] getDuals() throws GRBException;
+    public abstract double[] getDayDuals() throws GRBException;
+
+    public abstract double[] getNightDuals() throws GRBException;
+
+    public abstract void addShiftDummyAndConstr() throws GRBException;
+
+    public abstract void addStopDummyAndConstr() throws GRBException;
 
     public abstract void addColumn(Shift newShift) throws GRBException;
+
+    public abstract double getLongestDrivingTime() throws GRBException;
+
+    public abstract double getLongestShiftDuration() throws GRBException;
+
+    public void setMaxDuration(double maxDuration) {
+        this.maxDuration = maxDuration;
+    }
+
+    public void setMinDuration(double minDuration) {
+        this.minDuration = minDuration;
+    }
+
+    public abstract double[][] getDayDistances();
+
+    public abstract double[][] getNightDistances();
+
+    public abstract List<Stop> getDayStops();
+
+    public abstract List<Stop> getNightStops();
+
+    public double getMinDuration() {
+        return this.minDuration;
+    }
+
+    public double getMaxDuration() {
+        return this.maxDuration;
+    }
+
+    public abstract void setMinDurationConstraint() throws GRBException;
+
+    public abstract void setMaxDurationConstraint() throws GRBException;
+
+    public void setup() throws GRBException {
+        addShiftDummyAndConstr();
+        addStopDummyAndConstr();
+    }
+
 
     public void addColumns(List<Shift> newShifts) throws GRBException {
         for (Shift shift : newShifts) {
@@ -60,6 +105,10 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
 
     public void solve() throws GRBException {
         model.optimize();
+    }
+
+    public boolean isFeasible() throws GRBException {
+        return (model.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE);
     }
 
     @Override

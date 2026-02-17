@@ -4,5 +4,5 @@ import core.Stop;
 import core.Shift;
 
 public interface RCESPP {
-    public List<Shift> getNewShifts(double[][] distances, List<Stop> stops, double[] duals);
+    public List<Shift> getNewShifts(double[][] distances, List<Stop> stops, double[] duals, double maxDuration, double minDuration);
 }
