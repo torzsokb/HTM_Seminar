@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 public class HTMInstance {
     private final List<Stop> stops;
 
@@ -25,6 +24,42 @@ public class HTMInstance {
 
     public Stop getDepot() {
         return stops.get(0);
+    }
+
+    /**
+     * Changes the cleaning times for the collapsed version; should only be used if "20" cleaningIndicator is chosen.
+     *
+     * @param fix the fixed costs (f.e., the setup cost)
+     * @param var the variable cost (depends on the number of stops collapsed)
+     */
+    public void changeCollapsedCleaningTimes(double fix, double var) {
+        stops.get(0).serviceTime = 0.0;
+
+        // Get unique cleaning times
+        java.util.Set<Double> uniqueTimes = new java.util.HashSet<>();
+        for (int i = 1; i < stops.size(); i++) {
+            uniqueTimes.add(stops.get(i).serviceTime);
+        }
+
+        // Sort from smallest to largest
+        java.util.List<Double> sorted = new java.util.ArrayList<>(uniqueTimes);
+        java.util.Collections.sort(sorted);
+
+        // Map the old times to the new times, based on rank
+        java.util.Map<Double, Double> map = new java.util.HashMap<>();
+        for (int k = 0; k < sorted.size(); k++) {
+            double oldTime = sorted.get(k);
+            double newTime = fix + (k + 1) * var;
+            map.put(oldTime, newTime);
+        }
+
+        // Change the service times
+        for (int i = 1; i < stops.size(); i++) {
+            Double newTime = map.get(stops.get(i).serviceTime);
+            if (newTime != null) {
+                stops.get(i).serviceTime = newTime;
+            }
+        }
     }
 
     // Construct a transport instance by reading from a file (specifically the data_all text file)

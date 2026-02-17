@@ -123,7 +123,7 @@ public class Utils {
         }
     
         double avg = (n == 0) ? 0.0 : totalLength / n;
-    
+
         System.out.printf("Number of routes:     %d%n", n);
         System.out.printf("Avg shift length:     %.5f h%n", avg / 60.0);
         System.out.printf("Shortest shift:       %.5f h%n", shortest / 60.0);
@@ -157,7 +157,7 @@ public class Utils {
     
         s.travelTime = travel;
         s.serviceTime = service;
-        s.totalTime = travel + service;
+        s.recomputeTotalTime();
     }
     
     
@@ -333,5 +333,100 @@ public class Utils {
         }
         return copy;
     }
-    
+
+    /**
+     * Method that formats the route; nice for viewing the results in Java
+     *
+     * @param instance the HTM instance that contains all the stops
+     * @param shiftId the IDs of the stops in the shift
+     * @return string of the route that can be printed
+     */
+    public static String formatRoute(HTMInstance instance, List<Integer> shiftId) {
+        StringBuilder sb = new StringBuilder();
+        for (int k = 0; k < shiftId.size(); k++) {
+            Stop s = instance.getStops().get(shiftId.get(k));
+            sb.append(s.idMaximo);
+            if (k < shiftId.size() - 1) sb.append(" -> ");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Exports the results to a CSV file in the desired format
+     *
+     * @param shifts list of shifts
+     * @param instance HTMinstance containing information on the stops
+     * @param fileName the name of the file (change in main)
+     */
+    public static void resultsToCSV(List<Shift> shifts, HTMInstance instance, String fileName) {
+        // Build lookup: objectId -> Stop
+        Map<Integer, Stop> byId = new HashMap<>();
+        for (Stop s : instance.getStops()) {
+            byId.put(s.objectId, s);
+        }
+
+        Stop depot = instance.getDepot();
+
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
+            // Header
+            out.println("ID_MAXIMO,Route,Order,Night_shift,longitude,latitude,ID,Service_time");
+
+            // Depot row once
+            out.printf("%s,%s,%s,%d,%s,%s,%d,%s%n",
+                    escapeCsv(depot.idMaximo),
+                    "NA",
+                    "NA",
+                    100,
+                    depot.longitude,
+                    depot.latitude,
+                    depot.objectId,
+                    depot.serviceTime
+            );
+
+            // Each shift
+            for (int shiftId = 0; shiftId < shifts.size(); shiftId++) {
+                Shift shift = shifts.get(shiftId);
+                int shiftName = shiftId + 1;
+
+                // Each stop in the shift, in order
+                for (int order = 0; order < shift.route.size(); order++) {
+                    int stopId = shift.route.get(order);
+
+                    Stop stop = byId.get(stopId);
+                    if (stop == null) {
+                        throw new IllegalArgumentException("No Stop found for objectId=" + stopId
+                                + " (shift " + shiftName + ", order " + (order + 1) + ")");
+                    }
+
+                    // Save in the desired format
+                    if (stop.objectId != 0) {
+                        out.printf("%s,%s,%s,%d,%s,%s,%d,%s%n",
+                                escapeCsv(stop.idMaximo),
+                                shiftName,
+                                order,
+                                shift.nightShift,
+                                stop.longitude,
+                                stop.latitude,
+                                stop.objectId,
+                                stop.serviceTime
+                        );
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to write CSV to " + fileName, e);
+        }
+    }
+
+    /**
+     * Necessary for writing ID_MAXIMO so it is correctly exported to the csv file
+     * @param s string containing the ID_MAXIMO
+     * @return the correct output for the csv file
+     */
+    private static String escapeCsv(String s) {
+        if (s == null) return "";
+        boolean mustQuote = s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r");
+        if (!mustQuote) return s;
+        return "\"" + s.replace("\"", "\"\"") + "\"";
+    }
 }

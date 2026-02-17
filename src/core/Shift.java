@@ -20,5 +20,8 @@ public class Shift {
         this.nightShift = nightShift;
     }
 
+    public void recomputeTotalTime() {
+        totalTime = travelTime + serviceTime + breakTime + prepTime;
+    }
 }
 
