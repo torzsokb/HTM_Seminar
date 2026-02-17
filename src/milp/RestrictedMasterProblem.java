@@ -7,7 +7,7 @@ import core.Stop;
 import core.Shift;
 import core.HTMInstance;
 
-public abstract class RestrictedMasterProblem implements AutoCloseable{
+public abstract class RestrictedMasterProblem implements AutoCloseable {
     
     protected final HTMInstance instance;
     protected final List<Stop> stops;
