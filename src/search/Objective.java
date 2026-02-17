@@ -2,20 +2,21 @@ package search;
 
 import core.Shift;
 
+import java.util.List;
+
 public class Objective {
 
-    public static ObjectiveFunction totalLength() {
-        return (shifts) -> {
-            double sum = 0.0;
-            for (Shift s : shifts) {
-                if (s != null) sum += s.totalTime;
-            }
-            return sum;
-        };
-    }
+    public static final class BalancedObj implements ObjectiveFunction {
+        public final double lambdaL;
+        public final double lambdaC;
 
-    public static ObjectiveFunction balancedObj(double lambdaL, double lambdaC) {
-        return (shifts) -> {
+        public BalancedObj(double lambdaL, double lambdaC) {
+            this.lambdaL = lambdaL;
+            this.lambdaC = lambdaC;
+        }
+
+        @Override
+        public double shifts(List<Shift> shifts) {
             int m = (shifts == null) ? 0 : shifts.size();
             if (m == 0) return 0.0;
 
@@ -39,6 +40,15 @@ public class Objective {
             double sseC = sumC2 - (sumC * sumC) / m;
 
             return sumL + lambdaL * sseL + lambdaC * sseC;
-        };
+        }
     }
+
+    public static ObjectiveFunction balancedObj(double lambdaL, double lambdaC) {
+        return new BalancedObj(lambdaL, lambdaC);
+    }
+
+    public static ObjectiveFunction totalLength() {
+        return new BalancedObj(0.0, 0.0);
+    }
+
 }
