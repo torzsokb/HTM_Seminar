@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SolveLocalSearch {
+    static final double shiftLength = 7*60;
+    static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
         String instancePath = "src/core/data_all.txt";
@@ -17,8 +19,6 @@ public class SolveLocalSearch {
 
         List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
         List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
-
-        double shiftLength = 7*60;
 
         List<Shift> nightShifts = Utils.buildGreedyShifts(instance, travelTimes, nightIdx, 1, shiftLength);
         List<Shift> dayShifts   = Utils.buildGreedyShifts(instance, travelTimes, dayIdx, 0, shiftLength);
@@ -37,11 +37,11 @@ public class SolveLocalSearch {
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new IntraSwap(),
-            new IntraShift(),
-            new InterShift(),
             new InterSwap(),
-            new Intra2Opt(),
-            new Inter2OptStar()
+            new Inter2OptStar(),
+            new InterShift(),
+            new IntraShift(),
+            new Intra2Opt()
         );
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
@@ -51,14 +51,13 @@ public class SolveLocalSearch {
 
         RouteCompatibility compatibility = Compatibility.sameNightShift();
 
-        int new_shiftlength = 7*60;
         LocalSearch ls = new LocalSearch(
                 neighborhoods,
                 acceptGreedy,
                 compatibility,
-                ImprovementChoice.FIRST,   
+                ImprovementChoice.BEST,
                 1000,       
-                new_shiftlength
+                totalShiftLength
         );
         long startTime = System.currentTimeMillis();
         System.out.println("Running local search...");
@@ -66,7 +65,7 @@ public class SolveLocalSearch {
 
         Utils.recomputeAllShifts(improved, instance, travelTimes);
 
-        double new_obj_value = Utils.totalObjective(improved) + 50;
+        double new_obj_value = Utils.totalObjective(improved);
 
         System.out.println("\nLocal search complete.");
 

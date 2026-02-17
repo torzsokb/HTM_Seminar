@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class FindingBestOrderLocalSearch {
+    static final double shiftLength = 7*60;
+    static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
         String instancePath = "src/core/data_all.txt";
@@ -55,7 +57,6 @@ public class FindingBestOrderLocalSearch {
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
 
-
         List<List<Neighborhood>> allOrders = new ArrayList<>();
         generatePermutations(neighborhoods, 0, allOrders);
 
@@ -80,7 +81,7 @@ public class FindingBestOrderLocalSearch {
                         compatibility,
                         choice,
                         1000,           // max iterations
-                        shiftLength
+                        totalShiftLength
                 );
 
                 List<Shift> result = ls.run(initialCopy, instance, travelTimes);
