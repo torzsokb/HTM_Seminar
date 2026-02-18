@@ -30,6 +30,24 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     }
 
     @Override
+    public List<Stop> getAllStops() {
+        if (isNight) {
+            return nightStops;
+        } else {
+            return dayStops;
+        }
+    }
+
+    @Override
+    public double[][] getAllDistances() {
+        if (isNight) {
+            return nightDistances;
+        } else {
+            return dayDistances;
+        }
+    }
+
+    @Override
     public double[] getDayDuals() throws GRBException {
         if (isNight) {
             return new double[0];
@@ -60,11 +78,13 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     public void addColumn(Shift newShift) throws GRBException {
         GRBColumn newColumn = new GRBColumn();
 
-        for (Integer stop : newShift.route.subList(0, newShift.route.size() - 1)) {
-            newColumn.addTerm(1.0, constraints.get(stop));
+        for (Stop stop : getAllStops()) {
+            if (newShift.route.contains(stop.objectId)) {
+                newColumn.addTerm(1.0, constraints.get(stop.objectId));
+            }
         }
 
-        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', String.format("shift %d", shifts.size()));
+        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', newColumn, String.format("shift %d", shifts.size()));
         shiftVars.put(shifts.size(), shiftVar);
         shifts.add(newShift);
         
@@ -133,7 +153,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     }
 
     public void addStopDummyAndConstr() throws GRBException {
-        for (Stop stop : allStops) {
+        for (Stop stop : getAllStops()) {
 
             if (stop.idMaximo.equals("Depot")) {
                 continue;

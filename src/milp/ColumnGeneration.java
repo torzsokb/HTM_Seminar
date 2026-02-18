@@ -50,9 +50,10 @@ public class ColumnGeneration {
     }
 
     private boolean CGIter() throws GRBException {
+        
         rmp.solve();
 
-        if (!rmp.isFeasible()) {
+        if (rmp.isInfeasible()) {
             return false;
         }
 
@@ -74,11 +75,7 @@ public class ColumnGeneration {
                 rmp.getMaxDuration(), 
                 rmp.getMinDuration()
             );
-            if (newDayShifts.size() != 0) {
-                rmp.addColumns(newDayShifts);
-                improvement = true;
-            }
-
+            
             List<Shift> newNightShifts = pp.getNewShifts(
                 rmp.getNightDistances(), 
                 rmp.getNightStops(), 
@@ -86,6 +83,12 @@ public class ColumnGeneration {
                 rmp.getMaxDuration(), 
                 rmp.getMinDuration()
             );
+
+            if (newDayShifts.size() != 0) {
+                rmp.addColumns(newDayShifts);
+                improvement = true;
+            }
+            
             if (newNightShifts.size() != 0) {
                 rmp.addColumns(newNightShifts);
                 improvement = true;

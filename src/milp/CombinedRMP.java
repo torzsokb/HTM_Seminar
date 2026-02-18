@@ -153,11 +153,13 @@ public class CombinedRMP extends RestrictedMasterProblem {
     public void addNightColumn(Shift newShift) throws GRBException {
         GRBColumn newColumn = new GRBColumn();
 
-        for (Integer stop : newShift.route.subList(0, newShift.route.size() - 1)) {
-            newColumn.addTerm(1.0, constraintsNight.get(stop));
+        for (Stop stop : nightStops) {
+            if (newShift.route.contains(stop.objectId)) {
+                newColumn.addTerm(1.0, constraintsNight.get(stop.objectId));
+            }
         }
 
-        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', String.format("shift nigth %d", shifts.size()));
+        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', newColumn, String.format("shift nigth %d", shifts.size()));
         nightShiftVars.put(shifts.size(), shiftVar);
         shifts.add(newShift);
         
@@ -169,11 +171,13 @@ public class CombinedRMP extends RestrictedMasterProblem {
     public void addDayColumn(Shift newShift) throws GRBException {
         GRBColumn newColumn = new GRBColumn();
 
-        for (Integer stop : newShift.route.subList(0, newShift.route.size() - 1)) {
-            newColumn.addTerm(1.0, constraintsDay.get(stop));
+        for (Stop stop : dayStops) {
+            if (newShift.route.contains(stop.objectId)) {
+                newColumn.addTerm(1.0, constraintsDay.get(stop.objectId));
+            }
         }
 
-        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', String.format("shift day %d", shifts.size()));
+        GRBVar shiftVar = model.addVar(0.0, 1.0, newShift.travelTime, 'C', newColumn, String.format("shift day %d", shifts.size()));
         dayShiftVars.put(shifts.size(), shiftVar);
         
         model.update();
@@ -225,6 +229,13 @@ public class CombinedRMP extends RestrictedMasterProblem {
                 constraintsNight.put(stop.objectId, coverStop);
             }
 
+            model.update();
+
         }
     }
+
+    // @Override
+    // public void printDummyState() throws GRBException {
+        
+    // }
 }

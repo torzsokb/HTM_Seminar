@@ -134,7 +134,7 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         model.optimize();
     }
 
-    public boolean isFeasible() throws GRBException {
+    public boolean isInfeasible() throws GRBException {
         return (model.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE);
     }
 
@@ -175,6 +175,8 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         return subMatrix;
 
     }
+
+    // public abstract void printDummyState() throws GRBException;
     
     
 }
