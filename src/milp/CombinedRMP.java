@@ -41,10 +41,20 @@ public class CombinedRMP extends RestrictedMasterProblem {
     }
 
     @Override
-    public double[] getNightDuals() throws GRBException {
+    public double[] getAllDuals() throws GRBException {
         double[] duals = new double[constraintsNight.size()];
         for (int i = 0; i < constraintsNight.size(); i++) {
             duals[i] = constraintsNight.get(i).get(GRB.DoubleAttr.Pi);
+        }
+        return duals;
+    }
+
+
+    @Override
+    public double[] getNightDuals() throws GRBException {
+        double[] duals = new double[nightStops.size()];
+        for (int i = 0; i < nightStops.size(); i++) {
+            duals[i] = constraintsNight.get(nightStops.get(i).objectId).get(GRB.DoubleAttr.Pi);
         }
         return duals;
     }
@@ -125,7 +135,6 @@ public class CombinedRMP extends RestrictedMasterProblem {
         }
     }
 
-
     @Override
     public void setMaxDurationConstraint() throws GRBException {
         for (int i = 0; i < shifts.size(); i++) {
@@ -139,27 +148,6 @@ public class CombinedRMP extends RestrictedMasterProblem {
             }
         }
     }
-
-     @Override
-    public double[][] getDayDistances() {
-        return this.distances;
-    }
-
-    @Override
-    public double[][] getNightDistances() {
-        return this.distances;
-    }
-
-    @Override
-    public List<Stop> getDayStops() {
-        return this.stops;
-    }
-
-    @Override
-    public List<Stop> getNightStops() {
-        return this.stops;
-    }
-
 
 
     public void addNightColumn(Shift newShift) throws GRBException {
@@ -192,6 +180,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
     }
 
+
     @Override
     public void addShiftDummyAndConstr() throws GRBException {
 
@@ -213,9 +202,10 @@ public class CombinedRMP extends RestrictedMasterProblem {
         model.update();
     }
 
+
     @Override
     public void addStopDummyAndConstr() throws GRBException {
-        for (Stop stop : stops) {
+        for (Stop stop : allStops) {
 
             if (stop.idMaximo.equals("Depot")) {
                 continue;

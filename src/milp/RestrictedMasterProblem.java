@@ -10,8 +10,12 @@ import core.HTMInstance;
 public abstract class RestrictedMasterProblem implements AutoCloseable {
     
     protected final HTMInstance instance;
-    protected final List<Stop> stops;
-    protected final double[][] distances;
+    protected final List<Stop> allStops;
+    protected final List<Stop> dayStops;
+    protected final List<Stop> nightStops;
+    protected final double[][] allDistances;
+    protected final double[][] dayDistances;
+    protected final double[][] nightDistances;
     protected final int numberOfShifts;
     protected final double bigM;
 
@@ -32,8 +36,15 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
     ) throws GRBException {
         
         this.instance = instance;
-        this.stops = stops;
-        this.distances = distances;
+
+        this.allStops = stops;
+        this.dayStops = createDayStops(stops);
+        this.nightStops = createNightStops(stops);
+
+        this.allDistances = distances;
+        this.nightDistances = getSubDistanceMatrix(distances, stops, nightStops);
+        this.dayDistances = getSubDistanceMatrix(distances, stops, dayStops);
+
         this.maxDuration = maxDuration;
         this.minDuration = minDuration;
         this.numberOfShifts = numberOfShifts;
@@ -47,9 +58,9 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         this.model.set(GRB.IntAttr.ModelSense, GRB.MINIMIZE);
     }
 
-    
-
     public abstract double[] getDayDuals() throws GRBException;
+
+    public abstract double[] getAllDuals() throws GRBException;
 
     public abstract double[] getNightDuals() throws GRBException;
 
@@ -71,13 +82,29 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         this.minDuration = minDuration;
     }
 
-    public abstract double[][] getDayDistances();
+    public double[][] getDayDistances() {
+        return dayDistances;
+    }
 
-    public abstract double[][] getNightDistances();
+    public double[][] getNightDistances() {
+        return nightDistances;
+    }
 
-    public abstract List<Stop> getDayStops();
+    public double[][] getAllDistances() {
+        return allDistances;
+    }
 
-    public abstract List<Stop> getNightStops();
+    public List<Stop> getDayStops() {
+        return dayStops;
+    }
+
+    public List<Stop> getNightStops() {
+        return nightStops;
+    }
+
+    public List<Stop> getAllStops() {
+        return allStops;
+    }
 
     public double getMinDuration() {
         return this.minDuration;
@@ -117,6 +144,37 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         try { env.dispose(); } catch (Exception ignored) {}
     }
 
+
+    public static List<Stop> createNightStops(List<Stop> allStops) {
+        List<Stop> nightStops = new ArrayList<>();
+        for (Stop stop : allStops) {
+            if (stop.nightShift != 0) {
+                nightStops.add(stop);
+            }
+        }
+        return nightStops;
+    }
+
+    public static List<Stop> createDayStops(List<Stop> allStops) {
+        List<Stop> dayStops = new ArrayList<>();
+        for (Stop stop : allStops) {
+            if (stop.nightShift != 1) {
+                dayStops.add(stop);
+            }
+        }
+        return dayStops;
+    }
+
+    public static double[][] getSubDistanceMatrix(double[][] travelTimes, List<Stop> allStops, List<Stop> selectedStops) {
+        double[][] subMatrix = new double[selectedStops.size()][selectedStops.size()];
+        for (int i = 0; i < selectedStops.size(); i++) {
+            for (int j = 0; j < selectedStops.size(); j++) {
+                subMatrix[i][j] = travelTimes[selectedStops.get(i).objectId][selectedStops.get(j).objectId];
+            }
+        }
+        return subMatrix;
+
+    }
     
     
 }

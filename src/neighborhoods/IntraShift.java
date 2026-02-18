@@ -39,7 +39,8 @@ public class IntraShift implements Neighborhood {
             List<Shift> shifts,
             HTMInstance instance,
             double[][] travelTimes,
-            double maxShiftDuration
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
     ) {
         Shift s = shifts.get(move.route1);
         List<Integer> ids = s.route;

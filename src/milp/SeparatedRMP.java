@@ -13,6 +13,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     private final Map<Integer, GRBVar> shiftVars = new HashMap<>();
     private final List<Shift> shifts = new ArrayList<>();
     private final Map<Integer, GRBConstr> constraints = new HashMap<>();
+    private final boolean isNight;
 
     public SeparatedRMP(
         HTMInstance instance,
@@ -21,23 +22,38 @@ public class SeparatedRMP extends RestrictedMasterProblem {
         double maxDuration,
         double minDuration,
         int numberOfShifts,
-        double bigM) throws GRBException {
+        double bigM,
+        boolean isNight) throws GRBException {
         
         super(instance, stops, distances, maxDuration, minDuration, numberOfShifts, bigM);
+        this.isNight = isNight;
     }
 
     @Override
     public double[] getDayDuals() throws GRBException {
+        if (isNight) {
+            return new double[0];
+        } else {
+             return getAllDuals();
+        }
+    }
+
+    @Override
+    public double[] getNightDuals() throws GRBException {
+        if (isNight) {
+            return getAllDuals();
+        } else {
+            return new double[0];
+        }   
+    }
+
+    @Override
+    public double[] getAllDuals() throws GRBException {
         double[] duals = new double[constraints.size()];
         for (int i = 0; i < constraints.size(); i++) {
             duals[i] = constraints.get(i).get(GRB.DoubleAttr.Pi);
         }
         return duals;
-    }
-
-    @Override
-    public double[] getNightDuals() throws GRBException {
-        return new double[0];
     }
 
     @Override
@@ -73,6 +89,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
         }
     }
 
+
     @Override
     public double getLongestDrivingTime() throws GRBException {
         double max = 0.0;
@@ -86,6 +103,8 @@ public class SeparatedRMP extends RestrictedMasterProblem {
         return max;
     }
 
+
+
     @Override
     public double getLongestShiftDuration() throws GRBException {
         double max = 0.0;
@@ -98,27 +117,6 @@ public class SeparatedRMP extends RestrictedMasterProblem {
         }
         return max;
     }
-
-    @Override
-    public double[][] getDayDistances() {
-        return this.distances;
-    }
-
-    @Override
-    public double[][] getNightDistances() {
-        return this.distances;
-    }
-
-    @Override
-    public List<Stop> getDayStops() {
-        return this.stops;
-    }
-
-    @Override
-    public List<Stop> getNightStops() {
-        return this.stops;
-    }
-
 
 
     public void addShiftDummyAndConstr() throws GRBException {
@@ -135,7 +133,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     }
 
     public void addStopDummyAndConstr() throws GRBException {
-        for (Stop stop : stops) {
+        for (Stop stop : allStops) {
 
             if (stop.idMaximo.equals("Depot")) {
                 continue;
@@ -152,5 +150,15 @@ public class SeparatedRMP extends RestrictedMasterProblem {
 
             model.update();
         }
+    }
+
+    private static boolean checkNight(List<Stop> stops) {
+        boolean isNight = false;
+        for (Stop stop : stops) {
+            if (stop.nightShift == 0) {
+                return true;
+            }
+        }
+        return isNight;
     }
 }
