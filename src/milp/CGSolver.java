@@ -20,8 +20,8 @@ public class CGSolver {
     static final String travelPath   = "src/core/travel_times_collapsedv2.txt";
     static final boolean separated = false;
     static final double maxDuration = 7 * 60;
-    static final double minDuration = 4.5 * 60;
-    static final int maxIter = 50;
+    static final double minDuration = 0;
+    static final int maxIter = 10;
 
 
     public static void main(String[] args) throws Exception {
@@ -37,9 +37,11 @@ public class CGSolver {
             new Intra2Opt()
         );
 
+        List<Shift> initialSol = StartingSolution.startingSolution();
+
         AcceptanceFunction acceptanceFunction = Acceptance.greedy();
         RouteCompatibility compatibility = Compatibility.sameNightShift();
-        PricingHeuristic pricingHeuristic = new PricingHeuristic(maxDuration, minDuration, 1000, neighborhoods, acceptanceFunction, compatibility, instance);
+        PricingHeuristic pricingHeuristic = new PricingHeuristic(maxDuration, minDuration, 10000, neighborhoods, acceptanceFunction, compatibility, instance);
         PricingProblem pp = new PricingProblem(pricingHeuristic);
 
 
@@ -48,14 +50,12 @@ public class CGSolver {
             SeparatedRMP nightRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration, minDuration, 25, maxDuration * 50, true);
 
         } else {
-            CombinedRMP RMP = new CombinedRMP(instance, stops, travelTimes, maxDuration, minDuration, 50, maxDuration * 500);
+            CombinedRMP RMP = new CombinedRMP(instance, stops, travelTimes, maxDuration, minDuration, 50, maxDuration * 50);
             ColumnGeneration CG = new ColumnGeneration(RMP, pp, maxIter, separated);
+            // boolean a = CG.CGIter();
+            CG.addStartingSol(initialSol);
             CG.solveSingleObj();
         }   
-
-
-    }
-
-    
+    }    
     
 }
