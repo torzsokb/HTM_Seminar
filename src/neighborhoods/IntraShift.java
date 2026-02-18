@@ -10,8 +10,6 @@ import java.util.List;
 public class IntraShift implements Neighborhood {
     private static final double EPS = 1e-6;
 
-
-
     @Override
     public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
         List<Move> moves = new ArrayList<>();
@@ -39,8 +37,10 @@ public class IntraShift implements Neighborhood {
             List<Shift> shifts,
             HTMInstance instance,
             double[][] travelTimes,
-            double maxShiftDuration
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
     ) {
+        
         Shift s = shifts.get(move.route1);
         List<Integer> ids = s.route;
         int n = ids.size();

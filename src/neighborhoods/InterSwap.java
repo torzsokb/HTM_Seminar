@@ -51,7 +51,8 @@ public class InterSwap implements Neighborhood {
             List<Shift> shifts,
             HTMInstance instance,
             double[][] travelTimes,
-            double maxShiftDuration
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
     ) {
         Shift s1 = shifts.get(move.route1);
         Shift s2 = shifts.get(move.route2);
@@ -94,6 +95,7 @@ public class InterSwap implements Neighborhood {
         double currentObj = s1.totalTime + s2.totalTime;
         double newObj = newDur1 + newDur2;
         double improvement = currentObj - newObj;
+        // System.out.println("The improvement is " + improvement);
         if (Math.abs(improvement) < EPS) improvement = 0.0;
 
         return new Evaluation(improvement, true);
