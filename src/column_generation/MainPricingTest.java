@@ -13,6 +13,7 @@ public class MainPricingTest {
         String travelPath = "src/core/travel_times_collapsedv2.txt";
 
         HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+        List<Stop> stops = instance.getStops();
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
         int numNodes = travelTimes.length;
@@ -42,24 +43,17 @@ public class MainPricingTest {
                 maxShifts,
                 neighborhoods,
                 accept,
-                compatibility
+                compatibility,
+                instance
         );
 
-        List<Shift> nightShifts = pricing.generateShifts(instance, travelTimes, duals, 1);
-        System.out.println("Generated night shifts: " + nightShifts.size());
-        // for (Shift s : nightShifts) {
-        //     System.out.println("Shift route: " + s.route + " | totalTime: " + s.totalTime);
-        // }
-
-        List<Shift> dayShifts = pricing.generateShifts(instance, travelTimes, duals, 0);
-        System.out.println("Generated day shifts: " + dayShifts.size());
-        // for (Shift s : dayShifts) {
-        //     System.out.println("Shift route: " + s.route + " | totalTime: " + s.totalTime);
-        // }
+        List<Shift> shifts = pricing.generateShifts(stops, travelTimes, duals);
+        for (Shift s : shifts) {
+            System.out.println("Shift route: " + s.route + " | totalTime: " + s.totalTime);
+        }
 
         List<Shift> allShifts = new ArrayList<>();
-        allShifts.addAll(nightShifts);
-        allShifts.addAll(dayShifts);
+        allShifts.addAll(shifts);
         long endTime = System.currentTimeMillis();
 
         double number_neg_rc_shifts = allShifts.size();

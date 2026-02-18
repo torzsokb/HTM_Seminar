@@ -1,5 +1,6 @@
 package column_generation;
 
+import java.io.IOException;
 import java.util.*;
 import core.*;
 
@@ -8,31 +9,58 @@ import core.*;
  */
 public class ElementaryShortestPathHeuristic {
 
-    public static List<Shift> generateShiftPool(List<Stop> stops, double[][] travelTimes,
-                                                double[][] reducedCosts,
-                                                double maxShiftDuration,
-                                                double minShiftDuration,
-                                                int nightShift,
-                                                int maxShifts) {
-        List<Shift> shiftPool = new ArrayList<>();
+    public static List<Shift> generateShiftPool(List<Stop> stops,
+        double[][] travelTimes,
+        double[][] reducedCosts,
+        double maxShiftDuration,
+        double minShiftDuration,
+        int maxShifts) throws IOException {
+
         int n = stops.size();
 
-        // Randomize start nodes (skip depot)
         List<Integer> startNodes = new ArrayList<>();
         for (int i = 1; i < n; i++) startNodes.add(i);
-        Collections.shuffle(startNodes);
 
-        for (int startNode : startNodes) {
-            Shift s = generateShiftFromNode(stops, travelTimes, reducedCosts,
-                                            maxShiftDuration, minShiftDuration, nightShift, startNode);
-            if (s != null) {
-                shiftPool.add(s);
-                if (shiftPool.size() >= maxShifts) break;
-            }
+        Random rnd = new Random(10);
+        Collections.shuffle(startNodes, rnd);
+
+        int repetitionsPerStart = 3;   // ✔ 2–3 repetitions
+        double alpha = 0.3;            // ✔ RCL parameter
+
+        List<Shift> shiftPool = Collections.synchronizedList(new ArrayList<>());
+
+        startNodes.parallelStream().forEach(startNode -> {
+
+        Random localRnd = new Random(startNode * 31 + 7);
+
+        for (int r = 0; r < repetitionsPerStart; r++) {
+
+        if (shiftPool.size() >= maxShifts) return;
+
+        try {
+        Shift s = generateShiftFromNode(
+        stops,
+        travelTimes,
+        reducedCosts,
+        maxShiftDuration,
+        minShiftDuration,
+        startNode,
+        alpha,
+        localRnd);
+
+        if (s != null) {
+        shiftPool.add(s);
         }
 
+        } catch (IOException e) {
+        throw new RuntimeException(e);
+        }
+        }
+        });
+
         return shiftPool;
-    }
+        }
+
 
     private static Shift generateShiftFromNode(
         List<Stop> stops,
@@ -40,8 +68,9 @@ public class ElementaryShortestPathHeuristic {
         double[][] reducedCosts,
         double maxShiftDuration,
         double minShiftDuration,
-        int nightShift,
-        int startNode) {
+        int startNode,
+        double alpha,
+        Random rnd) throws IOException {
             
             int n = stops.size();
             boolean[] visited = new boolean[n];
@@ -65,45 +94,69 @@ public class ElementaryShortestPathHeuristic {
 
             while (true) {
 
-                int nextNode = -1;
+                List<Integer> feasible = new ArrayList<>();
                 double bestCost = Double.POSITIVE_INFINITY;
-
+            
                 for (int j = 1; j < n; j++) {
-
+            
                     if (visited[j]) continue;
-
+            
                     double newTravel = travelTime + travelTimes[current][j];
                     double newService = serviceTime + stops.get(j).serviceTime;
-
+            
                     double newTotalTime = FIXED_TIME
                             + newTravel
                             + newService
                             + travelTimes[j][depot];
-
-                    if (newTotalTime <= maxShiftDuration
-                            && reducedCosts[current][j] < bestCost) {
-
-                        bestCost = reducedCosts[current][j];
-                        nextNode = j;
+            
+                    if (newTotalTime <= maxShiftDuration) {
+            
+                        double rc = reducedCosts[current][j];
+            
+                        if (rc < bestCost) {
+                            bestCost = rc;
+                        }
+            
+                        feasible.add(j);
                     }
                 }
-
-                if (nextNode == -1)
+            
+                if (feasible.isEmpty())
                     break;
-
+        
+                double threshold = bestCost + alpha * Math.abs(bestCost);
+            
+                List<Integer> rcl = new ArrayList<>();
+                for (int j : feasible) {
+                    if (reducedCosts[current][j] <= threshold) {
+                        rcl.add(j);
+                    }
+                }
+            
+                if (rcl.isEmpty())
+                    break;
+            
+                int nextNode = rcl.get(rnd.nextInt(rcl.size()));
+            
                 travelTime += travelTimes[current][nextNode];
                 serviceTime += stops.get(nextNode).serviceTime;
-
+            
                 route.add(nextNode);
                 visited[nextNode] = true;
-
+            
                 current = nextNode;
             }
+            
 
             travelTime += travelTimes[current][depot];
             route.add(depot);
 
             double totalTime = FIXED_TIME + travelTime + serviceTime;
+
+            String instancePath = "src/core/data_all.txt";
+            
+            HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+            int nightShift = (Utils.containsNightStop(route, instance)) ? 1 : 0;
 
             if (totalTime < minShiftDuration)
                 return null;

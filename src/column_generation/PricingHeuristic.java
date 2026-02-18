@@ -5,6 +5,7 @@ import search.*;
 import java.io.IOException;
 import java.util.*;
 import core.*;
+import milp.*;
 
 public class PricingHeuristic {
 
@@ -14,17 +15,19 @@ public class PricingHeuristic {
     private List<Neighborhood> neighborhoods;
     private AcceptanceFunction acceptFunction;
     private RouteCompatibility compatibility;
+    private HTMInstance instance;
 
     public PricingHeuristic(double maxShiftDuration, double minShiftDuration, int maxShifts,
                             List<Neighborhood> neighborhoods,
                             AcceptanceFunction acceptFunction,
-                            RouteCompatibility compatibility) {
-        this.maxShiftDuration = maxShiftDuration;
-        this.minShiftDuration = minShiftDuration;
-        this.maxShifts = maxShifts;
-        this.neighborhoods = neighborhoods;
-        this.acceptFunction = acceptFunction;
-        this.compatibility = compatibility;
+                            RouteCompatibility compatibility, HTMInstance instance) {
+                                    this.maxShiftDuration = maxShiftDuration;
+                                    this.minShiftDuration = minShiftDuration;
+                                    this.maxShifts = maxShifts;
+                                    this.neighborhoods = neighborhoods;
+                                    this.acceptFunction = acceptFunction;
+                                    this.compatibility = compatibility;
+                                    this.instance = instance;
     }
     private static class ShiftWithCost {
         Shift shift;
@@ -36,25 +39,32 @@ public class PricingHeuristic {
         }
     }    
 
-    public List<Shift> generateShifts(HTMInstance instance, double[][] travelTimes, double[] duals, int nightShift) throws IOException {
+    public List<Shift> generateShifts(List<Stop> stops, double[][] travelTimes, double[] duals) throws IOException {
         double[][] reducedCosts = ReducedCost.computeReducedCost(travelTimes, duals);
 
         List<Shift> pool = ElementaryShortestPathHeuristic.generateShiftPool(
-                instance.getStops(),
+                stops,
                 travelTimes,
                 reducedCosts,
                 maxShiftDuration,
                 minShiftDuration,
-                nightShift,
                 maxShifts
         );
 
-        for (Shift shift : pool) {
-            List<Shift> tmp = new ArrayList<>();
-            tmp.add(shift);
-            tmp = localSearchOnSingleShift(tmp, travelTimes, neighborhoods);
-            shift.route = tmp.get(0).route;
-        }
+        pool.parallelStream().forEach(shift -> {
+            try {
+                List<Shift> tmp = new ArrayList<>();
+                tmp.add(shift);
+        
+                List<Shift> improved =
+                        localSearchOnSingleShift(tmp, travelTimes, neighborhoods);
+        
+                shift.route = improved.get(0).route;
+        
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });        
 
         List<ShiftWithCost> candidates = new ArrayList<>();
         for (Shift s : pool) {
@@ -62,17 +72,17 @@ public class PricingHeuristic {
 
             if (rc < 0 && s.totalTime >= minShiftDuration) {
                 candidates.add(new ShiftWithCost(s, rc));
-                System.out.printf(
-                    "Shift size: %3d | TotalTime: %8.2f | ReducedCost: %10.5f%n",
-                    s.route.size(),
-                    s.totalTime,
-                    rc
-                );
+                // System.out.printf(
+                //     "Shift size: %3d | TotalTime: %8.2f | ReducedCost: %10.5f%n",
+                //     s.route.size(),
+                //     s.totalTime,
+                //     rc
+                // );
             }
         }
         candidates.sort(Comparator.comparingDouble(sw -> sw.reducedCost));
 
-        List<Shift> filtered = filterShiftsWithCost(candidates, 100, 0.75);
+        List<Shift> filtered = filterShiftsWithCost(candidates, 1000, 1);
 
         return filtered;
     }
@@ -96,12 +106,12 @@ public class PricingHeuristic {
             if (!tooSimilar) {
             filtered.add(sw.shift);
 
-            System.out.printf(
-            "Shift size: %3d | TotalTime: %8.2f | ReducedCost: %10.5f%n",
-            sw.shift.route.size(),
-            sw.shift.totalTime,
-            sw.reducedCost
-            );
+            // System.out.printf(
+            // "Shift size: %3d | TotalTime: %8.2f | ReducedCost: %10.5f%n",
+            // sw.shift.route.size(),
+            // sw.shift.totalTime,
+            // sw.reducedCost
+            // );
         }
         if (filtered.size() >= maxKeep)
             break;
@@ -153,16 +163,15 @@ public class PricingHeuristic {
         }
     
     private List<Shift> localSearchOnSingleShift(List<Shift> shifts, double[][] travelTimes, List<Neighborhood> neighborhoods) throws IOException {
-        String instancePath = "src/core/data_all.txt";
-        HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
-
+        ObjectiveFunction objectiveFunction = Objective.totalLength();
         LocalSearch ls = new LocalSearch(
                 neighborhoods,
                 acceptFunction,
                 compatibility,
                 ImprovementChoice.BEST,
                 100,
-                (int) maxShiftDuration
+                (int) maxShiftDuration,
+                objectiveFunction
         );
         return ls.run(shifts, instance, travelTimes);
     }

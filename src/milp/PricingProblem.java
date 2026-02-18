@@ -6,28 +6,37 @@ import java.io.IOException;
 import java.util.*;
 import core.*;
 
-public class PricingProblem {
+public class PricingProblem implements RCESPP {
 
-    private PricingHeuristic heuristic;
+    private final PricingHeuristic heuristic;
 
     public PricingProblem(PricingHeuristic heuristic) {
         this.heuristic = heuristic;
     }
 
-    public List<Shift> solve(
-            HTMInstance instance,
-            double[][] travelTimes,
-            double[] duals,
-            int nightShift) throws IOException {
+    @Override
+    public List<Shift> getNewShifts(
+        double[][] travelTimes, List<Stop> stops, double[] duals, double maxDuration,
+        double minDuration) {
+            List<Shift> newShifts = new ArrayList<>();
+            try {
+                newShifts = heuristic.generateShifts(
+                    stops,
+                    travelTimes,
+                    duals
+      );
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
-        // Call heuristic pricing
-        List<Shift> newColumns = heuristic.generateShifts(
-                instance,
-                travelTimes,
-                duals,
-                nightShift
-        );
-
-        return newColumns;
+        return newShifts;
     }
+
+    // @Override
+    // public List<Shift> getNewShifts(double[][] distances, List<Stop> stops, double[] duals, double maxDuration,
+    //         double minDuration) {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getNewShifts'");
+    // }
 }
