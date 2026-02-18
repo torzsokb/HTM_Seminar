@@ -23,6 +23,11 @@ public class ColumnGeneration {
     }
 
     public void addStartingSol(List<Shift> shifts) throws GRBException {
+        double obj = 0.0;
+        for (Shift shift : shifts) {
+            obj += shift.travelTime;
+        }
+        System.out.print("starting solution objective: " + obj);
         rmp.addColumns(shifts);
     }
 
@@ -55,6 +60,7 @@ public class ColumnGeneration {
 
     public boolean CGIter() throws GRBException {
         rmp.solve();
+        rmp.printSolution();
 
         if (rmp.isInfeasible()) {
             System.out.println("INFEASIBLE");

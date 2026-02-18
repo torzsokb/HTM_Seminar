@@ -15,8 +15,8 @@ public class ReducedCost {
         int n = travelTimes.length;
         double[][] reducedCosts = new double[n][n];
     
-        for (int i = 0; i < n; i++) {
-            double nodeDual = duals[i + 1]; // skip first dual (shift dual)
+        for (int i = 1; i < n; i++) {
+            double nodeDual = duals[i]; // skip first dual (shift dual)
             for (int j = 0; j < n; j++) {
                 if (i == j) {
                     reducedCosts[i][j] = Double.POSITIVE_INFINITY; // no self loops

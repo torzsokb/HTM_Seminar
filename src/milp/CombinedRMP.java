@@ -61,10 +61,10 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
     @Override
     public void addColumn(Shift newShift) throws GRBException {
-        if (newShift.nightShift == 0) {
-            addDayColumn(newShift);
+        if (isNightShift(newShift)) {
             addNightColumn(newShift);
         } else {
+            addDayColumn(newShift);
             addNightColumn(newShift);
         }
     }
@@ -153,7 +153,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
     public void addNightColumn(Shift newShift) throws GRBException {
         GRBColumn newColumn = new GRBColumn();
 
-        for (Stop stop : nightStops) {
+        for (Stop stop : allStops) {
             if (newShift.route.contains(stop.objectId)) {
                 newColumn.addTerm(1.0, constraintsNight.get(stop.objectId));
             }
@@ -188,15 +188,15 @@ public class CombinedRMP extends RestrictedMasterProblem {
     @Override
     public void addShiftDummyAndConstr() throws GRBException {
 
-        GRBVar dummyDay = model.addVar(0.0, 1.0, 0.0, 'C', "dummy day");
-        GRBVar dummyNight = model.addVar(0.0, 1.0, 0.0, 'C', "dummy night");
+        GRBVar dummyDay = model.addVar(0.0, 1.0 * numberOfShifts, 0.0, 'C', "dummy day");
+        GRBVar dummyNight = model.addVar(0.0, 1.0 * numberOfShifts, 0.0, 'C', "dummy night");
         dayDummyVars.put(0, dummyDay);
         nightDummyVars.put(0, dummyNight);
 
         GRBLinExpr constrExprDay = new GRBLinExpr();
         GRBLinExpr constrExprNight = new GRBLinExpr();
-        constrExprDay.addTerm(1.0 * numberOfShifts, dummyDay);
-        constrExprNight.addTerm(1.0 * numberOfShifts, dummyNight);
+        constrExprDay.addTerm(1.0, dummyDay);
+        constrExprNight.addTerm(1.0, dummyNight);
 
         GRBConstr numberOfShiftsDay = model.addConstr(constrExprDay, GRB.LESS_EQUAL, 1.0 * this.numberOfShifts, "number of day shifts");
         GRBConstr numberOfShiftsNight = model.addConstr(constrExprNight, GRB.LESS_EQUAL, 1.0 * this.numberOfShifts, "number of night shifts");
@@ -234,8 +234,74 @@ public class CombinedRMP extends RestrictedMasterProblem {
         }
     }
 
-    // @Override
-    // public void printDummyState() throws GRBException {
-        
-    // }
+    @Override
+    public List<Shift> getSolution() throws GRBException {
+        List<Shift> solution = new ArrayList<>();
+
+        for (int i = 0; i < shifts.size(); i++) {
+            Shift shift = shifts.get(i);
+            if (shift.nightShift == 0) {
+                if (nightShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.5 || dayShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.5) {
+                    solution.add(shift);
+                }
+            } else {
+                if (nightShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.5) {
+                    solution.add(shift);
+                }
+            }
+        }
+
+        return solution;
+    }
+    
+
+    @Override
+    public void printDummyState() throws GRBException {
+        boolean dayDummiesActive = false;
+        boolean nightDummiesActive = false;
+
+        for (Stop stop  : dayStops) {
+
+            GRBVar dayDummy = dayDummyVars.get(stop.objectId);
+            double value = dayDummy.get(GRB.DoubleAttr.X);
+            String name = dayDummy.get(GRB.StringAttr.VarName);
+
+            if (value >= 0.5) {
+                dayDummiesActive = true;
+                System.out.print("variable: " + name + ", value: " + value);
+            }
+            
+        }
+
+        if (!dayDummiesActive) {
+            System.out.print("no day dummies active");
+        }
+
+        for (Stop stop  : nightStops) {
+
+            GRBVar nightDummy = nightDummyVars.get(stop.objectId);
+            double value = nightDummy.get(GRB.DoubleAttr.X);
+            String name = nightDummy.get(GRB.StringAttr.VarName);
+
+            if (value >= 0.5) {
+                nightDummiesActive = true;
+                System.out.print("variable: " + name + ", value: " + value);
+            }
+            
+        }
+
+        if (!nightDummiesActive) {
+            System.out.print("no night dummies active");
+        }
+
+    }
+    
+    
+    @Override
+    public void printSolution() throws GRBException {
+        printDummyState();
+        for (Shift shift : getSolution()) {
+            System.out.print(shift);
+        }
+    }
 }

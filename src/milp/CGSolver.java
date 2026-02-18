@@ -21,7 +21,7 @@ public class CGSolver {
     static final boolean separated = false;
     static final double maxDuration = 7 * 60;
     static final double minDuration = 0;
-    static final int maxIter = 10;
+    static final int maxIter = 50;
 
 
     public static void main(String[] args) throws Exception {

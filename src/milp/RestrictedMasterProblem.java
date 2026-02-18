@@ -176,7 +176,30 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
 
     }
 
-    // public abstract void printDummyState() throws GRBException;
+    public boolean isNightShift(Shift shift) {
+        boolean isNight = false;
+        for (Integer stopId : shift.route) {
+            if (allStops.get(stopId).nightShift == 1) {
+                isNight = true;
+            }
+        }
+        if (isNight && shift.nightShift == 0) {
+            System.out.print("this is actually a night shift even though shift.nightShift == 0");
+            shift.nightShift = 1;
+        }
+        if (!isNight && shift.nightShift == 1) {
+            System.out.print("this is not actually a night shift even though shift.nightShift == 1");
+            shift.nightShift = 0;
+        }
+        return isNight;
+
+    }
+
+    public abstract List<Shift> getSolution() throws GRBException;
+
+    public abstract void printSolution() throws GRBException;
+
+    public abstract void printDummyState() throws GRBException;
     
     
 }
