@@ -22,6 +22,10 @@ public class ColumnGeneration {
         this.separated = separated;
     }
 
+    public void addStartingSol(List<Shift> shifts) throws GRBException {
+        rmp.addColumns(shifts);
+    }
+
     public void solveMinMax() throws GRBException {
         while (true) {
             if (solveSingleObj()) {
@@ -49,11 +53,11 @@ public class ColumnGeneration {
         return solved;
     }
 
-    private boolean CGIter() throws GRBException {
-        
+    public boolean CGIter() throws GRBException {
         rmp.solve();
 
         if (rmp.isInfeasible()) {
+            System.out.println("INFEASIBLE");
             return false;
         }
 
@@ -75,7 +79,7 @@ public class ColumnGeneration {
                 rmp.getMaxDuration(), 
                 rmp.getMinDuration()
             );
-            
+
             List<Shift> newNightShifts = pp.getNewShifts(
                 rmp.getNightDistances(), 
                 rmp.getNightStops(), 
@@ -88,7 +92,7 @@ public class ColumnGeneration {
                 rmp.addColumns(newDayShifts);
                 improvement = true;
             }
-            
+
             if (newNightShifts.size() != 0) {
                 rmp.addColumns(newNightShifts);
                 improvement = true;
