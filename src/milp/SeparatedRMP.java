@@ -74,7 +74,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     @Override
     public void setMaxDurationConstraint() throws GRBException {
         for (int i = 0; i < shifts.size(); i++) {
-            if (shifts.get(i).totalTime >= maxDuration) {
+            if (shifts.get(i).serviceTime >= maxDuration) {
                 shiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
             }
         }
@@ -83,7 +83,7 @@ public class SeparatedRMP extends RestrictedMasterProblem {
     @Override
     public void setMinDurationConstraint() throws GRBException {
         for (int i = 0; i < shifts.size(); i++) {
-            if (shifts.get(i).totalTime <= minDuration) {
+            if (shifts.get(i).serviceTime <= minDuration) {
                 shiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
             }
         }
@@ -110,8 +110,8 @@ public class SeparatedRMP extends RestrictedMasterProblem {
         double max = 0.0;
         for (int i = 0; i < shifts.size(); i++) {
             if (shiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.9) {
-                if (shifts.get(i).totalTime > max) {
-                    max = shifts.get(i).totalTime;
+                if (shifts.get(i).serviceTime > max) {
+                    max = shifts.get(i).serviceTime;
                 }
             }
         }
@@ -150,15 +150,5 @@ public class SeparatedRMP extends RestrictedMasterProblem {
 
             model.update();
         }
-    }
-
-    private static boolean checkNight(List<Stop> stops) {
-        boolean isNight = false;
-        for (Stop stop : stops) {
-            if (stop.nightShift == 0) {
-                return true;
-            }
-        }
-        return isNight;
     }
 }

@@ -105,13 +105,13 @@ public class CombinedRMP extends RestrictedMasterProblem {
             if (shift.nightShift == 0) {
                 if (nightShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.9 || dayShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.9) {
                     if (shift.travelTime > max) {
-                        max = shifts.get(i).totalTime;
+                        max = shifts.get(i).serviceTime;
                     }
                 }
             } else {
                 if (nightShiftVars.get(i).get(GRB.DoubleAttr.X) >= 0.9) {
                     if (shift.travelTime > max) {
-                        max = shifts.get(i).totalTime;
+                        max = shifts.get(i).serviceTime;
                     }
                 }
             }
@@ -124,7 +124,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
     @Override
     public void setMinDurationConstraint() throws GRBException {
         for (int i = 0; i < shifts.size(); i++) {
-            if (shifts.get(i).totalTime <= minDuration) {
+            if (shifts.get(i).serviceTime <= minDuration) {
                 if (shifts.get(i).nightShift == 0) {
                     dayShiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
                     nightShiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
@@ -138,7 +138,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
     @Override
     public void setMaxDurationConstraint() throws GRBException {
         for (int i = 0; i < shifts.size(); i++) {
-            if (shifts.get(i).totalTime >= maxDuration) {
+            if (shifts.get(i).serviceTime >= maxDuration) {
                 if (shifts.get(i).nightShift == 0) {
                     dayShiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
                     nightShiftVars.get(i).set(GRB.DoubleAttr.UB, 0.0);
