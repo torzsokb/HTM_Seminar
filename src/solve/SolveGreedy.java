@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SolveGreedy {
+    //xx
     static final double shiftLength = 7 * 60;
     static final double totalShiftLength = 8 * 60;
 
@@ -31,8 +32,6 @@ public class SolveGreedy {
 
         double obj = Utils.totalObjective(greedy);
         System.out.println("Total objective value: " + obj);
-
-        // Utils.resultsToCSV(greedy, instance, "results_Greedy_abri.csv");
     }
 }
 

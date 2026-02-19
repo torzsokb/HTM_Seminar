@@ -75,13 +75,16 @@ public class FindingBestOrderLocalSearch {
                 // Copy initial solution
                 List<Shift> initialCopy = Utils.deepCopyShifts(initial);
 
+                ObjectiveFunction objectiveFunction = Objective.totalLength();
+
                 LocalSearch ls = new LocalSearch(
                         order,
                         acceptGreedy,
                         compatibility,
                         choice,
                         1000,           // max iterations
-                        totalShiftLength
+                        totalShiftLength,
+                        objectiveFunction
                 );
 
                 List<Shift> result = ls.run(initialCopy, instance, travelTimes);

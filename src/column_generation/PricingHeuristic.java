@@ -5,7 +5,6 @@ import search.*;
 import java.io.IOException;
 import java.util.*;
 import core.*;
-import milp.*;
 
 public class PricingHeuristic {
 
@@ -84,6 +83,7 @@ public class PricingHeuristic {
 
         List<Shift> filtered = filterShiftsWithCost(candidates, 5000, 1);
 
+        System.out.println(filtered.size() + " columns have been added");
         return filtered;
     }
 
@@ -169,8 +169,8 @@ public class PricingHeuristic {
                 acceptFunction,
                 compatibility,
                 ImprovementChoice.BEST,
-                100,
-                (int) maxShiftDuration,
+                1000,
+                (int) maxShiftDuration -60,
                 objectiveFunction
         );
         return ls.run(shifts, instance, travelTimes);
