@@ -1,4 +1,4 @@
-package solve;
+package results;
 
 import core.*;
 
