@@ -1,4 +1,5 @@
 package core;
+import java.util.Arrays;
 import java.util.List;
 
 public class Shift {
@@ -7,9 +8,13 @@ public class Shift {
     public double serviceTime;
     public double totalTime;
     public int nightShift;
+    public final double totalTimeNoBreak;
 
     public final double breakTime = 30.0;
     public final double prepTime = 30.0;
+
+    private final int[] uniqueStopsSorted;
+    private final int shiftSignature;
 
 
     public Shift(List<Integer> route, double travelTime, double serviceTime, int nightShift) {
@@ -18,10 +23,22 @@ public class Shift {
         this.serviceTime = serviceTime;
         this.totalTime = travelTime + serviceTime + breakTime + prepTime;
         this.nightShift = nightShift;
+        this.totalTimeNoBreak = travelTime + serviceTime;
+        this.uniqueStopsSorted = route.stream().mapToInt(Integer::intValue).distinct().sorted().toArray();
+        this.shiftSignature = Arrays.hashCode(uniqueStopsSorted);
     }
 
     public void recomputeTotalTime() {
         totalTime = travelTime + serviceTime + breakTime + prepTime;
     }
+
+    public int getSignature() {
+        return shiftSignature;
+    }
+
+    public int[] getUniqueStops() {
+        return uniqueStopsSorted;
+    }
+
 }
 

@@ -82,7 +82,7 @@ public class PricingHeuristic {
         }
         candidates.sort(Comparator.comparingDouble(sw -> sw.reducedCost));
 
-        List<Shift> filtered = filterShiftsWithCost(candidates, 1000, 1);
+        List<Shift> filtered = filterShiftsWithCost(candidates, 5000, 1);
 
         return filtered;
     }

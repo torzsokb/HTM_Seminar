@@ -16,5 +16,20 @@ public class Stop {
         this.nightShift = nightShift;
         this.serviceTime = serviceTime;
     }
+
+    @Override
+    public int hashCode() {
+        return objectId;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        
+        if (!(other instanceof Stop)) {
+            return false;
+        }
+
+        return (other.hashCode() == hashCode());
+    }
 }
 

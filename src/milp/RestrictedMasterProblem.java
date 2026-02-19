@@ -10,12 +10,29 @@ import core.HTMInstance;
 public abstract class RestrictedMasterProblem implements AutoCloseable {
     
     protected final HTMInstance instance;
+
     protected final List<Stop> allStops;
     protected final List<Stop> dayStops;
     protected final List<Stop> nightStops;
+
+    protected final int nStops;
+    protected final int nDayStops;
+    protected final int nNightStops;
+
+    protected final Map<Integer, GRBVar> dayDummyVars = new HashMap<>();
+    protected final Map<Integer, GRBVar> nightDummyVars = new HashMap<>();
+    protected final Map<Integer, GRBConstr> constraintsDay = new HashMap<>();
+    protected final Map<Integer, GRBConstr> constraintsNight = new HashMap<>();
+
+    protected final Map<Integer, Shift> dayShifts = new HashMap<>();
+    protected final Map<Integer, Shift> nightShifts = new HashMap<>();
+    protected final Map<Integer, GRBVar> dayShiftVars = new HashMap<>();
+    protected final Map<Integer, GRBVar> nightShiftVars = new HashMap<>();
+
     protected final double[][] allDistances;
     protected final double[][] dayDistances;
     protected final double[][] nightDistances;
+
     protected final int numberOfShifts;
     protected final double bigM;
 
@@ -40,6 +57,10 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         this.allStops = stops;
         this.dayStops = createDayStops(stops);
         this.nightStops = createNightStops(stops);
+
+        this.nStops = allStops.size();
+        this.nDayStops = dayStops.size();
+        this.nNightStops = nightStops.size();
 
         this.allDistances = distances;
         this.nightDistances = getSubDistanceMatrix(distances, stops, nightStops);
@@ -68,7 +89,18 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
 
     public abstract void addStopDummyAndConstr() throws GRBException;
 
+    public void setup() throws GRBException {
+        addShiftDummyAndConstr();
+        addStopDummyAndConstr();
+    }
+
     public abstract void addColumn(Shift newShift) throws GRBException;
+    
+    public void addColumns(List<Shift> newShifts) throws GRBException {
+        for (Shift shift : newShifts) {
+            addColumn(shift);
+        }
+    }
 
     public abstract double getLongestDrivingTime() throws GRBException;
 
@@ -114,21 +146,17 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         return this.maxDuration;
     }
 
-    public abstract void setMinDurationConstraint() throws GRBException;
-
-    public abstract void setMaxDurationConstraint() throws GRBException;
-
-    public void setup() throws GRBException {
-        addShiftDummyAndConstr();
-        addStopDummyAndConstr();
+    public void setMinDurationConstraint() throws GRBException {
+        setMinDurationConstraint(minDuration);
     }
 
+    public abstract void setMinDurationConstraint(double minDuration) throws GRBException;
 
-    public void addColumns(List<Shift> newShifts) throws GRBException {
-        for (Shift shift : newShifts) {
-            addColumn(shift);
-        }
+    public void setMaxDurationConstraint() throws GRBException {
+        setMaxDurationConstraint(maxDuration);
     }
+
+    public abstract void setMaxDurationConstraint(double maxDuration) throws GRBException;
 
     public void solve() throws GRBException {
         model.optimize();
@@ -138,12 +166,11 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         return (model.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE);
     }
 
-    @Override
-    public void close() {
-        try { model.dispose(); } catch (Exception ignored) {}
-        try { env.dispose(); } catch (Exception ignored) {}
-    }
+    public abstract List<Shift> getSolution() throws GRBException;
 
+    public abstract void printSolution() throws GRBException;
+
+    public abstract void printDummyState() throws GRBException;
 
     public static List<Stop> createNightStops(List<Stop> allStops) {
         List<Stop> nightStops = new ArrayList<>();
@@ -195,11 +222,9 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
 
     }
 
-    public abstract List<Shift> getSolution() throws GRBException;
-
-    public abstract void printSolution() throws GRBException;
-
-    public abstract void printDummyState() throws GRBException;
-    
-    
+    @Override
+    public void close() {
+        try { model.dispose(); } catch (Exception ignored) {}
+        try { env.dispose(); } catch (Exception ignored) {}
+    }
 }
