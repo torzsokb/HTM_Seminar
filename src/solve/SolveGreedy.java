@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SolveGreedy {
+    //xx
     static final double shiftLength = 7 * 60;
     static final double totalShiftLength = 8 * 60;
 
