@@ -16,6 +16,8 @@ public class SolveLocalSearch {
         HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
+        long startTotalTime = System.currentTimeMillis();
+
         List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
         List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
 
@@ -26,16 +28,18 @@ public class SolveLocalSearch {
         initial.addAll(nightShifts);
         initial.addAll(dayShifts);
 
-        //ObjectiveFunction objectiveFunction = Objective.balancedObj(0.05, 0.05);
-        ObjectiveFunction objectiveFunction = Objective.totalLength();
+        //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
 
-        double initial_obj_value = objectiveFunction.shifts(initial)/60.0;
+        double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
 
         System.out.println("Initial solution built:");
         System.out.println("Night shifts: " + nightShifts.size());
         System.out.println("Day shifts:   " + dayShifts.size());
         System.out.println("Total shifts: " + initial.size());
         System.out.println("Total objective value: " + initial_obj_value);
+
+        Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new Intra2Opt(),
@@ -57,7 +61,7 @@ public class SolveLocalSearch {
                 ImprovementChoice.FIRST,
                 10000,       
                 totalShiftLength,
-                objectiveFunction
+                objectiveBasic
         );
         long startTime = System.currentTimeMillis();
         System.out.println("Running local search...");
@@ -65,7 +69,7 @@ public class SolveLocalSearch {
 
         Utils.recomputeAllShifts(improved, instance, travelTimes);
 
-        double new_obj_value = objectiveFunction.shifts(improved)/60.0;
+        double new_obj_value = objectiveBasic.shifts(improved)/60.0;
 
         System.out.println("\nLocal search complete.");
 
@@ -78,7 +82,9 @@ public class SolveLocalSearch {
         double timeTaken = (endTime-startTime)/1000.0;
         System.out.println("Time taken: " + (timeTaken) + " s" );
 
+        Utils.checkFeasibility(improved, instance, totalShiftLength);
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri.csv");
 
         Acceptance.initSimulatedAnnealing(100.0, 0.98);
         AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
@@ -90,19 +96,26 @@ public class SolveLocalSearch {
             ImprovementChoice.FIRST,
             1000,       
             totalShiftLength,
-            objectiveFunction
+                objectiveBasic
         );
         List<Shift> improved_SA = ls_SA.run(improved, instance, travelTimes);
         
         Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
-        double new_obj_value_SA = objectiveFunction.shifts(improved_SA)/60.0;
+        double new_obj_value_SA = objectiveBasic.shifts(improved_SA)/60.0;
         double improvement_SA = new_obj_value - new_obj_value_SA;
-        System.out.println("SA obj value: " + new_obj_value_SA);
+        System.out.println("\nSA obj value: " + new_obj_value_SA);
         System.out.println("Improvement: " + improvement_SA);
         double total_improvement_SA = initial_obj_value - new_obj_value_SA;
         System.out.println("Total improvement: " + total_improvement_SA);
 
-        Utils.checkFeasibility(improved, instance, totalShiftLength);
+        long endTotalTime = System.currentTimeMillis();
+        double totalTimeTaken = (endTotalTime-startTotalTime)/1000.0;
+
+        System.out.println("Total time taken: " + totalTimeTaken + " s");
+
+        Utils.checkFeasibility(improved_SA, instance, totalShiftLength);
+        Utils.printShiftStatistics(improved_SA, instance, totalShiftLength);
+        Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_abri.csv");
         
     
 
