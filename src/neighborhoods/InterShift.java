@@ -13,8 +13,15 @@ public class InterShift implements Neighborhood {
     private static final double EPS = 1e-6;
     private final int MAX_NIGHT_SHIFTS = 25;
 
+    private double sumL = 0.0;
+    private double sumL2 = 0.0;
+    private double sumC = 0.0;
+    private double sumC2 = 0.0;
+    private int m = 0;
+
     @Override
     public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
+        calculateGlobalSums(shifts);
         List<Move> moves = new ArrayList<>();
         int numNightShifts = Utils.countNightShifts(shifts);
 
@@ -54,10 +61,15 @@ public class InterShift implements Neighborhood {
             double maxShiftDuration,
             ObjectiveFunction objectiveFunction
     ) {
+        Objective.BalancedObj obj = (Objective.BalancedObj) objectiveFunction;
+        double lambdaL = obj.lambdaL;
+        double lambdaC = obj.lambdaC;
+
         Shift s1 = shifts.get(move.route1);
         Shift s2 = shifts.get(move.route2);
 
         int node = s1.route.get(move.index1);
+
         Stop stop = instance.getStops().get(node);
 
         double service = stop.serviceTime;
@@ -78,17 +90,35 @@ public class InterShift implements Neighborhood {
                         + travelTimes[prev2][node]
                         + travelTimes[node][next2];
 
-        double newDur1 = s1.totalTime - service + deltaRemove;
-        double newDur2 = s2.totalTime + service + deltaInsert;
+        double newL1 = s1.totalTime - service + deltaRemove;
+        double newL2 = s2.totalTime + service + deltaInsert;
 
-        if (newDur1 > maxShiftDuration || newDur2 > maxShiftDuration) {
+        if (newL1 > maxShiftDuration || newL2 > maxShiftDuration) {
             return new Evaluation(0, false);
         }
 
+        double newC1 = s1.serviceTime - service;
+        double newC2 = s2.serviceTime + service;
 
-        double currentObj = s1.totalTime + s2.totalTime;
-        double newObj = newDur1 + newDur2;
-        double improvement = currentObj - newObj;
+        double L1 = s1.totalTime, L2 = s2.totalTime;
+        double C1 = s1.serviceTime, C2 = s2.serviceTime;
+
+        double sumLNew  = sumL  - L1 - L2 + newL1 + newL2;
+        double sumL2New = sumL2 - L1*L1 - L2*L2 + newL1*newL1 + newL2*newL2;
+
+        double sumCNew  = sumC  - C1 - C2 + newC1 + newC2;
+        double sumC2New = sumC2 - C1*C1 - C2*C2 + newC1*newC1 + newC2*newC2;
+
+        double sseLOld = sumL2 - (sumL * sumL) / m;
+        double sseCOld = sumC2 - (sumC * sumC) / m;
+
+        double sseLNew = sumL2New - (sumLNew * sumLNew) / m;
+        double sseCNew = sumC2New - (sumCNew * sumCNew) / m;
+
+        double oldObj = sumL + lambdaL * sseLOld + lambdaC * sseCOld;
+        double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCNew;
+
+        double improvement = oldObj - newObj;
         if (Math.abs(improvement) < EPS) improvement = 0.0;
 
         return new Evaluation(improvement, true);
@@ -112,5 +142,24 @@ public class InterShift implements Neighborhood {
         s2.nightShift = Utils.containsNightStop(s2.route, instance) ? 1 : 0;
 
         return newShifts;
+    }
+
+    private void calculateGlobalSums(List<Shift> shifts) {
+        m = (shifts == null) ? 0 : shifts.size();
+        sumL = sumL2 = 0.0;
+        sumC = sumC2 = 0.0;
+
+        for (Shift s : shifts) {
+            if (s == null) continue;
+
+            double L = s.totalTime;
+            double C = s.serviceTime;
+
+            sumL  += L;
+            sumL2 += L * L;
+
+            sumC  += C;
+            sumC2 += C * C;
+        }
     }
 }

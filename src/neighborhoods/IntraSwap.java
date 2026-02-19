@@ -14,6 +14,7 @@ public class IntraSwap implements Neighborhood {
     private double sumL2 = 0.0;
     private double sumC = 0.0;
     private double sumC2 = 0.0;
+    private int m = 0;
 
     @Override
     public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
@@ -71,26 +72,26 @@ public class IntraSwap implements Neighborhood {
             // Adjacent swap case
             oldCost =
                     travelTimes[prevI][nodeI] +
-                    travelTimes[nodeI][nodeJ] +
-                    travelTimes[nodeJ][nextJ];
+                            travelTimes[nodeI][nodeJ] +
+                            travelTimes[nodeJ][nextJ];
 
             newCost =
                     travelTimes[prevI][nodeJ] +
-                    travelTimes[nodeJ][nodeI] +
-                    travelTimes[nodeI][nextJ];
+                            travelTimes[nodeJ][nodeI] +
+                            travelTimes[nodeI][nextJ];
         } else {
             // Non-adjacent swap
             oldCost =
                     travelTimes[prevI][nodeI] +
-                    travelTimes[nodeI][nextI] +
-                    travelTimes[prevJ][nodeJ] +
-                    travelTimes[nodeJ][nextJ];
+                            travelTimes[nodeI][nextI] +
+                            travelTimes[prevJ][nodeJ] +
+                            travelTimes[nodeJ][nextJ];
 
             newCost =
                     travelTimes[prevI][nodeJ] +
-                    travelTimes[nodeJ][nextI] +
-                    travelTimes[prevJ][nodeI] +
-                    travelTimes[nodeI][nextJ];
+                            travelTimes[nodeJ][nextI] +
+                            travelTimes[prevJ][nodeI] +
+                            travelTimes[nodeI][nextJ];
         }
 
         double deltaTravel = oldCost - newCost;
@@ -98,6 +99,7 @@ public class IntraSwap implements Neighborhood {
         double oldL = s.totalTime;
 
         double newL = oldL - deltaTravel;
+
         if (newL > maxShiftDuration) {
             return new Evaluation(0, false);
         }
@@ -105,7 +107,6 @@ public class IntraSwap implements Neighborhood {
         double sumLNew  = sumL  - oldL + newL;
         double sumL2New = sumL2 - oldL * oldL + newL * newL;
 
-        int m = 50;
         double sseLOld = sumL2 - (sumL * sumL) / m;
         double sseCOld = sumC2 - (sumC * sumC) / m;
 
@@ -144,6 +145,8 @@ public class IntraSwap implements Neighborhood {
     }
 
     private void calculateGlobalSums(List<Shift> shifts) {
+        m = (shifts == null) ? 0 : shifts.size();
+
         sumL = sumL2 = 0.0;
         sumC = sumC2 = 0.0;
 
