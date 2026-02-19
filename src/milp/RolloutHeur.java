@@ -66,6 +66,7 @@ public class RolloutHeur implements RCESPP {
             }
 
             shifts.add(new Shift(routeObjectIds, cand.travel, cand.service, night));
+            System.out.println("reducedCost=" + cand.reducedCost);
             
             // break here if you want to stop after finding one shift
             //break;
@@ -402,3 +403,4 @@ public class RolloutHeur implements RCESPP {
         }
     }
 }
+
