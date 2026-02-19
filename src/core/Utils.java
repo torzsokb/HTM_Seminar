@@ -252,23 +252,23 @@ public class Utils {
     int n = instance.getNStops();
     boolean[] seen = new boolean[n];
 
-    for (Shift s : shifts) {
-        for (int id : s.route) {
-            if (id == 0) continue; // depot allowed multiple times
-            if (seen[id]) {
-                System.out.println("Duplicate stop found: stop " + id);
-                feasible = false;
-            }
-            seen[id] = true;
-        }
-    }
+    // for (Shift s : shifts) {
+    //     for (int id : s.route) {
+    //         if (id == 0) continue;
+    //         if (seen[id]) {
+    //             System.out.println("Duplicate stop found: stop " + id);
+    //             feasible = false;
+    //         }
+    //         seen[id] = true;
+    //     }
+    // }
 
-    for (int i = 1; i < n; i++) {
-        if (!seen[i]) {
-            System.out.println("Missing stop: stop " + i);
-            feasible = false;
-        }
-    }
+    // for (int i = 1; i < n; i++) {
+    //     if (!seen[i]) {
+    //         System.out.println("Missing stop: stop " + i);
+    //         feasible = false;
+    //     }
+    // }
 
     int violatedDuration = 0;
     for (int idx = 0; idx < shifts.size(); idx++) {

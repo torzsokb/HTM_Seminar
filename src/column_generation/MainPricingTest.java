@@ -18,9 +18,9 @@ public class MainPricingTest {
 
         int numNodes = travelTimes.length;
 
-        double[] duals = new double[numNodes + 1]; // duals[0] = shift dual, duals[1..n] = node duals
+        double[] duals = new double[numNodes + 1]; 
         duals[0] = 25.0; // shift dual
-        for (int i = 1; i <= numNodes; i++) duals[i] = 0.0; // dummy node duals
+        for (int i = 1; i <= numNodes; i++) duals[i] = -0.3;
 
         // For one route you only need the intra-neighbourhoods
         List<Neighborhood> neighborhoods = Arrays.asList(
@@ -53,6 +53,7 @@ public class MainPricingTest {
         }
 
         List<Shift> allShifts = new ArrayList<>();
+        Utils.checkFeasibility(allShifts, instance, maxShiftDuration);
         allShifts.addAll(shifts);
         long endTime = System.currentTimeMillis();
 

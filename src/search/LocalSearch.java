@@ -2,10 +2,11 @@ package search;
 
 import core.HTMInstance;
 import core.Shift;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import core.Utils;
+import java.util.Random;
+
+
 
 public class LocalSearch {
     private final List<Neighborhood> neighborhoods;
@@ -14,6 +15,9 @@ public class LocalSearch {
     private final ImprovementChoice improvementChoice;
     private final int maxIterations;
     private final double maxShiftDuration;
+    private final ObjectiveFunction objectiveFunction;
+    
+    
 
     public LocalSearch(
             List<Neighborhood> neighborhoods,
@@ -21,7 +25,8 @@ public class LocalSearch {
             RouteCompatibility compatibility,
             ImprovementChoice improvementChoice,
             int maxIterations,
-            double maxShiftDuration
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
     ) {
         this.neighborhoods = neighborhoods;
         this.acceptanceFunction = acceptanceFunction;
@@ -29,6 +34,7 @@ public class LocalSearch {
         this.improvementChoice = improvementChoice;
         this.maxIterations = maxIterations;
         this.maxShiftDuration = maxShiftDuration;
+        this.objectiveFunction = objectiveFunction;
     }
 
     public List<Shift> run(
@@ -43,13 +49,17 @@ public class LocalSearch {
         while (improved && iteration < maxIterations) {
             iteration++;
             improved = false;
-        
+
+            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
+                Random rnd = new Random(10);
+                Collections.shuffle(neighborhoods, rnd);
+            }
             for (Neighborhood n : neighborhoods) {
-        
+
                 List<Move> moves = n.generateMoves(shifts, compatibility);
         
                 Move bestMove = null;
-                double bestImprovement = 0.0;
+                double bestImprovement = Double.NEGATIVE_INFINITY;
         
                 for (Move m : moves) {
                     Evaluation eval = n.evaluateMove(
@@ -57,21 +67,20 @@ public class LocalSearch {
                             shifts,
                             instance,
                             travelTimes,
-                            maxShiftDuration
+                            maxShiftDuration,
+                            objectiveFunction
                     );
         
                     if (!eval.feasible) continue;
-        
                     double improvement = eval.improvement;
-        
+
                     if (!acceptanceFunction.accept(improvement)) continue;
 
                     // FIRST improvement
                     if (improvementChoice == ImprovementChoice.FIRST) {
-        
                         // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
                         // System.out.println("Improvement of iteration " + iteration + ": " + improvement);
-        
+                        
                         shifts = n.applyMove(m, shifts, instance, travelTimes);
                         Utils.recomputeAllShifts(shifts, instance, travelTimes);
                         improved = true;
@@ -85,7 +94,7 @@ public class LocalSearch {
                         }
                     }
                 }
-        
+
                 if (improvementChoice == ImprovementChoice.BEST && bestMove != null) {
                     // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
                     // System.out.println("Improvement of iteration " + iteration + ": " + bestImprovement);
@@ -95,12 +104,11 @@ public class LocalSearch {
                     improved = true;
                 }
         
-                if (improved) break; // stop after first improving neighborhood
+                if (improved) break; 
             }
-            // ← Add the block here, after finishing this iteration of neighborhoods
             if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
                 Acceptance.coolDown();
-                System.out.println("Temperature after iteration " + iteration + ": " + Acceptance.getTemperature());
+                // System.out.println("Temperature after iteration " + iteration + ": " + Acceptance.getTemperature());
             }
         }
         

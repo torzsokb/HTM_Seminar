@@ -8,7 +8,6 @@ import core.*;
  * Generates elementary feasible shifts greedily.
  */
 public class ElementaryShortestPathHeuristic {
-
     public static List<Shift> generateShiftPool(List<Stop> stops,
         double[][] travelTimes,
         double[][] reducedCosts,
@@ -18,20 +17,21 @@ public class ElementaryShortestPathHeuristic {
 
         int n = stops.size();
 
+        
         List<Integer> startNodes = new ArrayList<>();
         for (int i = 1; i < n; i++) startNodes.add(i);
 
         Random rnd = new Random(10);
         Collections.shuffle(startNodes, rnd);
 
-        int repetitionsPerStart = 3;   // ✔ 2–3 repetitions
-        double alpha = 0.3;            // ✔ RCL parameter
+        int repetitionsPerStart = 3;   
+        double alpha = 0.3;            
 
         List<Shift> shiftPool = Collections.synchronizedList(new ArrayList<>());
 
         startNodes.parallelStream().forEach(startNode -> {
 
-        Random localRnd = new Random(startNode * 31 + 7);
+        Random localRnd = new Random(startNode);
 
         for (int r = 0; r < repetitionsPerStart; r++) {
 
@@ -71,12 +71,11 @@ public class ElementaryShortestPathHeuristic {
         int startNode,
         double alpha,
         Random rnd) throws IOException {
-            
             int n = stops.size();
             boolean[] visited = new boolean[n];
             List<Integer> route = new ArrayList<>();
 
-            final double FIXED_TIME = 30 + 30; // break + prep (if required)
+            final double FIXED_TIME = 30 + 30; // break + prep (if necessary)
 
             int depot = 0;
 
@@ -147,14 +146,13 @@ public class ElementaryShortestPathHeuristic {
                 current = nextNode;
             }
             
-
             travelTime += travelTimes[current][depot];
             route.add(depot);
 
             double totalTime = FIXED_TIME + travelTime + serviceTime;
 
             String instancePath = "src/core/data_all.txt";
-            
+
             HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
             int nightShift = (Utils.containsNightStop(route, instance)) ? 1 : 0;
 
