@@ -106,11 +106,15 @@ public class Utils {
     
         double shortest = Double.POSITIVE_INFINITY;
         double longest = 0.0;
+
+        double shortestClean = Double.POSITIVE_INFINITY;
+        double longestClean = 0.0;
     
         int violated = 0;
     
         for (Shift s : group) {
             double len = s.totalTime;
+            double clean = s.serviceTime;
     
             totalTravel += s.travelTime;
             totalService += s.serviceTime;
@@ -118,6 +122,9 @@ public class Utils {
     
             if (len < shortest) shortest = len;
             if (len > longest) longest = len;
+
+            if (clean < shortestClean) shortestClean = clean;
+            if (clean > longestClean) longestClean = clean;
     
             if (len > shiftLimitMinutes) violated++;
         }
@@ -128,6 +135,8 @@ public class Utils {
         System.out.printf("Avg shift length:     %.5f h%n", avg / 60.0);
         System.out.printf("Shortest shift:       %.5f h%n", shortest / 60.0);
         System.out.printf("Longest shift:        %.5f h%n", longest / 60.0);
+        System.out.printf("Shortest cleaning:    %.5f h%n", shortestClean / 60.0);
+        System.out.printf("Longest cleaning:     %.5f h%n", longestClean / 60.0);
         System.out.printf("Total travel time:    %.5f h%n", totalTravel / 60.0);
         System.out.printf("Total service time:   %.5f h%n", totalService / 60.0);
         System.out.printf("Violated routes:      %d%n", violated);
@@ -428,5 +437,109 @@ public class Utils {
         boolean mustQuote = s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r");
         if (!mustQuote) return s;
         return "\"" + s.replace("\"", "\"\"") + "\"";
+    }
+
+    public static List<Shift> readShiftsFromCSV(String pathToCsv, double[][] travelTimes) throws IOException {
+        List<Shift> shifts = new ArrayList<>();
+
+        File csvFile = new File(pathToCsv);
+        // Each row corresponds to a stop: map these stops to a route
+        Map<String, List<double[]>> byRoute = new LinkedHashMap<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+
+            // Read header (ignore)
+            line = br.readLine();
+            if (line == null) {
+                return shifts;
+            }
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+
+                String[] c = line.split(",", -1);
+                if (c.length != 8) {
+                    throw new IllegalArgumentException("Expected 8 columns, got " + c.length + " in line: " + line);
+                }
+
+                // Fixed indices (your spec)
+                String routeName = c[1].trim(); // Route
+                String orderStr  = c[2].trim(); // Order
+                String nightStr  = c[3].trim(); // Night_shift
+                String idStr     = c[6].trim(); // ID
+                String servStr   = c[7].trim(); // Service/Cleaning time
+
+                int stopId = Integer.parseInt(idStr);
+
+                // Skip depot row (ID=0)
+                if (stopId == 0) continue;
+
+                if (routeName.isEmpty() || routeName.equalsIgnoreCase("NA")) {
+                    throw new IllegalArgumentException("Missing Route for non-depot row: " + line);
+                }
+
+                if (orderStr.isEmpty() || orderStr.equalsIgnoreCase("NA")) {
+                    throw new IllegalArgumentException("Order is NA/empty for non-depot row: " + line);
+                }
+                int order = Integer.parseInt(orderStr);
+
+                int night = 0;
+                if (!nightStr.isEmpty() && !nightStr.equalsIgnoreCase("NA")) {
+                    int raw = Integer.parseInt(nightStr);
+                    night = (raw == 1) ? 1 : 0;
+                }
+
+                double serviceTime = Double.parseDouble(servStr);
+
+                byRoute.computeIfAbsent(routeName, k -> new ArrayList<>())
+                        .add(new double[]{stopId, order, night, serviceTime});
+            }
+        }
+
+        // Build Shift objects
+        for (Map.Entry<String, List<double[]>> entry : byRoute.entrySet()) {
+            List<double[]> rows = entry.getValue();
+            rows.sort(Comparator.comparingDouble(r -> r[1])); // sort by Order
+
+            // ---- route includes depot at start and end ----
+            List<Integer> route = new ArrayList<>(rows.size() + 2);
+            route.add(0); // start at depot
+
+            double serviceSum = 0.0;
+            boolean hasNightStop = false;
+
+            for (double[] r : rows) {
+                int stopId = (int) r[0];
+                int night  = (int) r[2];
+                double serv = r[3];
+
+                route.add(stopId);
+                serviceSum += serv;
+                if (night == 1) hasNightStop = true;
+            }
+
+            route.add(0); // end at depot
+
+            // ---- travel time includes depot legs (0->first and last->0) ----
+            double travelSum = 0.0;
+            for (int i = 0; i < route.size() - 1; i++) {
+                int a = route.get(i);
+                int b = route.get(i + 1);
+
+                if (a < 0 || a >= travelTimes.length || b < 0 || b >= travelTimes[a].length) {
+                    throw new IllegalArgumentException(
+                            "travelTimes index out of bounds for edge " + a + "->" + b +
+                                    " in route=" + entry.getKey() + " file=" + csvFile.getName()
+                    );
+                }
+                travelSum += travelTimes[a][b];
+            }
+
+            // This Shift constructor will add prep+break itself via totalTime
+            shifts.add(new Shift(route, travelSum, serviceSum, hasNightStop ? 1 : 0));
+        }
+
+        return shifts;
     }
 }
