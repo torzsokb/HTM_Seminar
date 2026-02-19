@@ -6,6 +6,7 @@ import java.util.*;
 
 
 public class SolveLocalSearch {
+    //xx
     static final double shiftLength = 7*60;
     static final double totalShiftLength = 8*60;
 
