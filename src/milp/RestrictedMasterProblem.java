@@ -1,5 +1,6 @@
 package milp;
 
+import java.io.OutputStream;
 import java.util.*;
 
 import com.gurobi.gurobi.*;
@@ -72,7 +73,7 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         this.bigM = bigM;
         
         this.env = new GRBEnv(true);
-        this.env.set("OutputFlag", "1");
+        this.env.set("OutputFlag", "0");
         this.env.start();
         
         this.model = new GRBModel(env);
@@ -211,15 +212,50 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
             }
         }
         if (isNight && shift.nightShift == 0) {
-            System.out.print("this is actually a night shift even though shift.nightShift == 0");
+            // System.out.print("this is actually a night shift even though shift.nightShift == 0");
             shift.nightShift = 1;
         }
         if (!isNight && shift.nightShift == 1) {
-            System.out.print("this is not actually a night shift even though shift.nightShift == 1");
+            // System.out.print("this is not actually a night shift even though shift.nightShift == 1");
             shift.nightShift = 0;
         }
         return isNight;
 
+    }
+
+    public void setOutputFlag(int flag) throws GRBException {
+        model.set(GRB.IntParam.OutputFlag, flag);
+        model.set(GRB.IntParam.LogToConsole, flag);
+        env.set(GRB.IntParam.LogToConsole, flag);
+        env.set(GRB.IntParam.OutputFlag, flag);
+    }
+
+    public void solveBinary() throws GRBException {
+
+        setOutputFlag(1);
+        
+
+        for (GRBVar shiftVar : dayShiftVars.values()) {
+            shiftVar.set(GRB.CharAttr.VType, 'B');
+        }
+
+        for (GRBVar shiftVar : nightShiftVars.values()) {
+            shiftVar.set(GRB.CharAttr.VType, 'B');
+        }
+
+        for (GRBVar dummyVar : dayDummyVars.values()) {
+            dummyVar.set(GRB.CharAttr.VType, 'B');
+        }
+
+        for (GRBVar dummyVar : nightDummyVars.values()) {
+            dummyVar.set(GRB.CharAttr.VType, 'B');
+        }
+
+        solve();
+    }
+
+    public double getObj() throws GRBException {
+        return model.get(GRB.DoubleAttr.ObjVal);
     }
 
     @Override

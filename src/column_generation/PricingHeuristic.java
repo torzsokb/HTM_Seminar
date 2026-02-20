@@ -69,7 +69,7 @@ public class PricingHeuristic {
         for (Shift s : pool) {
             double rc = ReducedCost.computeShiftReducedCost(s, reducedCosts, duals[0]);
 
-            if (rc < 0 && s.totalTime >= minShiftDuration) {
+            if (rc < -1e-4 && s.totalTime >= minShiftDuration) {
                 candidates.add(new ShiftWithCost(s, rc));
                 // System.out.printf(
                 //     "Shift size: %3d | TotalTime: %8.2f | ReducedCost: %10.5f%n",
@@ -81,7 +81,7 @@ public class PricingHeuristic {
         }
         candidates.sort(Comparator.comparingDouble(sw -> sw.reducedCost));
 
-        List<Shift> filtered = filterShiftsWithCost(candidates, 5000, 1);
+        List<Shift> filtered = filterShiftsWithCost(candidates, 150, 1);
 
         System.out.println(filtered.size() + " columns have been added");
         return filtered;

@@ -48,24 +48,28 @@ public class ColumnGeneration {
         boolean solved = false;
 
         for (int i = 0; i < maxIter; i++) {
+            System.out.print("iteration " + i + "\n");
             if (!CGIter()) {
                 break;
             } else {
                 solved = true;
             }
         }
+        rmp.solveBinary();
 
         return solved;
     }
 
     public boolean CGIter() throws GRBException {
         rmp.solve();
-        rmp.printSolution();
+        // rmp.printSolution();
 
         if (rmp.isInfeasible()) {
             System.out.println("INFEASIBLE");
             return false;
         }
+
+        System.out.print("rmp objective: " + rmp.getObj() + "\n");
 
         if (separated) {
             List<Shift> newShifts = pp.getNewShifts(rmp.getDayDistances(), rmp.getDayStops(), rmp.getDayDuals(), rmp.getMaxDuration(), rmp.getMinDuration());
@@ -94,6 +98,14 @@ public class ColumnGeneration {
                 rmp.getMinDuration()
             );
 
+            List<Shift> newCombinedShifts = pp.getNewShifts(
+                rmp.getAllDistances(), 
+                rmp.getAllStops(), 
+                rmp.getAllDuals(), 
+                rmp.getMaxDuration(), 
+                rmp.getMinDuration()
+            );
+
             if (newDayShifts.size() != 0) {
                 rmp.addColumns(newDayShifts);
                 improvement = true;
@@ -101,6 +113,11 @@ public class ColumnGeneration {
 
             if (newNightShifts.size() != 0) {
                 rmp.addColumns(newNightShifts);
+                improvement = true;
+            }
+
+            if (newCombinedShifts.size() != 0) {
+                rmp.addColumns(newCombinedShifts);
                 improvement = true;
             }
             

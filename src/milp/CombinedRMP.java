@@ -327,7 +327,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
     @Override
     public void printDummyState() throws GRBException {
-        
+
         boolean dayDummiesActive = false;
         boolean nightDummiesActive = false;
 
