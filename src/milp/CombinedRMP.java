@@ -34,6 +34,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
             i++;
             
         }
+        System.out.print("day duals 0: " + duals[0]);
 
         return duals;
     }
@@ -49,7 +50,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
             i++;
             
         }
-
+        System.out.print("all duals 0: " + duals[0]);
         return duals;
     }
 
@@ -63,7 +64,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
             duals[i] = constraintsNight.get(stop.objectId).get(GRB.DoubleAttr.Pi);
             i++;
         }
-        
+        System.out.print("night duals 0: " + duals[0]);
         return duals;
     }
 
