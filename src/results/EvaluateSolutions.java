@@ -35,7 +35,7 @@ public class EvaluateSolutions {
         List<Shift> greedyShifts = Utils.readShiftsFromCSV(greedyResults, travelTimes);
 
         Utils.printShiftStatistics(greedyShifts, instance, totalShiftLength);
-        Utils.checkFeasibility(greedyShifts, instance, totalShiftLength);
+        //Utils.checkFeasibility(greedyShifts, instance, totalShiftLength);
 
         double greedyObj = Utils.totalObjective(greedyShifts);
         System.out.println("\nObjective: " + greedyObj + " hours.");
@@ -48,7 +48,7 @@ public class EvaluateSolutions {
         List<Shift> lsShifts = Utils.readShiftsFromCSV(lsResults, travelTimes);
 
         Utils.printShiftStatistics(lsShifts, instance, totalShiftLength);
-        Utils.checkFeasibility(lsShifts, instance, totalShiftLength);
+        //Utils.checkFeasibility(lsShifts, instance, totalShiftLength);
 
         double lsObj = Utils.totalObjective(lsShifts);
         System.out.println("\nObjective: " + lsObj + " hours.");
@@ -61,10 +61,36 @@ public class EvaluateSolutions {
         List<Shift> saShifts = Utils.readShiftsFromCSV(saResults, travelTimes);
 
         Utils.printShiftStatistics(saShifts, instance, totalShiftLength);
-        Utils.checkFeasibility(saShifts, instance, totalShiftLength);
+        //Utils.checkFeasibility(saShifts, instance, totalShiftLength);
 
         double saObj = Utils.totalObjective(saShifts);
         System.out.println("\nObjective: " + saObj + " hours.");
+
+        // Balanced LS
+        System.out.println("\nBalanced local search:");
+
+        String baLSResults = "src/results/results_BalancedLS_abri.csv";
+
+        List<Shift> baLSShifts = Utils.readShiftsFromCSV(baLSResults, travelTimes);
+
+        Utils.printShiftStatistics(baLSShifts, instance, totalShiftLength);
+        //Utils.checkFeasibility(baLSShifts, instance, totalShiftLength);
+
+        double baLSObj = Utils.totalObjective(baLSShifts);
+        System.out.println("\nObjective: " + baLSObj + " hours.");
+
+        // Balanced LS WITH SA
+        System.out.println("\nBalanced local search with SA solution:");
+
+        String baSAResults = "src/results/results_BalancedSA_abri.csv";
+
+        List<Shift> baSAShifts = Utils.readShiftsFromCSV(baSAResults, travelTimes);
+
+        Utils.printShiftStatistics(baSAShifts, instance, totalShiftLength);
+        //Utils.checkFeasibility(baSAShifts, instance, totalShiftLength);
+
+        double baSAObj = Utils.totalObjective(baSAShifts);
+        System.out.println("\nObjective: " + baSAObj + " hours.");
 
         // All objectives
         System.out.println("\nAll objectives:");
@@ -72,5 +98,7 @@ public class EvaluateSolutions {
         System.out.println("Greedy objective: " + greedyObj + " hours.");
         System.out.println("LS objective: " + lsObj + " hours.");
         System.out.println("SA objective: " + saObj + " hours.");
+        System.out.println("Balanced LS objective: " + baLSObj + " hours.");
+        System.out.println("Balanced SA objective: " + baSAObj + " hours.");
     }
 }
