@@ -389,16 +389,23 @@ public class RolloutHeur implements RCESPP {
             double travel,
             double service
     ) {
-        double dualRoute = (depot < duals.length) ? duals[depot] : 0.0;
-        // System.out.println("Dual depot " + dualRoute);
 
-        double prize = 0.0;
-        for (int k = 1; k < routeIdx.size() - 1; k++) {
-            int node = routeIdx.get(k);
-            if (node < duals.length) prize += duals[node];
+        double rc = -duals[0];
+
+        for (int k = 0; k < routeIdx.size() - 1; k++) {
+            int i = routeIdx.get(k);
+            int j = routeIdx.get(k + 1);
+
+            if (i == depot) {
+                continue;
+            }
+
+            rc += d[i][j];
+            if (i < duals.length) {
+                rc -= duals[i];
+            }
         }
-
-        return (travel + service) - prize - dualRoute;
+        return rc;
     }
 
     private String signature(List<Integer> routeIdx, int depot) {
@@ -492,4 +499,5 @@ public class RolloutHeur implements RCESPP {
 }
 
 }
+
 
