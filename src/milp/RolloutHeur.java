@@ -1,8 +1,11 @@
 package milp;
 
-import core.Shift;
-import core.Stop;
+import core.*;
+
+import search.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class RolloutHeur implements RCESPP {
 
@@ -10,12 +13,13 @@ public class RolloutHeur implements RCESPP {
     private final int rolloutCandidatePool;  // how many next-stops we evaluate at each rollout step (top-K)
     private final int baseCandidatePool;     // how many candidates base greedy considers (top-K)
     private final long seed;
+    
 
     // break + prep
     private static final double FIXED_OVERHEAD = 60.0;
 
     public RolloutHeur() {
-        this(20, 10, 10, 1L);
+        this(20, 10, 10, 10);
     }
 
     public RolloutHeur(int runs, int rolloutCandidatePool, int baseCandidatePool, long seed) {
@@ -39,19 +43,20 @@ public class RolloutHeur implements RCESPP {
         final int depot = 0; // stops.get(0)
         Random rng = new Random(seed);
 
-        List<Shift> shifts = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
+        Set<String> seen = Collections.synchronizedSet(new HashSet<>());
 
-        for (int r = 0; r < runs; r++) {
-            RouteCandidate cand = rolloutSingle(distances, stops, duals, depot, maxDuration, minDuration, rng);
-            if (cand == null) continue;
+        List<Shift> shifts = IntStream.range(0, runs)
+        .parallel() 
+        .mapToObj(r -> {
+            // Each thread gets its own Random to avoid contention
+            Random threadRng = new Random(seed + r);
 
-            // only negative reduced cost
-            if (cand.reducedCost >= -1e-6) continue;
+            RouteCandidate cand = rolloutSingle(distances, stops, duals, depot, maxDuration, minDuration, threadRng);
+            if (cand == null || cand.reducedCost >= -1e-6) return null;
+            // System.out.println("Reduced cost: " + cand.reducedCost);
 
-            // signature for uniqueness (by indices excluding depot)
             String sig = signature(cand.routeIdx, depot);
-            if (!seen.add(sig)) continue;
+            if (!seen.add(sig)) return null; // synchronized set
 
             // convert indices -> objectIds excluding depot at start/end
             List<Integer> routeObjectIds = new ArrayList<>();
@@ -59,211 +64,234 @@ public class RolloutHeur implements RCESPP {
                 routeObjectIds.add(stops.get(cand.routeIdx.get(k)).objectId);
             }
 
-            // nightShift of shift = nightShift of first customer (if any)
-            int night = 0;
-            if (!routeObjectIds.isEmpty()) {
-                night = stops.get(cand.routeIdx.get(1)).nightShift;
-            }
+            return new Shift(routeObjectIds, cand.travel, cand.service, 0);
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
 
-            shifts.add(new Shift(routeObjectIds, cand.travel, cand.service, night));
-            System.out.println("reducedCost=" + cand.reducedCost);
-            
-            // break here if you want to stop after finding one shift
-            //break;
+
+        shifts = filterShifts(shifts, runs, 1);
+        System.out.println("Final number of shifts returned " + shifts.size());
+        // analyzeCoverage(shifts, stops);
+        return shifts;
+    }
+
+    public static void analyzeCoverage(List<Shift> shifts, List<Stop> stops) {
+
+        Map<Integer, Integer> visitCount = new HashMap<>();
+    
+        // Initialize all stops except depot if needed
+        for (Stop stop : stops) {
+            visitCount.put(stop.objectId, 0);
+        }
+    
+        // Count visits
+        for (Shift shift : shifts) {
+            for (int stopId : shift.getRoute()) {
+                visitCount.merge(stopId, 1, Integer::sum);
+            }
         }
 
-        return shifts;
+        int unused = 0;
+    
+        System.out.println("=== Coverage Report ===");
+    
+        for (Stop stop : stops) {
+            int count = visitCount.get(stop.objectId);
+    
+            if (count == 0) {
+                unused++;
+            }
+
+            if (count > 0) {
+                System.out.println(
+                    "Stop " + stop.objectId +
+                    " visited " +
+                    count + " times"
+                );
+            }
+            
+        }
+    
+        System.out.println("Stops not visited at all: " + unused + " out of " + (stops.size() - 1));
+        System.out.println("Stops used: " + (stops.size() - unused));
     }
 
     // Rollout (partial route)
 
     private RouteCandidate rolloutSingle(
-            double[][] d,
-            List<Stop> stops,
-            double[] duals,
-            int depot,
-            double maxDuration,
-            double minDuration,
-            Random rng
-    ) {
-        int n = stops.size();
+        double[][] d,
+        List<Stop> stops,
+        double[] duals,
+        int depot,
+        double maxDuration,
+        double minDuration,
+        Random rng
+) {
+            int n = stops.size();
 
-        List<Integer> partial = new ArrayList<>();
-        partial.add(depot);
+            List<Integer> partial = new ArrayList<>();
+            partial.add(depot);
 
-        boolean[] visited = new boolean[n];
-        visited[depot] = true;
+            boolean[] visited = new boolean[n];
+            visited[depot] = true;
 
-        int current = depot;
-        double travel = 0.0;
-        double service = 0.0;
+            int current = depot;
+            double travel = 0.0;
+            double service = 0.0;
 
-        Integer shiftNight = null; // unknown until first customer picked
+            Integer shiftNight = null;
 
-        while (true) {
-            List<ScoredNode> candidates = new ArrayList<>();
+            while (true) {
 
-            // collect feasible next customers
-            for (int j = 1; j < n; j++) {
-                if (visited[j]) continue;
+                List<ScoredNode> candidates = new ArrayList<>();
 
-                // night/day compatibility
-                if (shiftNight != null && stops.get(j).nightShift != shiftNight) continue;
+                for (int j = 1; j < n; j++) {
 
-                if (!feasibleToAdd(current, j, travel, service, d, stops, depot, maxDuration)) continue;
+                    if (visited[j]) continue;
 
-                double dualJ = (j < duals.length) ? duals[j] : 0.0;
-                double score = d[current][j] + stops.get(j).serviceTime - dualJ; // smaller = better
-                candidates.add(new ScoredNode(j, score));
-            }
 
-            if (candidates.isEmpty()) break;
+                    if (!feasibleToAdd(current, j, travel, service, d, stops, depot, maxDuration))
+                        continue;
 
-            candidates.sort(Comparator.comparingDouble(a -> a.score));
-            int k = Math.min(rolloutCandidatePool, candidates.size());
+                    double dualJ = (j < duals.length) ? duals[j] : 0.0;
+                    double score = d[current][j] + stops.get(j).serviceTime - dualJ;
 
-            // small shuffle inside top-k for diversity
-            List<ScoredNode> pool = new ArrayList<>(candidates.subList(0, k));
-            Collections.shuffle(pool, rng);
+                    candidates.add(new ScoredNode(j, score));
+                }
 
-            Integer bestNext = null;
-            RouteCandidate bestCompleted = null;
+                if (candidates.isEmpty()) break;
 
-            for (ScoredNode sn : pool) {
-                int j = sn.node;
+                candidates.sort(Comparator.comparingDouble(a -> a.score));
 
-                // extend partial by j
-                List<Integer> startRoute = new ArrayList<>(partial);
-                startRoute.add(j);
+                int k = Math.min(rolloutCandidatePool, candidates.size());
+                List<ScoredNode> pool = candidates.subList(0, k);
 
-                boolean[] visited2 = Arrays.copyOf(visited, visited.length);
-                visited2[j] = true;
+                double bestRC = Double.POSITIVE_INFINITY;
 
-                double travel2 = travel + d[current][j];
-                double service2 = service + stops.get(j).serviceTime;
+                List<Integer> poolNodes = new ArrayList<>();
+                List<RouteCandidate> poolCompletions = new ArrayList<>();
 
-                Integer shiftNight2 = (shiftNight == null) ? stops.get(j).nightShift : shiftNight;
+                for (ScoredNode sn : pool) {
 
-                // finish with base greedy
-                RouteCandidate completed = greedyCompleteFrom(
-                        startRoute, visited2, j, travel2, service2, shiftNight2,
-                        d, stops, duals, depot, maxDuration
-                );
+                    int j = sn.node;
 
-                if (completed == null) continue;
+                    boolean[] visited2 = Arrays.copyOf(visited, n);
+                    visited2[j] = true;
 
-                // total time constraints (include overhead)
-                double totalTime = completed.travel + completed.service + FIXED_OVERHEAD;
-                if (totalTime > maxDuration + 1e-9) continue;
-                if (totalTime + 1e-9 < minDuration) continue;
+                    List<Integer> startRoute = new ArrayList<>(partial);
+                    startRoute.add(j);
 
-                if (bestCompleted == null || completed.reducedCost < bestCompleted.reducedCost) {
-                    bestCompleted = completed;
-                    bestNext = j;
+                    double travel2 = travel + d[current][j];
+                    double service2 = service + stops.get(j).serviceTime;
+
+                    RouteCandidate completed = greedyCompleteFrom(
+                            startRoute,
+                            visited2,
+                            j,
+                            travel2,
+                            service2,
+                            d,
+                            stops,
+                            duals,
+                            depot,
+                            maxDuration
+                    );
+
+                    if (completed == null) continue;
+
+                    double totalTime = completed.travel + completed.service + FIXED_OVERHEAD;
+                    if (totalTime > maxDuration + 1e-9) continue;
+                    if (totalTime + 1e-9 < minDuration) continue;
+
+                    poolNodes.add(j);
+                    poolCompletions.add(completed);
+
+                    if (completed.reducedCost < bestRC) {
+                        bestRC = completed.reducedCost;
+                    }
+                }
+
+                if (poolNodes.isEmpty()) break;
+
+                double alpha = 0.30;
+                double threshold = bestRC + alpha * Math.abs(bestRC);
+
+                List<Integer> rclIndices = new ArrayList<>();
+
+                for (int i = 0; i < poolNodes.size(); i++) {
+                    if (poolCompletions.get(i).reducedCost <= threshold) {
+                        rclIndices.add(i);
+                    }
+                }
+
+                if (rclIndices.isEmpty()) break;
+
+                int chosenIndex = rclIndices.get(rng.nextInt(rclIndices.size()));
+                int chosenNext = poolNodes.get(chosenIndex);
+
+                partial.add(chosenNext);
+                visited[chosenNext] = true;
+
+                travel += d[current][chosenNext];
+                service += stops.get(chosenNext).serviceTime;
+                current = chosenNext;
+
+                if (shiftNight == null)
+                    shiftNight = stops.get(chosenNext).nightShift;
+
+                double closeTravel = travel + d[current][depot];
+                double closeService = service;
+                double closeTotal = closeTravel + closeService + FIXED_OVERHEAD;
+
+                if (closeTotal >= minDuration - 1e-9 &&
+                    closeTotal <= maxDuration + 1e-9) {
+
+                    List<Integer> closed = new ArrayList<>(partial);
+                    closed.add(depot);
+
+                    double rc = reducedCost(
+                            closed,
+                            stops,
+                            d,
+                            duals,
+                            depot,
+                            closeTravel,
+                            closeService
+                    );
+
+                    if (rc < 0) {
+                        return new RouteCandidate(closed, closeTravel, closeService, rc);
+                    }
                 }
             }
 
-            if (bestNext == null) break;
+            if (partial.size() == 1) return null;
 
-            // if we want to only add best, delete the code with randomness and use this line
-            //partial.add(bestNext);
+            List<Integer> closed = new ArrayList<>(partial);
+            closed.add(depot);
 
-            // instead of the best one, some randomness: 
+            double travelClosed = travel + d[current][depot];
+            double serviceClosed = service;
+            double totalClosed = travelClosed + serviceClosed + FIXED_OVERHEAD;
 
-            double alpha = 0.30;
+            if (totalClosed > maxDuration + 1e-9) return null;
+            if (totalClosed + 1e-9 < minDuration) return null;
 
-            double bestRC = bestCompleted.reducedCost;
-            double threshold = bestRC + alpha * Math.abs(bestRC);
+            double rc = reducedCost(
+                    closed,
+                    stops,
+                    d,
+                    duals,
+                    depot,
+                    travelClosed,
+                    serviceClosed
+            );
 
-            List<Integer> rclNext = new ArrayList<>();
-            List<RouteCandidate> rclCompleted = new ArrayList<>();
+            if (rc >= -1e-6) return null;
 
-            for (ScoredNode sn : pool) {
-                int j = sn.node;
-
-                List<Integer> startRoute = new ArrayList<>(partial);
-                startRoute.add(j);
-
-                boolean[] visited2 = Arrays.copyOf(visited, visited.length);
-                visited2[j] = true;
-
-                double travel2 = travel + d[current][j];
-                double service2 = service + stops.get(j).serviceTime;
-
-                Integer shiftNight2 = (shiftNight == null) ? stops.get(j).nightShift : shiftNight;
-
-               RouteCandidate completed = greedyCompleteFrom(
-                   startRoute, visited2, j, travel2, service2, shiftNight2,
-                   d, stops, duals, depot, maxDuration
-               );
-
-               if (completed == null) continue;
-
-               double totalTime = completed.travel + completed.service + FIXED_OVERHEAD;
-               if (totalTime > maxDuration + 1e-9) continue;
-               if (totalTime + 1e-9 < minDuration) continue;
-
-               if (completed.reducedCost <= threshold) {
-                   rclNext.add(j);
-                   rclCompleted.add(completed);
-               }
-            }
-
-            int pickIdx = rng.nextInt(rclNext.size());
-            int chosenNext = rclNext.get(pickIdx);
-
-            partial.add(chosenNext);
-
-            visited[chosenNext] = true;
-            travel += d[current][chosenNext];
-            service += stops.get(chosenNext).serviceTime;
-            current = chosenNext;
-
-            if (shiftNight == null) shiftNight = stops.get(chosenNext).nightShift;
-
-            // visited[bestNext] = true;
-
-            // travel += d[current][bestNext];
-            // service += stops.get(bestNext).serviceTime;
-
-            // current = bestNext;
-
-            // if (shiftNight == null) shiftNight = stops.get(bestNext).nightShift;
-
-            // optional early stop: if closing now is negative and minDuration satisfied, return immediately
-            double closeTravel = travel + d[current][depot];
-            double closeService = service;
-            double closeTotal = closeTravel + closeService + FIXED_OVERHEAD;
-
-            if (closeTotal >= minDuration - 1e-9 && closeTotal <= maxDuration + 1e-9) {
-                List<Integer> closed = new ArrayList<>(partial);
-                closed.add(depot);
-
-                double rc = reducedCost(closed, stops, d, duals, depot, closeTravel, closeService);
-                if (rc < 0) {
-                    return new RouteCandidate(closed, closeTravel, closeService, rc);
-                }
-            }
+            return new RouteCandidate(closed, travelClosed, serviceClosed, rc);
         }
-
-        // close the partial route
-        if (partial.size() == 1) return null;
-
-        List<Integer> closed = new ArrayList<>(partial);
-        closed.add(depot);
-
-        double travelClosed = travel + d[current][depot];
-        double serviceClosed = service;
-        double totalClosed = travelClosed + serviceClosed + FIXED_OVERHEAD;
-
-        if (totalClosed > maxDuration + 1e-9) return null;
-        if (totalClosed + 1e-9 < minDuration) return null;
-
-        double rc = reducedCost(closed, stops, d, duals, depot, travelClosed, serviceClosed);
-        if (rc >= -1e-6) return null;
-
-        return new RouteCandidate(closed, travelClosed, serviceClosed, rc);
-    }
 
     // Greedy heuristic
 
@@ -273,7 +301,6 @@ public class RolloutHeur implements RCESPP {
             int current,
             double travel,
             double service,
-            int shiftNight,
             double[][] d,
             List<Stop> stops,
             double[] duals,
@@ -288,7 +315,7 @@ public class RolloutHeur implements RCESPP {
 
             for (int j = 1; j < n; j++) {
                 if (visited[j]) continue;
-                if (stops.get(j).nightShift != shiftNight) continue;
+                //if (stops.get(j).nightShift != shiftNight) continue;
 
                 if (!feasibleToAdd(current, j, travel, service, d, stops, depot, maxDuration)) continue;
 
@@ -363,6 +390,7 @@ public class RolloutHeur implements RCESPP {
             double service
     ) {
         double dualRoute = (depot < duals.length) ? duals[depot] : 0.0;
+        // System.out.println("Dual depot " + dualRoute);
 
         double prize = 0.0;
         for (int k = 1; k < routeIdx.size() - 1; k++) {
@@ -402,5 +430,66 @@ public class RolloutHeur implements RCESPP {
             this.reducedCost = reducedCost;
         }
     }
+
+    private double similarity(Shift a, Shift b) {
+
+        int[] A = a.getUniqueStops();
+
+        int[] B = b.getUniqueStops();
+
+    
+        int i = 0;
+        int j = 0;
+        int intersection = 0;
+    
+        while (i < A.length && j < B.length) {
+    
+            if (A[i] == B[j]) {
+                intersection++;
+                i++;
+                j++;
+            } else if (A[i] < B[j]) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+    
+        int union = A.length + B.length - intersection;
+    
+        if (union == 0) return 0.0;
+    
+        return (double) intersection / union;
+    }
+
+    public List<Shift> filterShifts(
+        List<Shift> shifts,
+        int maxKeep,
+        double similarityThreshold) {
+
+    List<Shift> filtered = new ArrayList<>();
+
+    for (Shift s : shifts) {
+
+        boolean tooSimilar = false;
+
+        for (Shift f : filtered) {
+            if (similarity(s, f) > similarityThreshold) {
+                tooSimilar = true;
+                break;
+            }
+        }
+
+        if (!tooSimilar) {
+            filtered.add(s);
+        }
+
+        if (filtered.size() >= maxKeep)
+            break;
+    }
+
+    return filtered;
+}
+
 }
 
