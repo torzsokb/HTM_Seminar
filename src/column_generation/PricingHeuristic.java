@@ -83,7 +83,7 @@ public class PricingHeuristic {
 
         List<Shift> filtered = filterShiftsWithCost(candidates, 150, 1);
 
-        System.out.println(filtered.size() + " columns have been added");
+        analyzeCoverage(filtered, stops);
         return filtered;
     }
 
@@ -174,5 +174,45 @@ public class PricingHeuristic {
                 objectiveFunction
         );
         return ls.run(shifts, instance, travelTimes);
+    }
+    
+    public static void analyzeCoverage(List<Shift> shifts, List<Stop> stops) {
+
+        Map<Integer, Integer> visitCount = new HashMap<>();
+    
+        // Initialize all stops except depot if needed
+        for (Stop stop : stops) {
+            visitCount.put(stop.objectId, 0);
+        }
+    
+        // Count visits
+        for (Shift shift : shifts) {
+            for (int stopId : shift.getRoute()) {
+                visitCount.merge(stopId, 1, Integer::sum);
+            }
+        }
+
+        int unused = 0;
+    
+        System.out.println("=== Coverage Report ===");
+    
+        for (Stop stop : stops) {
+            int count = visitCount.get(stop.objectId);
+    
+            if (count == 0) {
+                unused++;
+            }
+
+            if (count > 0) {
+                // System.out.println(
+                //     "Stop " + stop.objectId +
+                //     " visited " +
+                //     count + " times"
+                // );
+            }
+            
+        }
+    
+        System.out.println("Stops used: " + (stops.size() - unused - 1));
     }
 }

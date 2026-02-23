@@ -40,5 +40,9 @@ public class Shift {
         return uniqueStopsSorted;
     }
 
+    public List<Integer> getRoute() {
+        return route;
+    }
+
 }
 

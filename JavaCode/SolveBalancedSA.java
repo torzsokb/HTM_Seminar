@@ -3,6 +3,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
+import core.*;
+
 public class SolveBalancedSA {
     static final double shiftLength = 7 * 60;
     static final double totalShiftLength = 8 * 60;

@@ -17,7 +17,6 @@ public class ElementaryShortestPathHeuristic {
 
         int n = stops.size();
 
-        
         List<Integer> startNodes = new ArrayList<>();
         for (int i = 1; i < n; i++) startNodes.add(i);
 
@@ -94,7 +93,7 @@ public class ElementaryShortestPathHeuristic {
             while (true) {
 
                 List<Integer> feasible = new ArrayList<>();
-                double bestCost = Double.POSITIVE_INFINITY;
+                double bestCost = 1;
             
                 for (int j = 1; j < n; j++) {
             
