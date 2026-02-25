@@ -1,6 +1,8 @@
 package results;
 
 import core.*;
+import search.Objective;
+import search.ObjectiveFunction;
 
 import java.util.List;
 
@@ -38,7 +40,11 @@ public class EvaluateSolutions {
         //Utils.checkFeasibility(greedyShifts, instance, totalShiftLength);
 
         double greedyObj = Utils.totalObjective(greedyShifts);
+
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
+        double greedyValue = objectiveBasic.shifts(greedyShifts);
         System.out.println("\nObjective: " + greedyObj + " hours.");
+        System.out.println("Value: " + greedyValue);
 
         // LS
         System.out.println("\nLocal search solution:");
@@ -56,7 +62,7 @@ public class EvaluateSolutions {
         // LS WITH SA
         System.out.println("\nLocal search with SA solution:");
 
-        String saResults = "src/results/results_SA_abri.csv";
+        String saResults = "src/results/results_SA_gridsearch_best_Newv2.csv";
 
         List<Shift> saShifts = Utils.readShiftsFromCSV(saResults, travelTimes);
 
@@ -67,9 +73,9 @@ public class EvaluateSolutions {
         System.out.println("\nObjective: " + saObj + " hours.");
 
         // Balanced LS
-        System.out.println("\nBalanced local search:");
+        System.out.println("\nBalanced solution:");
 
-        String baLSResults = "src/results/results_BalancedLS_abri.csv";
+        String baLSResults = "src/results/results_Balanced_0.002_0.001.csv";
 
         List<Shift> baLSShifts = Utils.readShiftsFromCSV(baLSResults, travelTimes);
 
@@ -79,18 +85,7 @@ public class EvaluateSolutions {
         double baLSObj = Utils.totalObjective(baLSShifts);
         System.out.println("\nObjective: " + baLSObj + " hours.");
 
-        // Balanced LS WITH SA
-        System.out.println("\nBalanced local search with SA solution:");
 
-        String baSAResults = "src/results/results_BalancedSA_abri.csv";
-
-        List<Shift> baSAShifts = Utils.readShiftsFromCSV(baSAResults, travelTimes);
-
-        Utils.printShiftStatistics(baSAShifts, instance, totalShiftLength);
-        //Utils.checkFeasibility(baSAShifts, instance, totalShiftLength);
-
-        double baSAObj = Utils.totalObjective(baSAShifts);
-        System.out.println("\nObjective: " + baSAObj + " hours.");
 
         // All objectives
         System.out.println("\nAll objectives:");
@@ -99,6 +94,5 @@ public class EvaluateSolutions {
         System.out.println("LS objective: " + lsObj + " hours.");
         System.out.println("SA objective: " + saObj + " hours.");
         System.out.println("Balanced LS objective: " + baLSObj + " hours.");
-        System.out.println("Balanced SA objective: " + baSAObj + " hours.");
     }
 }
