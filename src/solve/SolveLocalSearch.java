@@ -19,6 +19,8 @@ public class SolveLocalSearch {
 
         long startTotalTime = System.currentTimeMillis();
 
+        long startGreedy = System.currentTimeMillis();
+
         List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
         List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
 
@@ -34,14 +36,21 @@ public class SolveLocalSearch {
 
         double initial_obj_value = objectiveBalanced.shifts(initial)/60.0;
 
+        long endGreedy = System.currentTimeMillis();
+
+        double totalTimeGreedy = (endGreedy - startGreedy) / 1000.0;
         System.out.println("Initial solution built:");
         System.out.println("Night shifts: " + nightShifts.size());
         System.out.println("Day shifts:   " + dayShifts.size());
         System.out.println("Total shifts: " + initial.size());
         System.out.println("Total objective value: " + initial_obj_value);
+        System.out.println("Time taken: " + totalTimeGreedy + " s.");
 
-        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
+        //Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
 
+        Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
+
+        // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new Inter2OptStar(),
             new InterShift(),
@@ -66,7 +75,7 @@ public class SolveLocalSearch {
         );
         long startTime = System.currentTimeMillis();
         System.out.println("Running local search...");
-        
+        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
         List<Shift> improved = ls.run(initial, instance, travelTimes);
 
         Utils.recomputeAllShifts(improved, instance, travelTimes);
@@ -86,8 +95,7 @@ public class SolveLocalSearch {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
-
-        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_balanced_001_0.csv");
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_order.csv");
         // for (Shift shift : improved) {
         //     System.out.println(Utils.formatRoute(instance, shift.route));
         // }
