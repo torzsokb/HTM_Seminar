@@ -87,10 +87,10 @@ def plot_routes_from_csv(csv_path,
 
 
         # Automatically starts and end at depot for plotting
-        if route_df.iloc[0].Name != depot_name:
+        if route_df.iloc[0]["ID_MAXIMO"] != depot_name:
             route_df = pd.concat([depot_stop.to_frame().T, route_df], ignore_index=True)
 
-        if route_df.iloc[-1].Name != depot_name:
+        if route_df.iloc[-1]["ID_MAXIMO"] != depot_name:
             route_df = pd.concat([route_df, depot_stop.to_frame().T], ignore_index=True)
         
         coords = list(zip(route_df.latitude, route_df.longitude))
@@ -118,7 +118,7 @@ def plot_routes_from_csv(csv_path,
                 fill=True,
                 fill_opacity=0.9,
                 popup=(
-                    f"<b>{row.Name}</b><br>"
+                    f"<b>{row.ID_MAXIMO}</b><br>"
                     f"Route: {row.Route}<br>"
                     f"Order: {row.Order}"
                 )
@@ -152,7 +152,8 @@ def osrm_route(points, host=OSRM_BASE_URL, profile="driving"):
 
 def main():
     csv_path = "data/inputs/cleaned/HTM_CollapsedDatav2.csv"
-    plot_routes_from_csv(csv_path, split_day_and_night=False, OSRM=True, show_only= "Night")
+    csv_path_2 = "src/results/results_SA_gridsearch_best.csv"
+    plot_routes_from_csv(csv_path_2, split_day_and_night=False, OSRM=False)
 
 if __name__ == "__main__":
     main()
