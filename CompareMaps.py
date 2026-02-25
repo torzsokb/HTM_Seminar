@@ -58,8 +58,8 @@ class RouteMapComparer:
         out_a = Path(f"{output_prefix}_only_in_A.html").resolve()
         out_b = Path(f"{output_prefix}_only_in_B.html").resolve()
 
-        title_a = f"Only in A: {Path(csv_a).name} (not in {Path(csv_b).name})"
-        title_b = f"Only in B: {Path(csv_b).name} (not in {Path(csv_a).name})"
+        title_a = f"Only in {Path(csv_a).name} (not in {Path(csv_b).name})"
+        title_b = f"Only in {Path(csv_b).name} (not in {Path(csv_a).name})"
 
         self.plot_routes_from_csv(
             csv_path=csv_a,
