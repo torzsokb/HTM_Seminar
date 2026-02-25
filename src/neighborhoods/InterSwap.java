@@ -43,8 +43,8 @@ public class InterSwap implements Neighborhood {
                 List<Integer> ids1 = shifts.get(r1).route;
                 List<Integer> ids2 = shifts.get(r2).route;
 
-                for (int i = 0; i < ids1.size(); i++) {
-                    for (int j = 0; j < ids2.size(); j++) {
+                for (int i = 1; i < ids1.size() -1; i++) {
+                    for (int j = 1; j < ids2.size()-1; j++) {
                         moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_SWAP));
                     }
                 }

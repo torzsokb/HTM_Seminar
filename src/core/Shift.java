@@ -43,6 +43,5 @@ public class Shift {
     public List<Integer> getRoute() {
         return route;
     }
-
 }
 

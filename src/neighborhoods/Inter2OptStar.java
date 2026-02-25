@@ -48,8 +48,8 @@ public class Inter2OptStar implements Neighborhood {
 
                 if (ids1.size() < 2 || ids2.size() < 2) continue;
 
-                for (int i = 0; i < ids1.size() - 2; i++) {
-                    for (int j = 0; j < ids2.size() - 2; j++) {
+                for (int i = 1; i < ids1.size() - 1; i++) {
+                    for (int j = 1; j < ids2.size() - 1; j++) {
                         moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_2OPT_STAR));
                     }
                 }

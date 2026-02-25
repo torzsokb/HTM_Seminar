@@ -24,10 +24,10 @@ public class IntraSwap implements Neighborhood {
 
         for (int r = 0; r < shifts.size(); r++) {
             List<Integer> ids = shifts.get(r).route;
-            int n = ids.size();
 
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = i + 1; j < n; j++) {
+
+            for (int i = 1; i < ids.size() - 2; i++) {
+                for (int j = i + 1; j < ids.size() -1; j++) {
                     moves.add(new Move(r, r, i, j, Move.MoveType.INTRA_SWAP));
                 }
             }

@@ -43,12 +43,12 @@ public class SolveLocalSearch {
         Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new Intra2Opt(),
+            new InterShift(),
             new Inter2OptStar(),
             new IntraSwap(),
+            new Intra2Opt(),
             new IntraShift(),
-            new InterSwap(),
-            new InterShift()
+            new InterSwap()
         );
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
@@ -60,12 +60,13 @@ public class SolveLocalSearch {
                 acceptGreedy,
                 compatibility,
                 ImprovementChoice.FIRST,
-                10000,       
+                1000,       
                 totalShiftLength,
                 objectiveBasic
         );
         long startTime = System.currentTimeMillis();
         System.out.println("Running local search...");
+        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
         List<Shift> improved = ls.run(initial, instance, travelTimes);
 
         Utils.recomputeAllShifts(improved, instance, travelTimes);
@@ -85,38 +86,41 @@ public class SolveLocalSearch {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
-        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri.csv");
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_order.csv");
+        // for (Shift shift : improved) {
+        //     System.out.println(Utils.formatRoute(instance, shift.route));
+        // }
 
-        Acceptance.initSimulatedAnnealing(100.0, 0.98);
-        AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
+        // Acceptance.initSimulatedAnnealing(100.0, 0.98);
+        // AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
 
-        LocalSearch ls_SA = new LocalSearch(
-            neighborhoods,
-            acceptSA,
-            compatibility,
-            ImprovementChoice.FIRST,
-            1000,       
-            totalShiftLength,
-                objectiveBasic
-        );
-        List<Shift> improved_SA = ls_SA.run(improved, instance, travelTimes);
+        // LocalSearch ls_SA = new LocalSearch(
+        //     neighborhoods,
+        //     acceptSA,
+        //     compatibility,
+        //     ImprovementChoice.FIRST,
+        //     1000,       
+        //     totalShiftLength,
+        //         objectiveBasic
+        // );
+        // List<Shift> improved_SA = ls_SA.run(improved, instance, travelTimes);
         
-        Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
-        double new_obj_value_SA = objectiveBasic.shifts(improved_SA)/60.0;
-        double improvement_SA = new_obj_value - new_obj_value_SA;
-        System.out.println("\nSA obj value: " + new_obj_value_SA);
-        System.out.println("Improvement: " + improvement_SA);
-        double total_improvement_SA = initial_obj_value - new_obj_value_SA;
-        System.out.println("Total improvement: " + total_improvement_SA);
+        // Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
+        // double new_obj_value_SA = objectiveBasic.shifts(improved_SA)/60.0;
+        // double improvement_SA = new_obj_value - new_obj_value_SA;
+        // System.out.println("\nSA obj value: " + new_obj_value_SA);
+        // System.out.println("Improvement: " + improvement_SA);
+        // double total_improvement_SA = initial_obj_value - new_obj_value_SA;
+        // System.out.println("Total improvement: " + total_improvement_SA);
 
-        long endTotalTime = System.currentTimeMillis();
-        double totalTimeTaken = (endTotalTime-startTotalTime)/1000.0;
+        // long endTotalTime = System.currentTimeMillis();
+        // double totalTimeTaken = (endTotalTime-startTotalTime)/1000.0;
 
-        System.out.println("Total time taken: " + totalTimeTaken + " s");
+        // System.out.println("Total time taken: " + totalTimeTaken + " s");
 
-        Utils.checkFeasibility(improved_SA, instance, totalShiftLength);
-        Utils.printShiftStatistics(improved_SA, instance, totalShiftLength);
-        Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_abri.csv");
+        // Utils.checkFeasibility(improved_SA, instance, totalShiftLength);
+        // Utils.printShiftStatistics(improved_SA, instance, totalShiftLength);
+        // Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_abri.csv");
         
     
 

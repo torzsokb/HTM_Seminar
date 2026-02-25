@@ -261,24 +261,54 @@ public class Utils {
     int n = instance.getNStops();
     boolean[] seen = new boolean[n];
 
-    // for (Shift s : shifts) {
-    //     for (int id : s.route) {
-    //         if (id == 0) continue;
-    //         if (seen[id]) {
-    //             System.out.println("Duplicate stop found: stop " + id);
-    //             feasible = false;
-    //         }
-    //         seen[id] = true;
-    //     }
-    // }
+    // --------------------------------------------------
+    // 1) Depot start/end validation
+    // --------------------------------------------------
+    for (int idx = 0; idx < shifts.size(); idx++) {
+        Shift s = shifts.get(idx);
 
-    // for (int i = 1; i < n; i++) {
-    //     if (!seen[i]) {
-    //         System.out.println("Missing stop: stop " + i);
-    //         feasible = false;
-    //     }
-    // }
+        if (s.route.isEmpty()) {
+            System.out.println("Shift " + idx + " has empty route.");
+            feasible = false;
+            continue;
+        }
 
+        if (s.route.get(0) != 0) {
+            System.out.println("Shift " + idx + " does NOT start at depot.");
+            feasible = false;
+        }
+
+        if (s.route.get(s.route.size() - 1) != 0) {
+            System.out.println("Shift " + idx + " does NOT end at depot.");
+            feasible = false;
+        }
+    }
+
+    // --------------------------------------------------
+    // 2) Stop coverage (excluding depot)
+    // --------------------------------------------------
+    for (Shift s : shifts) {
+        for (int id : s.route) {
+            if (id == 0) continue;
+
+            if (seen[id]) {
+                System.out.println("Duplicate stop found: stop " + id);
+                feasible = false;
+            }
+            seen[id] = true;
+        }
+    }
+
+    for (int i = 1; i < n; i++) {
+        if (!seen[i]) {
+            System.out.println("Missing stop: stop " + i);
+            feasible = false;
+        }
+    }
+
+    // --------------------------------------------------
+    // 3) Duration constraint
+    // --------------------------------------------------
     int violatedDuration = 0;
     for (int idx = 0; idx < shifts.size(); idx++) {
         Shift s = shifts.get(idx);
@@ -290,10 +320,15 @@ public class Utils {
         }
     }
 
+    // --------------------------------------------------
+    // 4) Night shift constraint
+    // --------------------------------------------------
     int nightShifts = 0;
     for (Shift s : shifts) {
         boolean isNight = false;
         for (int id : s.route) {
+            if (id == 0) continue;
+
             if (instance.getStops().get(id).nightShift == 1) {
                 isNight = true;
                 break;
@@ -307,10 +342,13 @@ public class Utils {
         feasible = false;
     }
 
+    // --------------------------------------------------
+    // Summary
+    // --------------------------------------------------
     System.out.println("\nSummary:");
     System.out.println("Night shifts: " + nightShifts);
     System.out.println("Duration violations: " + violatedDuration);
-    System.out.println("All stops covered: " + (feasible ? "YES" : "NO"));
+    System.out.println("All constraints satisfied: " + (feasible ? "YES" : "NO"));
 
     if (feasible) {
         System.out.println("Solution is FEASIBLE.");

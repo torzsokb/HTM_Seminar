@@ -23,12 +23,11 @@ public class IntraShift implements Neighborhood {
 
         for (int r = 0; r < shifts.size(); r++) {
             List<Integer> ids = shifts.get(r).route;
-            int n = ids.size();
 
-            if (n <= 2) continue;
+            if (ids.size() <= 2) continue;
 
-            for (int i = 1; i < n - 1; i++) {          // exclude depot at 0 and n-1
-                for (int j = 1; j < n - 1; j++) {      // exclude depot at 0 and n-1
+            for (int i = 1; i < ids.size() - 1; i++) {          // exclude depot at 0 and n-1
+                for (int j = 1; j < ids.size() - 1; j++) {      // exclude depot at 0 and n-1
                     if (i == j) continue;
                     moves.add(new Move(r, r, i, j, Move.MoveType.INTRA_SHIFT));
                 }
