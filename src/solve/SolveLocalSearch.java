@@ -29,10 +29,10 @@ public class SolveLocalSearch {
         initial.addAll(nightShifts);
         initial.addAll(dayShifts);
 
-        //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
-        ObjectiveFunction objectiveBasic = Objective.totalLength();
+        ObjectiveFunction objective = Objective.balancedObj(0.001, 0);
+        ObjectiveFunction objectiveBalanced = Objective.totalLength();
 
-        double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
+        double initial_obj_value = objectiveBalanced.shifts(initial)/60.0;
 
         System.out.println("Initial solution built:");
         System.out.println("Night shifts: " + nightShifts.size());
@@ -40,14 +40,14 @@ public class SolveLocalSearch {
         System.out.println("Total shifts: " + initial.size());
         System.out.println("Total objective value: " + initial_obj_value);
 
-        Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
+        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new InterShift(),
             new Inter2OptStar(),
-            new IntraSwap(),
-            new Intra2Opt(),
+            new InterShift(),
             new IntraShift(),
+            new Intra2Opt(),
+            new IntraSwap(),
             new InterSwap()
         );
 
@@ -62,16 +62,16 @@ public class SolveLocalSearch {
                 ImprovementChoice.FIRST,
                 1000,       
                 totalShiftLength,
-                objectiveBasic
+                objective
         );
         long startTime = System.currentTimeMillis();
         System.out.println("Running local search...");
-        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
+        
         List<Shift> improved = ls.run(initial, instance, travelTimes);
 
         Utils.recomputeAllShifts(improved, instance, travelTimes);
 
-        double new_obj_value = objectiveBasic.shifts(improved)/60.0;
+        double new_obj_value = objectiveBalanced.shifts(improved)/60.0;
 
         System.out.println("\nLocal search complete.");
 
@@ -86,7 +86,8 @@ public class SolveLocalSearch {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
-        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_order.csv");
+
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_balanced_001_0.csv");
         // for (Shift shift : improved) {
         //     System.out.println(Utils.formatRoute(instance, shift.route));
         // }
