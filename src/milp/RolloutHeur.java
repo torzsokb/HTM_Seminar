@@ -276,49 +276,28 @@ public class RolloutHeur implements RCESPP {
             double totalClosed = travelClosed + serviceClosed + FIXED_OVERHEAD;
 
            
-            //     if (closeTotal >= minDuration - 1e-9 &&
-            //         closeTotal <= maxDuration + 1e-9) {
+                if (closeTotal >= minDuration - 1e-9 &&
+                    closeTotal <= maxDuration + 1e-9) {
 
-            //         List<Integer> closed = new ArrayList<>(partial);
-            //         closed.add(depot);
-
-            //         double rc = reducedCost(
-            //                 closed,
-            //                 stops,
-            //                 d,
-            //                 duals,
-            //                 depot,
-            //                 closeTravel,
-            //                 closeService
-            //         );
-
-            //         if (rc < 0) {
-            //             return new RouteCandidate(closed, closeTravel, closeService, rc);
-            //         }
-            //     }
-            // }
-                if (totalClosed <= maxDuration + 1e-9 && totalClosed + 1e-9 >= minDuration) {
+                    List<Integer> closed = new ArrayList<>(partial);
+                    closed.add(depot);
 
                     double rc = reducedCost(
-                        closed,
-                        stops,
-                        d,
-                        duals,
-                        depot,
-                        travelClosed,
-                        serviceClosed
+                            closed,
+                            stops,
+                            d,
+                            duals,
+                            depot,
+                            closeTravel,
+                            closeService
                     );
 
-                    if (rc < -1e-6) {
-                        RouteCandidate cand = new RouteCandidate(closed, travelClosed, serviceClosed, rc);
-                        if (bestFound == null || cand.reducedCost < bestFound.reducedCost) {
-                            bestFound = cand;
-                        }
+                    if (rc < 0) {
+                        return new RouteCandidate(closed, closeTravel, closeService, rc);
                     }
                 }
-
-                return bestFound;
             }
+
 
     // Greedy heuristic
 
@@ -526,6 +505,3 @@ public class RolloutHeur implements RCESPP {
 }
 
 }
-
-
-
