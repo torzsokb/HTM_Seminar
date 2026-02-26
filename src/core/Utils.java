@@ -460,9 +460,9 @@ public class Utils {
                     }
                 }
             }
-            System.out.println("Finished writing CSV to " + fileName);
+            System.out.println("\nFinished writing CSV to " + fileName);
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to write CSV to " + fileName, e);
+            throw new UncheckedIOException("\nFailed to write CSV to " + fileName, e);
         }
     }
 

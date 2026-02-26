@@ -17,7 +17,7 @@ def plot_routes_from_csv(csv_path,
                         depot_name="Depot", 
                         zoom_start=12, 
                         split_day_and_night = False, 
-                        OSRM = True, 
+                        OSRM = False, 
                         show_only = "All",
                         folium_map_background = "Black_White"):
     df = pd.read_csv(csv_path)
@@ -150,10 +150,91 @@ def osrm_route(points, host=OSRM_BASE_URL, profile="driving"):
 
     return [[lat, lon] for lon, lat in geometry]
 
+
+def plot_stops_only_from_csv(
+    csv_path,
+    output_html="stops_only_map.html",
+    depot_name="Depot",
+    zoom_start=12,
+    folium_map_background="Black_White",
+    day_color="#78b33e",     
+    night_color="#0B2D5B",  
+    depot_color="#990f26",
+    radius=2,
+    depot_radius=3,
+    show_only="All"         
+):
+    df = pd.read_csv(csv_path)
+
+    required_cols = {"latitude", "longitude", "ID_MAXIMO", "Night_shift"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    depot_row = df[df["ID_MAXIMO"] == depot_name]
+    if depot_row.empty:
+        raise ValueError(f"Depot not found: ID_MAXIMO == '{depot_name}'")
+    depot = depot_row.iloc[0]
+
+    m = folium.Map(
+        location=[depot.latitude, depot.longitude],
+        zoom_start=zoom_start,
+        tiles="CartoDB Positron" if folium_map_background == "Black_White" else "OpenStreetMap"
+    )
+
+    # Optional filter Day/Night only
+    if show_only == "Day":
+        df_plot = df[df["Night_shift"] == 0].copy()
+    elif show_only == "Night":
+        df_plot = df[df["Night_shift"] == 1].copy()
+    else:
+        df_plot = df.copy()
+
+    # Always keep depot visible (even if show_only filters it out)
+    df_plot = pd.concat([df_plot, depot_row], ignore_index=True).drop_duplicates()
+
+    # Plot stop markers only
+    for _, row in df_plot.iterrows():
+        is_depot = row["ID_MAXIMO"] == depot_name
+        is_night = int(row["Night_shift"]) == 1
+
+        color = depot_color if is_depot else (night_color if is_night else day_color)
+        r = depot_radius if is_depot else radius
+
+        folium.CircleMarker(
+            location=[row.latitude, row.longitude],
+            radius=r,
+            color=color,
+            fill=True,
+            fill_opacity=0.9,
+            popup=(
+                f"<b>{row.ID_MAXIMO}</b><br>"
+                f"Night_shift: {row.Night_shift}"
+            )
+        ).add_to(m)
+
+    # Fit to bounds
+    m.fit_bounds([
+        [df.latitude.min(), df.longitude.min()],
+        [df.latitude.max(), df.longitude.max()]
+    ])
+
+    output_path = Path(output_html).resolve()
+    m.save(output_path)
+    webbrowser.open(output_path.as_uri())
+    return output_path
+
 def main():
     csv_path = "data/inputs/cleaned/HTM_CollapsedDatav2.csv"
-    csv_path_2 = "src/results/results_SA_gridsearch_best.csv"
-    plot_routes_from_csv(csv_path_2, split_day_and_night=False, OSRM=False)
+    csv_path_2 = "src/results/results_LS_abri.csv"
+    #plot_routes_from_csv(csv_path_2, split_day_and_night=False, OSRM=False)
+
+    plot_stops_only_from_csv(
+        csv_path,
+        output_html="stops_only.html",
+        depot_name="Depot",
+        show_only="All"
+    )
 
 if __name__ == "__main__":
     main()
