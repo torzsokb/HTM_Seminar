@@ -95,6 +95,75 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         addStopDummyAndConstr();
     }
 
+    public void addNightColumn(Shift newShift) throws GRBException {
+        
+        int shiftSignature = newShift.getSignature();
+        Shift duplicateShift = nightShifts.get(shiftSignature);
+        
+        if (duplicateShift == null) {
+
+            GRBColumn newColumn = new GRBColumn();
+            double obj = newShift.travelTime;
+            String name = String.format("shift nigth %d", shiftSignature);
+            newColumn.addTerm(1.0, constraintsNight.get(0));
+
+            for (Integer stopId : newShift.getUniqueStops()) {
+                if (stopId == 0) {
+                    continue;
+                }
+                newColumn.addTerm(1.0, constraintsNight.get(stopId));
+            }
+
+            GRBVar shiftVar = model.addVar(0.0, 1.0, obj, 'C', newColumn, name);
+            nightShiftVars.put(shiftSignature, shiftVar);
+            nightShifts.put(shiftSignature, newShift);
+            model.update();
+            return;
+
+        } 
+
+        if (duplicateShift.travelTime > newShift.travelTime) {
+            nightShifts.put(shiftSignature, newShift);
+            nightShiftVars.get(shiftSignature).set(GRB.DoubleAttr.Obj, newShift.travelTime);
+            model.update();
+        }
+    }
+
+
+    public void addDayColumn(Shift newShift) throws GRBException {
+
+        int shiftSignature = newShift.getSignature();
+        Shift duplicateShift = dayShifts.get(shiftSignature);
+        
+        if (duplicateShift == null) {
+
+            GRBColumn newColumn = new GRBColumn();
+            double obj = newShift.travelTime;
+            String name = String.format("shift day %d", shiftSignature);
+            newColumn.addTerm(1.0, constraintsDay.get(0));
+
+            for (Integer stopId : newShift.getUniqueStops()) {
+                if (stopId == 0) {
+                    continue;
+                }
+                newColumn.addTerm(1.0, constraintsDay.get(stopId));
+            }
+
+            GRBVar shiftVar = model.addVar(0.0, 1.0, obj, 'C', newColumn, name);
+            dayShiftVars.put(shiftSignature, shiftVar);
+            dayShifts.put(shiftSignature, newShift);
+            model.update();
+            return;
+
+        } 
+
+        if (duplicateShift.travelTime > newShift.travelTime) {
+            dayShifts.put(shiftSignature, newShift);
+            dayShiftVars.get(shiftSignature).set(GRB.DoubleAttr.Obj, newShift.travelTime);
+            model.update();
+        }
+    }
+
     public abstract void addColumn(Shift newShift) throws GRBException;
     
     public void addColumns(List<Shift> newShifts) throws GRBException {

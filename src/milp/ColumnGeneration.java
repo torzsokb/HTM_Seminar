@@ -74,13 +74,22 @@ public class ColumnGeneration {
         System.out.print("rmp objective: " + rmp.getObj() + "\n");
 
         if (separated) {
-            List<Shift> newShifts = pp.getNewShifts(rmp.getDayDistances(), rmp.getDayStops(), rmp.getDayDuals(), rmp.getMaxDuration(), rmp.getMinDuration());
+            
+            List<Shift> newShifts = pp.getNewShifts(
+                rmp.getAllDistances(), 
+                rmp.getAllStops(), 
+                rmp.getAllDuals(), 
+                rmp.getMaxDuration(), 
+                rmp.getMinDuration()
+            );
+
             if (newShifts.size() != 0) {
                 rmp.addColumns(newShifts);
                 return true;
             } else {
                 return false;
             }
+
         } else {
             boolean improvement = false;
 

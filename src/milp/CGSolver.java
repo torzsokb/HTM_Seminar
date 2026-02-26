@@ -18,7 +18,7 @@ public class CGSolver {
 
     static final String instancePath = "src/core/data_all.txt";
     static final String travelPath   = "src/core/travel_times_collapsedv2.txt";
-    static final boolean separated = false;
+    static final boolean separated = true;
     static final double maxDuration = 7 * 60;
     static final double minDuration = 4.5* 60;
     static final int maxIter = 200;
@@ -37,20 +37,28 @@ public class CGSolver {
             new Intra2Opt()
         );
 
-        List<Shift> initialSol = StartingSolution.startingSolution();
+        // List<Shift> initialSol = StartingSolution.startingSolution();
 
         AcceptanceFunction acceptanceFunction = Acceptance.greedy();
         RouteCompatibility compatibility = Compatibility.sameNightShift();
         PricingHeuristic pricingHeuristic = new PricingHeuristic(maxDuration, minDuration, 100, neighborhoods, acceptanceFunction, compatibility, instance);
         PricingProblem pp = new PricingProblem(pricingHeuristic);
-        RolloutHeur rh = new RolloutHeur(20, 10, 10, 10);
+        RolloutHeur2 rh = new RolloutHeur2(20, 10, 10, 10);
         // SuperPricingHeuristic sph = new SuperPricingHeuristic(maxDuration, minDuration, 50, neighborhoods, acceptanceFunction, compatibility, instance);
-        RollingSpaceRCESPP rs = new RollingSpaceRCESPP(18,10, 60);
-        HeuristicNWRCESPP heur = new HeuristicNWRCESPP(10,10, 10);
+        // RollingSpaceRCESPP rs = new RollingSpaceRCESPP(18,10, 60);
+        // HeuristicNWRCESPP heur = new HeuristicNWRCESPP(10,10, 10);
 
         if (separated) {
-            SeparatedRMP dayRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration, minDuration, 25, maxDuration * 50, false);
-            SeparatedRMP nightRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration,  minDuration, 25, maxDuration * 50, true);
+            SeparatedRMP dayRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration, minDuration, 25, maxDuration * 10, false);
+            ColumnGeneration dayCG = new ColumnGeneration(dayRMP, rh, maxIter, separated);
+            System.out.println(dayRMP.isNight);
+            dayCG.solveSingleObj();
+
+            // SeparatedRMP nightRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration,  minDuration, 25, maxDuration * 10, true);
+            // ColumnGeneration nightCG = new ColumnGeneration(nightRMP, rh, maxIter, separated);
+            // System.out.println(nightRMP.isNight);
+            // nightCG.solveSingleObj();
+            
 
         } else {
             List<Stop> nightStops = RestrictedMasterProblem.createNightStops(stops);
