@@ -13,8 +13,8 @@ public class Shift {
     public final double breakTime = 30.0;
     public final double prepTime = 30.0;
 
-    private final int[] uniqueStopsSorted;
-    private final int shiftSignature;
+    private int[] uniqueStopsSorted;
+    private int shiftSignature;
 
 
     public Shift(List<Integer> route, double travelTime, double serviceTime, int nightShift) {
@@ -30,6 +30,12 @@ public class Shift {
 
     public void recomputeTotalTime() {
         totalTime = travelTime + serviceTime + breakTime + prepTime;
+    }
+
+    public void updateSignature() {
+        totalTime = travelTime + serviceTime + breakTime + prepTime;
+        uniqueStopsSorted = route.stream().mapToInt(Integer::intValue).distinct().sorted().toArray();
+        shiftSignature = Arrays.hashCode(uniqueStopsSorted);
     }
 
     public int getSignature() {

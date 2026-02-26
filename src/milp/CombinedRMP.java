@@ -3,6 +3,7 @@ import java.util.*;
 
 import com.gurobi.gurobi.*;
 import core.Stop;
+import core.Utils;
 import core.Shift;
 import core.HTMInstance;
 
@@ -31,10 +32,11 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
         for (Stop stop : dayStops) {
             duals[i] = constraintsDay.get(stop.objectId).get(GRB.DoubleAttr.Pi);
+            
             i++;
             
         }
-        System.out.print("day duals 0: " + duals[0]);
+        // System.out.print("day duals 0: " + duals[0]);
 
         return duals;
     }
@@ -44,13 +46,17 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
         double[] duals = new double[nStops];
         int i = 0;
+        int countHighDuals = 0;
 
         for (Stop stop : allStops) {
             duals[i] = constraintsNight.get(stop.objectId).get(GRB.DoubleAttr.Pi);
+            if (duals[i] > 2000) {
+                countHighDuals++;
+            }
             i++;
-            
         }
-        System.out.print("all duals 0: " + duals[0]);
+        // System.out.println("Number of high duals " + countHighDuals);
+        // System.out.print("all duals 0: " + duals[0]);
         return duals;
     }
 
@@ -59,17 +65,24 @@ public class CombinedRMP extends RestrictedMasterProblem {
         
         double[] duals = new double[nNightStops];
         int i = 0;
+        int countHighDuals = 0;
 
         for (Stop stop : nightStops) {
             duals[i] = constraintsNight.get(stop.objectId).get(GRB.DoubleAttr.Pi);
+            // System.out.println("dual_" + i + ": " + duals[i]);
+            if (duals[i] > 2000) {
+                countHighDuals++;
+            }
             i++;
         }
-        System.out.print("night duals 0: " + duals[0]);
+        // System.out.println("Number of high duals " + countHighDuals);
+        // System.out.print("night duals 0: " + duals[0]);
         return duals;
     }
 
     @Override
     public void addColumn(Shift newShift) throws GRBException {
+        newShift.updateSignature();
         if (isNightShift(newShift)) {
             addNightColumn(newShift);
         } else {
@@ -88,8 +101,12 @@ public class CombinedRMP extends RestrictedMasterProblem {
             GRBColumn newColumn = new GRBColumn();
             double obj = newShift.travelTime;
             String name = String.format("shift nigth %d", shiftSignature);
+            newColumn.addTerm(1.0, constraintsNight.get(0));
 
             for (Integer stopId : newShift.getUniqueStops()) {
+                if (stopId == 0) {
+                    continue;
+                }
                 newColumn.addTerm(1.0, constraintsNight.get(stopId));
             }
 
@@ -118,8 +135,12 @@ public class CombinedRMP extends RestrictedMasterProblem {
             GRBColumn newColumn = new GRBColumn();
             double obj = newShift.travelTime;
             String name = String.format("shift day %d", shiftSignature);
+            newColumn.addTerm(1.0, constraintsDay.get(0));
 
             for (Integer stopId : newShift.getUniqueStops()) {
+                if (stopId == 0) {
+                    continue;
+                }
                 newColumn.addTerm(1.0, constraintsDay.get(stopId));
             }
 
@@ -289,7 +310,7 @@ public class CombinedRMP extends RestrictedMasterProblem {
             GRBVar dummy = model.addVar(0.0, 1.0, bigM, 'C', String.format("dummy %d", stop.objectId));
             GRBLinExpr constrExpr = new GRBLinExpr();
             constrExpr.addTerm(1.0, dummy);
-            GRBConstr coverStop = model.addConstr(constrExpr, GRB.GREATER_EQUAL, 1.0, String.format("cover stop %d", stop.objectId));
+            GRBConstr coverStop = model.addConstr(constrExpr, GRB.EQUAL, 1.0, String.format("cover stop %d", stop.objectId));
             
             if (stop.nightShift == 0) {
                 dayDummyVars.put(stop.objectId, dummy);
@@ -375,5 +396,33 @@ public class CombinedRMP extends RestrictedMasterProblem {
         for (Shift shift : getSolution()) {
             System.out.print(shift);
         }
+        Utils.checkFeasibility(getSolution(), instance, maxDuration + 60.0);
+        Utils.printShiftStatistics(getSolution(), instance, maxDuration + 60);
+        Utils.resultsToCSV(getSolution(), instance, "src/results/MIP.csv");
+    }
+
+    public void printStopCoverageMetrics() {
+        int[] counts = new int[allStops.size()];
+        int countOnes = 0;
+        for (Shift shift : nightShifts.values()) {
+            for (int stopID : shift.getUniqueStops()) {
+                counts[stopID]++;
+            }
+        }
+        for (Shift shift : dayShifts.values()) {
+            for (int stopID : shift.getUniqueStops()) {
+                counts[stopID]++;
+            }
+        }
+
+        for (Stop stop : allStops) {
+            if (counts[stop.objectId] == 1) {
+                countOnes++;
+                System.out.println("stop " + stop.objectId + " is covered by " + counts[stop.objectId] + " times");
+            }
+            
+        }
+        System.out.println(countOnes);
+        
     }
 }

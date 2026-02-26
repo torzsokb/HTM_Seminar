@@ -161,6 +161,7 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
 
     public void solve() throws GRBException {
         model.optimize();
+
     }
 
     public boolean isInfeasible() throws GRBException {
@@ -263,4 +264,6 @@ public abstract class RestrictedMasterProblem implements AutoCloseable {
         try { model.dispose(); } catch (Exception ignored) {}
         try { env.dispose(); } catch (Exception ignored) {}
     }
+
+    protected abstract void printStopCoverageMetrics();
 }

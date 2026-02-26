@@ -56,6 +56,8 @@ public class ColumnGeneration {
             }
         }
         rmp.solveBinary();
+        rmp.printSolution();
+        
 
         return solved;
     }
@@ -120,7 +122,7 @@ public class ColumnGeneration {
                 rmp.addColumns(newCombinedShifts);
                 improvement = true;
             }
-            
+            rmp.printStopCoverageMetrics();
             return improvement;
         }
     }
