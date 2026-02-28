@@ -3,6 +3,7 @@ package core;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Utils {
@@ -581,4 +582,23 @@ public class Utils {
 
         return shifts;
     }
+
+    public static void printCleaningAndLength(List<Shift> shifts, String outputPath) {
+    try (BufferedWriter w = Files.newBufferedWriter(Path.of(outputPath))) {
+        w.write("totalLength,totalCleaning");
+        w.newLine();
+
+        for (Shift s : shifts) {
+            if (s == null) continue;
+
+            double totalLength = s.totalTime / 60.0;    
+            double totalCleaning = s.serviceTime / 60.0; 
+
+            w.write(totalLength + "," + totalCleaning);
+            w.newLine();
+        }
+    } catch (IOException e) {
+        throw new RuntimeException("Failed to write file: " + outputPath, e);
+        }
+    }   
 }

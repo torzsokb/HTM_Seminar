@@ -91,8 +91,16 @@ public class EvaluateSolutions {
         System.out.println("\nAll objectives:");
         System.out.println("Initial objective: " + initObj + " hours.");
         System.out.println("Greedy objective: " + greedyObj + " hours.");
+        System.out.println("Improvement: " + (initObj - greedyObj) + " hours.");
         System.out.println("LS objective: " + lsObj + " hours.");
+        System.out.println("Improvement: " + (initObj - lsObj) + " hours.");
         System.out.println("SA objective: " + saObj + " hours.");
+        System.out.println("Improvement: " + (initObj - saObj) + " hours.");
         System.out.println("Balanced LS objective: " + baLSObj + " hours.");
+        System.out.println("Improvement: " + (initObj - baLSObj) + " hours.");
+
+        // For most efficient and balanced, collect lengths and cleaning times 
+        Utils.printCleaningAndLength(saShifts, "src/results/SA_stats.csv");
+        Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats.csv");
     }
 }
