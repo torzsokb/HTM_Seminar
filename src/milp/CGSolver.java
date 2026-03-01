@@ -18,7 +18,7 @@ public class CGSolver {
 
     static final String instancePath = "src/core/data_all.txt";
     static final String travelPath   = "src/core/travel_times_collapsedv2.txt";
-    static final boolean separated = true;
+    static final boolean separated = false;
     static final double maxDuration = 7 * 60;
     static final double minDuration = 4.5* 60;
     static final int maxIter = 200;
@@ -61,9 +61,7 @@ public class CGSolver {
             
 
         } else {
-            List<Stop> nightStops = RestrictedMasterProblem.createNightStops(stops);
-            double[][] nightDist = RestrictedMasterProblem.getSubDistanceMatrix(travelTimes, stops, nightStops);
-            CombinedRMP RMP = new CombinedRMP(instance, nightStops, nightDist, maxDuration, minDuration, 25, maxDuration *61);
+            CombinedRMP RMP = new CombinedRMP(instance, stops, travelTimes, maxDuration, minDuration,25, maxDuration *61);
             ColumnGeneration CG = new ColumnGeneration(RMP, pp, maxIter, separated);
             // boolean a = CG.CGIter();
             // CG.addStartingSol(initialSol); 

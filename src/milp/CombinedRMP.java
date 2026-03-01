@@ -36,7 +36,6 @@ public class CombinedRMP extends RestrictedMasterProblem {
             i++;
             
         }
-        // System.out.print("day duals 0: " + duals[0]);
 
         return duals;
     }
@@ -46,17 +45,12 @@ public class CombinedRMP extends RestrictedMasterProblem {
 
         double[] duals = new double[nStops];
         int i = 0;
-        int countHighDuals = 0;
 
         for (Stop stop : allStops) {
             duals[i] = constraintsNight.get(stop.objectId).get(GRB.DoubleAttr.Pi);
-            if (duals[i] > 2000) {
-                countHighDuals++;
-            }
             i++;
         }
-        // System.out.println("Number of high duals " + countHighDuals);
-        // System.out.print("all duals 0: " + duals[0]);
+       
         return duals;
     }
 
@@ -72,7 +66,6 @@ public class CombinedRMP extends RestrictedMasterProblem {
             // System.out.println("dual_" + i + ": " + duals[i]);
             i++;
         }
-        // System.out.println("Number of high duals " + countHighDuals);
         // System.out.print("night duals 0: " + duals[0]);
         return duals;
     }
@@ -88,7 +81,6 @@ public class CombinedRMP extends RestrictedMasterProblem {
         }
     }
 
-    
     
 
     @Override

@@ -74,7 +74,7 @@ public class ColumnGeneration {
         System.out.print("rmp objective: " + rmp.getObj() + "\n");
 
         if (separated) {
-            
+
             List<Shift> newShifts = pp.getNewShifts(
                 rmp.getAllDistances(), 
                 rmp.getAllStops(), 
@@ -93,21 +93,21 @@ public class ColumnGeneration {
         } else {
             boolean improvement = false;
 
-            List<Shift> newDayShifts = pp.getNewShifts(
-                rmp.getDayDistances(), 
-                rmp.getDayStops(), 
-                rmp.getDayDuals(), 
-                rmp.getMaxDuration(), 
-                rmp.getMinDuration()
-            );
+            // List<Shift> newDayShifts = pp.getNewShifts(
+            //     rmp.getDayDistances(), 
+            //     rmp.getDayStops(), 
+            //     rmp.getDayDuals(), 
+            //     rmp.getMaxDuration(), 
+            //     rmp.getMinDuration()
+            // );
 
-            List<Shift> newNightShifts = pp.getNewShifts(
-                rmp.getNightDistances(), 
-                rmp.getNightStops(), 
-                rmp.getNightDuals(), 
-                rmp.getMaxDuration(), 
-                rmp.getMinDuration()
-            );
+            // List<Shift> newNightShifts = pp.getNewShifts(
+            //     rmp.getNightDistances(), 
+            //     rmp.getNightStops(), 
+            //     rmp.getNightDuals(), 
+            //     rmp.getMaxDuration(), 
+            //     rmp.getMinDuration()
+            // );
 
             List<Shift> newCombinedShifts = pp.getNewShifts(
                 rmp.getAllDistances(), 
@@ -117,15 +117,15 @@ public class ColumnGeneration {
                 rmp.getMinDuration()
             );
 
-            if (newDayShifts.size() != 0) {
-                rmp.addColumns(newDayShifts);
-                improvement = true;
-            }
+            // if (newDayShifts.size() != 0) {
+            //     rmp.addColumns(newDayShifts);
+            //     improvement = true;
+            // }
 
-            if (newNightShifts.size() != 0) {
-                rmp.addColumns(newNightShifts);
-                improvement = true;
-            }
+            // if (newNightShifts.size() != 0) {
+            //     rmp.addColumns(newNightShifts);
+            //     improvement = true;
+            // }
 
             if (newCombinedShifts.size() != 0) {
                 rmp.addColumns(newCombinedShifts);
