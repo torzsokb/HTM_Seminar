@@ -188,7 +188,7 @@ public class InterSwap implements Neighborhood {
         if (s1.nightShift == 1 || instance.getStops().get(node2).nightShift == 1) {
             newR1 = travelTimesNight[prev1][node2] + travelTimesNight[node2][next1];
         } else {
-            newR2 = travelTimesDay[prev1][node2] + travelTimesDay[node2][next1];
+            newR1 = travelTimesDay[prev1][node2] + travelTimesDay[node2][next1];
         }
 
         if (s2.nightShift == 1 || instance.getStops().get(node1).nightShift == 1) {
