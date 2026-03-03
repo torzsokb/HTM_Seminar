@@ -110,11 +110,88 @@ public class IntraShift implements Neighborhood {
     }
 
     @Override
+    public Evaluation evaluateMoveDiffTimes(
+            Move move,
+            List<Shift> shifts,
+            HTMInstance instance,
+            double[][] travelTimesNight,
+            double[][] travelTimesDay,
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
+    ) {
+        Objective.BalancedObj obj = (Objective.BalancedObj) objectiveFunction;
+        double lambdaL = obj.lambdaL;
+        double lambdaC = obj.lambdaC;
+
+        Shift s = shifts.get(move.route1);
+
+        double[][] travelTimes = s.nightShift == 1 ? travelTimesNight : travelTimesDay;
+        
+        List<Integer> ids = s.route;
+        int n = ids.size();
+
+        int i = move.index1;
+        int j = move.index2;
+
+        int node = ids.get(i);
+
+
+        // Neighbors around removal position
+        int prevI = (i == 0) ? 0 : ids.get(i - 1);
+        int nextI = (i == n - 1) ? 0 : ids.get(i + 1);
+
+        double deltaRemove =
+                travelTimes[prevI][node] +
+                        travelTimes[node][nextI] -
+                        travelTimes[prevI][nextI];
+
+        // Build list without the removed node
+        List<Integer> idsRemoved = new ArrayList<>(ids);
+        idsRemoved.remove(i);
+
+        // Neighbors around insertion position
+        int prevJ = (j == 0) ? 0 : idsRemoved.get(j - 1);
+        int nextJ = (j == idsRemoved.size()) ? 0 : idsRemoved.get(j);
+
+        double deltaInsert =
+                travelTimes[prevJ][nextJ] -
+                        travelTimes[prevJ][node] -
+                        travelTimes[node][nextJ];
+
+        double deltaTravel  = deltaRemove + deltaInsert;
+
+        double oldL = s.totalTime;
+
+        double newL = oldL - deltaTravel;
+
+        if (newL > maxShiftDuration) {
+            return new Evaluation(0, false);
+        }
+
+        double sumLNew  = sumL  - oldL + newL;
+        double sumL2New = sumL2 - oldL * oldL + newL * newL;
+
+        double sseLOld = sumL2 - (sumL * sumL) / m;
+        double sseCOld = sumC2 - (sumC * sumC) / m;
+
+        double sseLNew = sumL2New - (sumLNew * sumLNew) / m;
+
+        double oldObj = sumL + lambdaL * sseLOld + lambdaC * sseCOld;
+        double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCOld;
+
+        double improvement = oldObj - newObj;
+
+        if (Math.abs(improvement) < EPS) improvement = 0.0;
+        return new Evaluation(improvement, true);
+    }
+
+    @Override
     public List<Shift> applyMove(
             Move move,
             List<Shift> shifts,
             HTMInstance instance,
-            double[][] travelTimes
+            double[][] travelTimesNight,
+            double[][] travelTimesDay
     ) {
         List<Shift> newShifts = new ArrayList<>(shifts);
 

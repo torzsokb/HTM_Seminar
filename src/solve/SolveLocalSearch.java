@@ -4,52 +4,47 @@ import neighborhoods.*;
 import search.*;
 import java.util.*;
 
-
 public class SolveLocalSearch {
     //xx
     static final double shiftLength = 7*60;
     static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all.txt";
+        String instancePath = "src/core/data_all_feas.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
-        HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
-        long startTotalTime = System.currentTimeMillis();
+        double[][] travelTimesDay = new double[travelTimes.length][travelTimes.length];
+        double[][] travelTimesNight = new double[travelTimes.length][travelTimes.length];
+        for (int i = 0; i < travelTimes.length; i++) {
+            for (int j = 0; j < travelTimes.length; j++) {
+                double dayTravel = travelTimes[i][j] * 1.606862669;
+                double nightTravel = travelTimes[i][j] * 1.184004072;
+                travelTimesDay[i][j] = dayTravel;
+                travelTimesNight[i][j] = nightTravel;
 
-        long startGreedy = System.currentTimeMillis();
+            }
+        }
 
-        List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
-        List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
+        //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
 
-        List<Shift> nightShifts = Utils.buildGreedyShifts(instance, travelTimes, nightIdx, 1, shiftLength);
-        List<Shift> dayShifts   = Utils.buildGreedyShifts(instance, travelTimes, dayIdx, 0, shiftLength);
+        // Choose initial shifts to use 
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
 
-        List<Shift> initial = new ArrayList<>();
-        initial.addAll(nightShifts);
-        initial.addAll(dayShifts);
+        // Make sure they are feasible 
+        Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
 
-        ObjectiveFunction objective = Objective.balancedObj(0.001, 0);
-        ObjectiveFunction objectiveBalanced = Objective.totalLength();
+        double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
 
-        double initial_obj_value = objectiveBalanced.shifts(initial)/60.0;
-
-        long endGreedy = System.currentTimeMillis();
-
-        double totalTimeGreedy = (endGreedy - startGreedy) / 1000.0;
-        System.out.println("Initial solution built:");
-        System.out.println("Night shifts: " + nightShifts.size());
-        System.out.println("Day shifts:   " + dayShifts.size());
+        System.out.println("Initial solution:");
         System.out.println("Total shifts: " + initial.size());
         System.out.println("Total objective value: " + initial_obj_value);
-        System.out.println("Time taken: " + totalTimeGreedy + " s.");
 
-        //Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
-
-        Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
-
+        Utils.checkFeasibility(initial, instance, totalShiftLength);
+        
         // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new Inter2OptStar(),
@@ -71,16 +66,16 @@ public class SolveLocalSearch {
                 ImprovementChoice.FIRST,
                 1000,       
                 totalShiftLength,
-                objective
+                objectiveBasic
         );
+        
         long startTime = System.currentTimeMillis();
-        System.out.println("Running local search...");
-        initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
-        List<Shift> improved = ls.run(initial, instance, travelTimes);
+        System.out.println("\nRunning local search...");
+        List<Shift> improved = ls.runDiffTimes(initial, instance, travelTimesNight, travelTimesDay);
 
-        Utils.recomputeAllShifts(improved, instance, travelTimes);
+        Utils.recomputeAllShiftsDiffTimes(improved, instance, travelTimesNight, travelTimesDay);
 
-        double new_obj_value = objectiveBalanced.shifts(improved)/60.0;
+        double new_obj_value = objectiveBasic.shifts(improved)/60.0;
 
         System.out.println("\nLocal search complete.");
 
@@ -95,47 +90,18 @@ public class SolveLocalSearch {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
-        Utils.resultsToCSV(improved, instance, "src/results/results_LS_abri_order.csv");
-        // for (Shift shift : improved) {
-        //     System.out.println(Utils.formatRoute(instance, shift.route));
-        // }
 
-        // Acceptance.initSimulatedAnnealing(100.0, 0.98);
-        // AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
-
-        // LocalSearch ls_SA = new LocalSearch(
-        //     neighborhoods,
-        //     acceptSA,
-        //     compatibility,
-        //     ImprovementChoice.FIRST,
-        //     1000,       
-        //     totalShiftLength,
-        //         objectiveBasic
-        // );
-        // List<Shift> improved_SA = ls_SA.run(improved, instance, travelTimes);
-        
-        // Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
-        // double new_obj_value_SA = objectiveBasic.shifts(improved_SA)/60.0;
-        // double improvement_SA = new_obj_value - new_obj_value_SA;
-        // System.out.println("\nSA obj value: " + new_obj_value_SA);
-        // System.out.println("Improvement: " + improvement_SA);
-        // double total_improvement_SA = initial_obj_value - new_obj_value_SA;
-        // System.out.println("Total improvement: " + total_improvement_SA);
-
-        // long endTotalTime = System.currentTimeMillis();
-        // double totalTimeTaken = (endTotalTime-startTotalTime)/1000.0;
-
-        // System.out.println("Total time taken: " + totalTimeTaken + " s");
-
-        // Utils.checkFeasibility(improved_SA, instance, totalShiftLength);
-        // Utils.printShiftStatistics(improved_SA, instance, totalShiftLength);
-        // Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_abri.csv");
-        
     
+        //Utils.resultsToCSV(improved, instance, "src/results/results_LS_feasible.csv");
+        //Utils.resultsToCSV(improved, instance, "src/results/results_SA_gridsearch_best_Newv2_feasible.csv");
 
-        // for (int r = 0; r < improved.size(); r++) {
-        //     Shift s = improved.get(r);
-        //     System.out.println("Route " + r + ": " + s.route + " | total=" + s.totalTime);
-        // }
+        // Sanity check
+        /*
+        for (Shift shift : improved) {
+             System.out.println(Utils.formatRoute(instance, shift.route));
+        }
+         */
     }
 }
+
+

@@ -14,30 +14,44 @@ public class FindingBestOrderLocalSearch {
     static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all.txt";
+        String instancePath = "src/core/data_all_feas.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
-        HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
-        List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
-        List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);
+        double[][] travelTimesDay = new double[travelTimes.length][travelTimes.length];
+        double[][] travelTimesNight = new double[travelTimes.length][travelTimes.length];
+        for (int i = 0; i < travelTimes.length; i++) {
+            for (int j = 0; j < travelTimes.length; j++) {
+                double dayTravel = travelTimes[i][j] * 1.606862669;
+                double nightTravel = travelTimes[i][j] * 1.184004072;
+                travelTimesDay[i][j] = dayTravel;
+                travelTimesNight[i][j] = nightTravel;
 
-        double shiftLength = 7 * 60; 
+            }
+        }
 
-        List<Shift> nightShifts = Utils.buildGreedyShifts(instance, travelTimes, nightIdx, 1, shiftLength);
-        List<Shift> dayShifts   = Utils.buildGreedyShifts(instance, travelTimes, dayIdx, 0, shiftLength);
+        //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
 
-        List<Shift> initial = new ArrayList<>();
-        initial.addAll(nightShifts);
-        initial.addAll(dayShifts);
+        System.out.println("Get initial solution: ");
 
-        double initialObj = Utils.totalObjective(initial);
-        System.out.println("Initial solution built:");
-        System.out.println("Night shifts: " + nightShifts.size());
-        System.out.println("Day shifts:   " + dayShifts.size());
+        // Choose initial shifts to use 
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
+
+        // Make sure they are feasible 
+        Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
+
+        double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
+
+        System.out.println("Initial solution:");
         System.out.println("Total shifts: " + initial.size());
-        System.out.println("Initial objective: " + initialObj);
+        System.out.println("Total objective value: " + initial_obj_value);
+
+        Utils.checkFeasibility(initial, instance, totalShiftLength);
+
+        double initialObj = objectiveBasic.shifts(initial)/60.0;
 
         // ----------------------------
         // Neighborhoods to permute
@@ -61,7 +75,7 @@ public class FindingBestOrderLocalSearch {
         generatePermutations(neighborhoods, 0, allOrders);
 
     
-        double bestObj = Double.MAX_VALUE;
+        double bestObj = initialObj;
         List<Shift> bestSolution = null;
         List<Neighborhood> bestOrder = null;
         ImprovementChoice bestChoice = null;
@@ -87,9 +101,10 @@ public class FindingBestOrderLocalSearch {
                         objectiveFunction
                 );
 
-                List<Shift> result = ls.run(initialCopy, instance, travelTimes);
-                Utils.recomputeAllShifts(result, instance, travelTimes);
-                double obj = Utils.totalObjective(result) + 50.0;
+                List<Shift> result = ls.runDiffTimes(initialCopy, instance, travelTimesNight, travelTimesDay);
+                Utils.recomputeAllShiftsDiffTimes(result, instance, travelTimesNight, travelTimesDay);
+
+                double obj = objectiveBasic.shifts(result)/60.0;
 
                 if (obj < bestObj) {
                     bestObj = obj;
@@ -99,6 +114,10 @@ public class FindingBestOrderLocalSearch {
                     System.out.printf("New best found! Obj = %.6f | Choice = %s | Run %d%n", bestObj, bestChoice, runCount);
                     double bestImprovement = initialObj - bestObj;
                     System.out.println("Best improvement: " + bestImprovement);
+                    System.out.println("Best neighborhood order:");
+                    for (Neighborhood n : bestOrder) {
+                        System.out.println(" - " + n.getClass().getSimpleName());
+                    }
                 }
             }
         }
@@ -111,8 +130,8 @@ public class FindingBestOrderLocalSearch {
             System.out.println(" - " + n.getClass().getSimpleName());
         }
 
-        Utils.printShiftStatistics(bestSolution, instance, shiftLength);
-        Utils.checkFeasibility(bestSolution, instance, shiftLength);
+        Utils.printShiftStatistics(bestSolution, instance, totalShiftLength);
+        Utils.checkFeasibility(bestSolution, instance, totalShiftLength);
     }
 
     public static void generatePermutations(List<Neighborhood> arr, int k, List<List<Neighborhood>> result) {

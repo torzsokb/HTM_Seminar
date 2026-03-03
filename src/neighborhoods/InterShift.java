@@ -34,7 +34,13 @@ public class InterShift implements Neighborhood {
             for (int r2 = 0; r2 < shifts.size(); r2++) {
                 if (r1 == r2) continue;
                 Shift s1 = shifts.get(r1);
+
+                if (s1.route.size() < 4) {
+                    continue;
+                }
+
                 Shift s2 = shifts.get(r2);
+
 
                 if (numNightShifts == MAX_NIGHT_SHIFTS && !compatibility.compatible(s1, s2)) {
                     continue;
@@ -125,11 +131,103 @@ public class InterShift implements Neighborhood {
     }
 
     @Override
+    public Evaluation evaluateMoveDiffTimes(
+            Move move,
+            List<Shift> shifts,
+            HTMInstance instance,
+            double[][] travelTimesNight,
+            double[][] travelTimesDay,
+            double maxShiftDuration,
+            ObjectiveFunction objectiveFunction
+    ) {
+        Objective.BalancedObj obj = (Objective.BalancedObj) objectiveFunction;
+        double lambdaL = obj.lambdaL;
+        double lambdaC = obj.lambdaC;
+
+        Shift s1 = shifts.get(move.route1);
+        Shift s2 = shifts.get(move.route2);
+
+        int node = s1.route.get(move.index1);
+
+        Stop stop = instance.getStops().get(node);
+
+        double service = stop.serviceTime;
+
+        int prev1 = (move.index1 == 0) ? 0 : s1.route.get(move.index1 - 1);
+        int next1 = (move.index1 == s1.route.size() - 1) ? 0 : s1.route.get(move.index1 + 1);
+
+        double deltaRemove = 0.0;
+        if (s1.nightShift == 1) {
+            deltaRemove =
+                -travelTimesNight[prev1][node]
+                        - travelTimesNight[node][next1]
+                        + travelTimesNight[prev1][next1];
+        } else {
+            deltaRemove =
+                -travelTimesDay[prev1][node]
+                        - travelTimesDay[node][next1]
+                        + travelTimesDay[prev1][next1];
+        }
+
+        int prev2 = (move.index2 == 0) ? 0 : s2.route.get(move.index2 - 1);
+        int next2 = (move.index2 == s2.route.size()) ? 0 : s2.route.get(move.index2);
+
+        double deltaInsert = 0.0;
+
+        // Use night or day travel times 
+        if (s2.nightShift == 1 || instance.getStops().get(node).nightShift == 1) {
+            deltaInsert =
+                -travelTimesNight[prev2][next2]
+                        + travelTimesNight[prev2][node]
+                        + travelTimesNight[node][next2];
+        } else {
+            deltaInsert =
+                -travelTimesDay[prev2][next2]
+                        + travelTimesDay[prev2][node]
+                        + travelTimesDay[node][next2];
+        }
+
+        double newL1 = s1.totalTime - service + deltaRemove;
+        double newL2 = s2.totalTime + service + deltaInsert;
+
+        if (newL1 > maxShiftDuration || newL2 > maxShiftDuration) {
+            return new Evaluation(0, false);
+        }
+
+        double newC1 = s1.serviceTime - service;
+        double newC2 = s2.serviceTime + service;
+
+        double L1 = s1.totalTime, L2 = s2.totalTime;
+        double C1 = s1.serviceTime, C2 = s2.serviceTime;
+
+        double sumLNew  = sumL  - L1 - L2 + newL1 + newL2;
+        double sumL2New = sumL2 - L1*L1 - L2*L2 + newL1*newL1 + newL2*newL2;
+
+        double sumCNew  = sumC  - C1 - C2 + newC1 + newC2;
+        double sumC2New = sumC2 - C1*C1 - C2*C2 + newC1*newC1 + newC2*newC2;
+
+        double sseLOld = sumL2 - (sumL * sumL) / m;
+        double sseCOld = sumC2 - (sumC * sumC) / m;
+
+        double sseLNew = sumL2New - (sumLNew * sumLNew) / m;
+        double sseCNew = sumC2New - (sumCNew * sumCNew) / m;
+
+        double oldObj = sumL + lambdaL * sseLOld + lambdaC * sseCOld;
+        double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCNew;
+
+        double improvement = oldObj - newObj;
+        if (Math.abs(improvement) < EPS) improvement = 0.0;
+
+        return new Evaluation(improvement, true);
+    }
+
+    @Override
     public List<Shift> applyMove(
             Move move,
             List<Shift> shifts,
             HTMInstance instance,
-            double[][] travelTimes
+            double[][] travelTimesNight,
+            double[][] travelTimesDay
     ) {
         List<Shift> newShifts = new ArrayList<>(shifts);
 

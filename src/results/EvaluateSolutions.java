@@ -10,19 +10,45 @@ public class EvaluateSolutions {
     static final double totalShiftLength = 8 * 60;
 
     public static void main(String[] args) throws Exception  {
-        String instancePath = "src/core/data_all.txt";
+        String instancePath = "src/core/data_all_feas.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
-        HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
+
+        double[][] travelTimesDay = new double[travelTimes.length][travelTimes.length];
+        double[][] travelTimesNight = new double[travelTimes.length][travelTimes.length];
+        for (int i = 0; i < travelTimes.length; i++) {
+            for (int j = 0; j < travelTimes.length; j++) {
+                double dayTravel = travelTimes[i][j] * 1.606862669;
+                double nightTravel = travelTimes[i][j] * 1.184004072;
+                travelTimesDay[i][j] = dayTravel;
+                travelTimesNight[i][j] = nightTravel;
+
+            }
+        }
 
         // Paths to varying results
 
         // INIT SOLUTION
         System.out.println("\nInitial solution:");
-        String initResults = "src/results/HTM_data_initRes.csv";
+        // Feasible version (5 + 3 = 8 & 5 + 10 = 15) 
+        String initResults = "src/results/HTM_data_initRes_typeHalte.csv";
 
-        List<Shift> initShifts = Utils.readShiftsFromCSV(initResults, travelTimes);
+        // Old version (5 + 8 = 13 & 5 + 15 = 20)
+        // String initResults = "src/results/HTM_data_initRes3b.csv";
+        
+        List<Shift> initShifts = Utils.readShiftsFromCSVDiffTimes(initResults, travelTimesNight, travelTimesDay);
+
+        Utils.printShiftStatistics(initShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(initShifts, instance, totalShiftLength);
+
+        double initialObjective = Utils.totalObjective(initShifts);
+        System.out.println("\nObjective: " + initialObjective + " hours.");
+
+        // Make initial shifts feasible 
+        System.out.println("\nInitial feasible solution:");
+        Utils.makeFeasible(initShifts, instance, travelTimesNight, travelTimesDay);
 
         Utils.printShiftStatistics(initShifts, instance, totalShiftLength);
         Utils.checkFeasibility(initShifts, instance, totalShiftLength);
@@ -32,7 +58,7 @@ public class EvaluateSolutions {
 
         // GREEDY
         System.out.println("\nGreedy solution:");
-        String greedyResults = "src/results/results_Greedy_abri.csv";
+        String greedyResults = "src/results/results_Greedy_feasible.csv";
 
         List<Shift> greedyShifts = Utils.readShiftsFromCSV(greedyResults, travelTimes);
 
@@ -49,7 +75,7 @@ public class EvaluateSolutions {
         // LS
         System.out.println("\nLocal search solution:");
 
-        String lsResults = "src/results/results_LS_abri.csv";
+        String lsResults = "src/results/results_LS_feasible.csv";
 
         List<Shift> lsShifts = Utils.readShiftsFromCSV(lsResults, travelTimes);
 
@@ -62,7 +88,7 @@ public class EvaluateSolutions {
         // LS WITH SA
         System.out.println("\nLocal search with SA solution:");
 
-        String saResults = "src/results/results_SA_gridsearch_best_Newv2.csv";
+        String saResults = "src/results/results_SA_gridsearch_best_Newv2_feasible.csv";
 
         List<Shift> saShifts = Utils.readShiftsFromCSV(saResults, travelTimes);
 
@@ -75,7 +101,7 @@ public class EvaluateSolutions {
         // Balanced LS
         System.out.println("\nBalanced solution:");
 
-        String baLSResults = "src/results/results_Balanced_0.002_0.001.csv";
+        String baLSResults = "src/results/results_Balanced_0.003_0.002_feasible.csv";
 
         List<Shift> baLSShifts = Utils.readShiftsFromCSV(baLSResults, travelTimes);
 
@@ -100,7 +126,7 @@ public class EvaluateSolutions {
         System.out.println("Improvement: " + (initObj - baLSObj) + " hours.");
 
         // For most efficient and balanced, collect lengths and cleaning times 
-        Utils.printCleaningAndLength(saShifts, "src/results/SA_stats.csv");
-        Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats.csv");
+        Utils.printCleaningAndLength(saShifts, "src/results/SA_stats_feasible.csv");
+        Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats_feasible.csv");
     }
 }

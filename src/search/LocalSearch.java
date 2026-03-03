@@ -4,7 +4,6 @@ import core.HTMInstance;
 import core.Shift;
 import java.util.*;
 import core.Utils;
-import java.util.Random;
 
 
 
@@ -81,7 +80,7 @@ public class LocalSearch {
                         // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
                         // System.out.println("Improvement of iteration " + iteration + ": " + improvement);
                         
-                        shifts = n.applyMove(m, shifts, instance, travelTimes);
+                        shifts = n.applyMove(m, shifts, instance, travelTimes, travelTimes);
                         Utils.recomputeAllShifts(shifts, instance, travelTimes);
                         improved = true;
                         break;
@@ -99,8 +98,88 @@ public class LocalSearch {
                     // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
                     // System.out.println("Improvement of iteration " + iteration + ": " + bestImprovement);
         
-                    shifts = n.applyMove(bestMove, shifts, instance, travelTimes);
+                    shifts = n.applyMove(bestMove, shifts, instance, travelTimes, travelTimes);
                     Utils.recomputeAllShifts(shifts, instance, travelTimes);
+                    improved = true;
+                }
+        
+                if (improved) break; 
+            }
+            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
+                Acceptance.coolDown();
+                // System.out.println("Temperature after iteration " + iteration + ": " + Acceptance.getTemperature());
+            }
+        }
+        
+        return shifts;
+    }
+
+    public List<Shift> runDiffTimes(
+            List<Shift> initialShifts,
+            HTMInstance instance,
+            double[][] travelTimesNight,
+            double[][] travelTimesDay
+    ) {
+        List<Shift> shifts = new ArrayList<>(initialShifts);
+        boolean improved = true;
+        int iteration = 0;
+
+        while (improved && iteration < maxIterations) {
+            iteration++;
+            improved = false;
+
+            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
+                Random rnd = new Random(10);
+                Collections.shuffle(neighborhoods, rnd);
+            }
+            for (Neighborhood n : neighborhoods) {
+
+                List<Move> moves = n.generateMoves(shifts, compatibility);
+        
+                Move bestMove = null;
+                double bestImprovement = Double.NEGATIVE_INFINITY;
+        
+                for (Move m : moves) {
+                    Evaluation eval = n.evaluateMoveDiffTimes(
+                            m,
+                            shifts,
+                            instance,
+                            travelTimesNight,
+                            travelTimesDay,
+                            maxShiftDuration,
+                            objectiveFunction
+                    );
+        
+                    if (!eval.feasible) continue;
+                    double improvement = eval.improvement;
+
+                    if (!acceptanceFunction.accept(improvement)) continue;
+
+                    // FIRST improvement
+                    if (improvementChoice == ImprovementChoice.FIRST) {
+                        // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
+                        // System.out.println("Improvement of iteration " + iteration + ": " + improvement);
+                        
+                        shifts = n.applyMove(m, shifts, instance, travelTimesNight, travelTimesDay);
+                        Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
+                        improved = true;
+                        break;
+                    }
+        
+                    if (improvementChoice == ImprovementChoice.BEST) {
+                        if (improvement > bestImprovement) {
+                            bestImprovement = improvement;
+                            bestMove = m;
+                        }
+                    }
+                }
+
+                if (improvementChoice == ImprovementChoice.BEST && bestMove != null) {
+                    // System.out.println("Neighborhood: " + n.getClass().getSimpleName());
+                    // System.out.println("Improvement of iteration " + iteration + ": " + bestImprovement);
+        
+                    shifts = n.applyMove(bestMove, shifts, instance, travelTimesNight, travelTimesDay);
+                    Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
                     improved = true;
                 }
         

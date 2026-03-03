@@ -93,6 +93,9 @@ public class HTMInstance {
                     case "abri":
                         cleaningTime = Double.parseDouble(c[8]);
                         break;
+                    case "feasible":
+                        cleaningTime = Double.parseDouble(c[9]);
+                        break;
                     default:
                         System.out.println("Invalid cleaning indicator.");
                         break;

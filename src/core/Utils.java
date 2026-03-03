@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+import neighborhoods.InterShift;
+import search.Move;
+
 public class Utils {
     public static HTMInstance readInstance(
             String path,
@@ -79,6 +82,7 @@ public class Utils {
 
         List<Shift> day = new ArrayList<>();
         List<Shift> night = new ArrayList<>();
+
     
         for (Shift s : shifts) {
             if (s.nightShift == 1) night.add(s);
@@ -142,6 +146,65 @@ public class Utils {
         System.out.printf("Total service time:   %.5f h%n", totalService / 60.0);
         System.out.printf("Violated routes:      %d%n", violated);
     }
+
+    public static void makeFeasible(List<Shift>  shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay) {
+        InterShift interShift = new InterShift();
+
+        while (true) {
+            // Get violated shifts 
+            List<Integer> violatedIdx = new ArrayList<>();
+            for (int i = 0; i < shifts.size(); i++) {
+                if (shifts.get(i).totalTime > 480.0) {
+                    violatedIdx.add(i);
+                }
+            }
+
+            if (violatedIdx.isEmpty()) break;
+
+            // Pick one violated shift 
+            int vIdx = violatedIdx.get(0);
+            Shift vShift = shifts.get(vIdx);
+            int vNight = vShift.nightShift;
+
+            // Find current shortest shift
+            int shortestIdx = -1;
+            double shortestTime = Double.POSITIVE_INFINITY;
+            for (int i = 0; i < shifts.size(); i++) {
+                // Different shift 
+                if (i == vIdx) continue;                 
+                // Same type only 
+                if (shifts.get(i).nightShift != vNight) continue;
+
+                double t = shifts.get(i).totalTime;
+                if (t < shortestTime) {
+                    shortestTime = t;
+                    shortestIdx = i;
+                }
+            }
+
+            Shift shortestShift = shifts.get(shortestIdx);
+
+            // last stop in the route 
+            int fromIndex = vShift.route.size() - 2;
+
+            // Insert before depot 
+            int toIndex   = shortestShift.route.size() - 1; 
+
+        
+            if (fromIndex <= 0) break;
+
+            Move m = new Move(
+                    vIdx,
+                    shortestIdx,
+                    fromIndex,
+                    toIndex,
+                    Move.MoveType.INTER_SHIFT
+            );
+
+            shifts = interShift.applyMove(m, shifts, instance, travelTimesNight, travelTimesDay);
+            Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
+        }
+    }
     
 
     public static void recomputeShift(Shift s, HTMInstance instance, double[][] travelTimes) {
@@ -174,6 +237,52 @@ public class Utils {
     public static void recomputeAllShifts(List<Shift> shifts, HTMInstance instance, double[][] travelTimes) {
         for (Shift s : shifts) {
             recomputeShift(s, instance, travelTimes);
+        }
+    }
+
+    public static void recomputeShiftDiffTimes(Shift s, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay) {
+        double travel = 0.0;
+        double service = 0.0;
+    
+        if (!s.route.isEmpty()) {
+            if (containsNightStop(s.route, instance)) {
+                s.nightShift = 1;
+                travel += travelTimesNight[0][s.route.get(0)];
+
+                for (int k = 0; k < s.route.size() - 1; k++) {
+                int a = s.route.get(k);
+                int b = s.route.get(k + 1);
+                travel += travelTimesNight[a][b];
+            }
+    
+                travel += travelTimesNight[s.route.get(s.route.size() - 1)][0];
+            } else {
+                s.nightShift = 0;
+                travel += travelTimesDay[0][s.route.get(0)];
+
+                for (int k = 0; k < s.route.size() - 1; k++) {
+                int a = s.route.get(k);
+                int b = s.route.get(k + 1);
+                travel += travelTimesDay[a][b];
+            }
+    
+                travel += travelTimesDay[s.route.get(s.route.size() - 1)][0];
+            }
+        }
+    
+        for (int id : s.route) {
+            service += instance.getStops().get(id).serviceTime;
+        }
+    
+        s.travelTime = travel;
+        s.serviceTime = service;
+        s.recomputeTotalTime();
+    }
+    
+    
+    public static void recomputeAllShiftsDiffTimes(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay) {
+        for (Shift s : shifts) {
+            recomputeShiftDiffTimes(s, instance, travelTimesNight, travelTimesDay);
         }
     }
     
@@ -249,6 +358,7 @@ public class Utils {
 
         return shifts;
     }
+
 
     public static void checkFeasibility(
         List<Shift> shifts,
@@ -574,6 +684,125 @@ public class Utils {
                     );
                 }
                 travelSum += travelTimes[a][b];
+            }
+
+            // This Shift constructor will add prep+break itself via totalTime
+            shifts.add(new Shift(route, travelSum, serviceSum, hasNightStop ? 1 : 0));
+        }
+
+        return shifts;
+    }
+
+    public static List<Shift> readShiftsFromCSVDiffTimes(String pathToCsv, double[][] travelTimesNight, double[][] travelTimesDay) throws IOException {
+        List<Shift> shifts = new ArrayList<>();
+
+        File csvFile = new File(pathToCsv);
+        // Each row corresponds to a stop: map these stops to a route
+        Map<String, List<double[]>> byRoute = new LinkedHashMap<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+
+            // Read header (ignore)
+            line = br.readLine();
+            if (line == null) {
+                return shifts;
+            }
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+
+                String[] c = line.split(",", -1);
+                if (c.length != 8) {
+                    throw new IllegalArgumentException("Expected 8 columns, got " + c.length + " in line: " + line);
+                }
+
+                // Fixed indices (your spec)
+                String routeName = c[1].trim(); // Route
+                String orderStr  = c[2].trim(); // Order
+                String nightStr  = c[3].trim(); // Night_shift
+                String idStr     = c[6].trim(); // ID
+                String servStr   = c[7].trim(); // Service/Cleaning time
+
+                int stopId = Integer.parseInt(idStr);
+
+                // Skip depot row (ID=0)
+                if (stopId == 0) continue;
+
+                if (routeName.isEmpty() || routeName.equalsIgnoreCase("NA")) {
+                    throw new IllegalArgumentException("Missing Route for non-depot row: " + line);
+                }
+
+                if (orderStr.isEmpty() || orderStr.equalsIgnoreCase("NA")) {
+                    throw new IllegalArgumentException("Order is NA/empty for non-depot row: " + line);
+                }
+                int order = Integer.parseInt(orderStr);
+
+                int night = 0;
+                if (!nightStr.isEmpty() && !nightStr.equalsIgnoreCase("NA")) {
+                    int raw = Integer.parseInt(nightStr);
+                    night = (raw == 1) ? 1 : 0;
+                }
+
+                double serviceTime = Double.parseDouble(servStr);
+
+                byRoute.computeIfAbsent(routeName, k -> new ArrayList<>())
+                        .add(new double[]{stopId, order, night, serviceTime});
+            }
+        }
+
+        // Build Shift objects
+        for (Map.Entry<String, List<double[]>> entry : byRoute.entrySet()) {
+            List<double[]> rows = entry.getValue();
+            rows.sort(Comparator.comparingDouble(r -> r[1])); // sort by Order
+
+            // ---- route includes depot at start and end ----
+            List<Integer> route = new ArrayList<>(rows.size() + 2);
+            route.add(0); // start at depot
+
+            double serviceSum = 0.0;
+            boolean hasNightStop = false;
+
+            for (double[] r : rows) {
+                int stopId = (int) r[0];
+                int night  = (int) r[2];
+                double serv = r[3];
+
+                route.add(stopId);
+                serviceSum += serv;
+                if (night == 1) hasNightStop = true;
+            }
+
+            route.add(0); // end at depot
+
+            // ---- travel time includes depot legs (0->first and last->0) ----
+            double travelSum = 0.0;
+            if (hasNightStop) {
+                for (int i = 0; i < route.size() - 1; i++) {
+                int a = route.get(i);
+                int b = route.get(i + 1);
+
+                if (a < 0 || a >= travelTimesNight.length || b < 0 || b >= travelTimesNight[a].length) {
+                    throw new IllegalArgumentException(
+                            "travelTimes index out of bounds for edge " + a + "->" + b +
+                                    " in route=" + entry.getKey() + " file=" + csvFile.getName()
+                        );
+                    }
+                travelSum += travelTimesNight[a][b];
+                }
+            } else {
+                for (int i = 0; i < route.size() - 1; i++) {
+                int a = route.get(i);
+                int b = route.get(i + 1);
+
+                if (a < 0 || a >= travelTimesDay.length || b < 0 || b >= travelTimesDay[a].length) {
+                    throw new IllegalArgumentException(
+                            "travelTimes index out of bounds for edge " + a + "->" + b +
+                                    " in route=" + entry.getKey() + " file=" + csvFile.getName()
+                        );
+                    }
+                travelSum += travelTimesDay[a][b];
+                }
             }
 
             // This Shift constructor will add prep+break itself via totalTime
