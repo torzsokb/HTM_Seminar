@@ -24,6 +24,7 @@ def optimise_cleaning_times(
     shifts = df["Route"].dropna().astype(str).unique().tolist()
     print(len(shifts))
     print(df.columns)
+    print(df["n_in_run"].value_counts())
 
     shift_info = {}
     
@@ -43,7 +44,7 @@ def optimise_cleaning_times(
         lb=min_setup_time,
         ub=20,
         obj=0,
-        vtype=GRB.CONTINUOUS,
+        vtype=GRB.INTEGER,
         name="fix_time"
     )
 
@@ -51,7 +52,7 @@ def optimise_cleaning_times(
         lb=min_tram_abri_time,
         ub=20,
         obj=0,
-        vtype=GRB.CONTINUOUS,
+        vtype=GRB.INTEGER,
         name="tram_abri_time"
     )
 
@@ -59,7 +60,7 @@ def optimise_cleaning_times(
         lb=min_tram_time,
         ub=20,
         obj=0,
-        vtype=GRB.CONTINUOUS,
+        vtype=GRB.INTEGER,
         name="tram_time"
     )
 
@@ -67,7 +68,7 @@ def optimise_cleaning_times(
         lb=min_bus_abri_time,
         ub=20,
         obj=0,
-        vtype=GRB.CONTINUOUS,
+        vtype=GRB.INTEGER,
         name="bus_abri_time"
     )
 
@@ -75,7 +76,7 @@ def optimise_cleaning_times(
         lb=min_bus_time,
         ub=20,
         obj=0,
-        vtype=GRB.CONTINUOUS,
+        vtype=GRB.INTEGER,
         name="bus_time"
     )
 
@@ -101,11 +102,18 @@ def optimise_cleaning_times(
         print(shift)
         df_r = df[df["Route"] == shift]
         travel_time_penalty = day_penalty if shift[4] == "D" else night_penalty
+        speed = 26 if shift[4] == "D" else 33
+
+        # travel_time = total_travel_time(
+        #     distances=distances,
+        #     locations=list(df_r["ID_MAXIMO"]),
+        #     penalty=travel_time_penalty
+        # )
 
         travel_time = total_travel_time(
             distances=distances,
             locations=list(df_r["ID_MAXIMO"]),
-            penalty=travel_time_penalty
+            speed=speed
         )
 
         shift_info[shift] = {
@@ -196,7 +204,7 @@ def optimise_cleaning_times(
         cleaning_time += shift_info[shift]["n_stops_by_type"]["Bushalte"][0] * round(optimised_times["bus_time"])
         cleaning_time += shift_info[shift]["n_stops_by_type"]["Bushalte"][1] * round(optimised_times["bus_abri_time"])
         
-        print(f"shift {shift} total time: {travel_time + cleaning_time:.2f} cleaning: {cleaning_time} travel: {travel_time:.2f}")
+        print(f"shift {shift} total time: {(travel_time + cleaning_time)/60:.2f} cleaning: {cleaning_time} travel: {travel_time:.2f}")
     
     
     model.dispose()
@@ -215,6 +223,18 @@ def total_travel_time(distances: dict, locations: list, penalty: float) -> float
         total_time += distances[locations[i-1]][locations[i]]["time"]
 
     return penalty * total_time / 60
+
+def total_travel_time(distances: dict, locations: list, speed: float) -> float:
+
+    speed_mps = speed / 3.6
+
+    total_time = distances["Depot"][locations[0]]["dist"] / speed_mps
+    total_time += distances[locations[-1]]["Depot"]["dist"] / speed_mps
+    
+    for i in range(1, len(locations)):
+        total_time += distances[locations[i-1]][locations[i]]["dist"] / speed_mps
+
+    return total_time / 60
     
 
 
@@ -227,12 +247,12 @@ def main():
     night_penalty = 1.18
     max_shift_duration = 7 * 60
     min_shift_duration = 3 * 60
-    min_setup_time = 1
-    min_tram_time = 3
-    min_tram_abri_time = 4
-    min_bus_time = 1
-    min_bus_abri_time = 2
-    max_overtime = 15
+    min_setup_time = 0
+    min_tram_time = 0
+    min_tram_abri_time = 0
+    min_bus_time = 0
+    min_bus_abri_time = 0
+    max_overtime = 0
     overtime_penalty = 1.0
 
     output = optimise_cleaning_times(
