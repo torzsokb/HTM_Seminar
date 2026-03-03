@@ -11,7 +11,7 @@ public class GridSearchSA {
     static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all_feas.txt";
+        String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
@@ -67,7 +67,7 @@ public class GridSearchSA {
                         currentBest = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2_feasible.csv", travelTimes);
                         // System.out.println("\nRunning SA with Temp=" + temp + ", Rate=" + rate + ", Choice=" + choice);
 
-                        Acceptance.initSimulatedAnnealing(temp, rate);
+                        Acceptance.initSimulatedAnnealing(0.5, 0, 1000, 50);
                         AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
 
                         LocalSearch ls_SA = new LocalSearch(
@@ -77,7 +77,8 @@ public class GridSearchSA {
                                 choice,
                                 400,
                                 totalShiftLength,
-                                objectiveBasic
+                                objectiveBasic,
+                                true
                         );
 
                         List<Shift> improved_SA = ls_SA.run(currentBest, instance, travelTimes);

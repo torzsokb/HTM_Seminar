@@ -14,7 +14,7 @@ public class FindingBestOrderLocalSearch {
     static final double totalShiftLength = 8*60;
 
     public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all_feas.txt";
+        String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
@@ -98,7 +98,8 @@ public class FindingBestOrderLocalSearch {
                         choice,
                         1000,           // max iterations
                         totalShiftLength,
-                        objectiveFunction
+                        objectiveFunction,
+                        false
                 );
 
                 List<Shift> result = ls.runDiffTimes(initialCopy, instance, travelTimesNight, travelTimesDay);

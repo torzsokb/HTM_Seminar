@@ -15,8 +15,8 @@ public class LocalSearch {
     private final int maxIterations;
     private final double maxShiftDuration;
     private final ObjectiveFunction objectiveFunction;
-    
-    
+    private boolean useSimulatedAnnealing;
+
 
     public LocalSearch(
             List<Neighborhood> neighborhoods,
@@ -25,7 +25,8 @@ public class LocalSearch {
             ImprovementChoice improvementChoice,
             int maxIterations,
             double maxShiftDuration,
-            ObjectiveFunction objectiveFunction
+            ObjectiveFunction objectiveFunction,
+            boolean useSimulatedAnnealing
     ) {
         this.neighborhoods = neighborhoods;
         this.acceptanceFunction = acceptanceFunction;
@@ -34,6 +35,7 @@ public class LocalSearch {
         this.maxIterations = maxIterations;
         this.maxShiftDuration = maxShiftDuration;
         this.objectiveFunction = objectiveFunction;
+        this.useSimulatedAnnealing = useSimulatedAnnealing;
     }
 
     public List<Shift> run(
@@ -47,9 +49,15 @@ public class LocalSearch {
 
         while (improved && iteration < maxIterations) {
             iteration++;
+            
+            if (useSimulatedAnnealing) {
+                Acceptance.updateTemperature(iteration);
+                //System.out.println("Temperature: " + Acceptance.getTemperature());
+            }
+
             improved = false;
 
-            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
+            if (useSimulatedAnnealing) {
                 Random rnd = new Random(10);
                 Collections.shuffle(neighborhoods, rnd);
             }
@@ -57,6 +65,10 @@ public class LocalSearch {
 
                 List<Move> moves = n.generateMoves(shifts, compatibility);
         
+                if (useSimulatedAnnealing) {
+                    Collections.shuffle(moves, new Random(iteration));
+                }
+
                 Move bestMove = null;
                 double bestImprovement = Double.NEGATIVE_INFINITY;
         
@@ -102,12 +114,12 @@ public class LocalSearch {
                     Utils.recomputeAllShifts(shifts, instance, travelTimes);
                     improved = true;
                 }
+
+                if (iteration % 100 == 0) {
+                    System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
+                }
         
                 if (improved) break; 
-            }
-            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
-                Acceptance.coolDown();
-                // System.out.println("Temperature after iteration " + iteration + ": " + Acceptance.getTemperature());
             }
         }
         
@@ -126,15 +138,25 @@ public class LocalSearch {
 
         while (improved && iteration < maxIterations) {
             iteration++;
+            if (useSimulatedAnnealing) {
+                Acceptance.updateTemperature(iteration);
+                //System.out.println("Temperature: " + Acceptance.getTemperature());
+            }
+
             improved = false;
 
-            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
+            if (useSimulatedAnnealing) {
                 Random rnd = new Random(10);
                 Collections.shuffle(neighborhoods, rnd);
             }
             for (Neighborhood n : neighborhoods) {
 
                 List<Move> moves = n.generateMoves(shifts, compatibility);
+
+                
+                if (useSimulatedAnnealing) {
+                    Collections.shuffle(moves, new Random(iteration));
+                }
         
                 Move bestMove = null;
                 double bestImprovement = Double.NEGATIVE_INFINITY;
@@ -182,13 +204,14 @@ public class LocalSearch {
                     Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
                     improved = true;
                 }
+
+                if (iteration % 100 == 0) {
+                    System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
+                }
         
                 if (improved) break; 
             }
-            if (acceptanceFunction == Acceptance.simulatedAnnealing()) {
-                Acceptance.coolDown();
-                // System.out.println("Temperature after iteration " + iteration + ": " + Acceptance.getTemperature());
-            }
+        
         }
         
         return shifts;
