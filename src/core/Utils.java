@@ -145,6 +145,12 @@ public class Utils {
         System.out.printf("Total travel time:    %.5f h%n", totalTravel / 60.0);
         System.out.printf("Total service time:   %.5f h%n", totalService / 60.0);
         System.out.printf("Violated routes:      %d%n", violated);
+
+        /* Extra check 
+        for (int i = 0; i < group.size(); i++) {
+            System.out.println("Shift " + (i + 1) + ", cleaning time " + group.get(i).serviceTime + ", travel time " + group.get(i).travelTime);
+        }
+         */
     }
 
     public static void makeFeasible(List<Shift>  shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay) {

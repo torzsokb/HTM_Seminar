@@ -13,20 +13,16 @@ public class EvaluateSolutions {
         String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
+        String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
+        String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
+
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
-        double[][] travelTimesDay = new double[travelTimes.length][travelTimes.length];
-        double[][] travelTimesNight = new double[travelTimes.length][travelTimes.length];
-        for (int i = 0; i < travelTimes.length; i++) {
-            for (int j = 0; j < travelTimes.length; j++) {
-                double dayTravel = travelTimes[i][j] * 1.606862669;
-                double nightTravel = travelTimes[i][j] * 1.184004072;
-                travelTimesDay[i][j] = dayTravel;
-                travelTimesNight[i][j] = nightTravel;
+        double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
+        double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
 
-            }
-        }
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
 
         // Paths to varying results
 
@@ -43,7 +39,7 @@ public class EvaluateSolutions {
         Utils.printShiftStatistics(initShifts, instance, totalShiftLength);
         Utils.checkFeasibility(initShifts, instance, totalShiftLength);
 
-        double initialObjective = Utils.totalObjective(initShifts);
+        double initialObjective = objectiveBasic.shifts(initShifts)/60.0;;
         System.out.println("\nObjective: " + initialObjective + " hours.");
 
         // Make initial shifts feasible 
@@ -53,62 +49,58 @@ public class EvaluateSolutions {
         Utils.printShiftStatistics(initShifts, instance, totalShiftLength);
         Utils.checkFeasibility(initShifts, instance, totalShiftLength);
 
-        double initObj = Utils.totalObjective(initShifts);
+        double initObj = objectiveBasic.shifts(initShifts)/60.0;;
         System.out.println("\nObjective: " + initObj + " hours.");
-
-        // GREEDY
-        System.out.println("\nGreedy solution:");
-        String greedyResults = "src/results/results_Greedy_feasible.csv";
-
-        List<Shift> greedyShifts = Utils.readShiftsFromCSV(greedyResults, travelTimes);
-
-        Utils.printShiftStatistics(greedyShifts, instance, totalShiftLength);
-        //Utils.checkFeasibility(greedyShifts, instance, totalShiftLength);
-
-        double greedyObj = Utils.totalObjective(greedyShifts);
-
-        ObjectiveFunction objectiveBasic = Objective.totalLength();
-        double greedyValue = objectiveBasic.shifts(greedyShifts);
-        System.out.println("\nObjective: " + greedyObj + " hours.");
-        System.out.println("Value: " + greedyValue);
 
         // LS
         System.out.println("\nLocal search solution:");
 
         String lsResults = "src/results/results_LS_feasible.csv";
 
-        List<Shift> lsShifts = Utils.readShiftsFromCSV(lsResults, travelTimes);
+        List<Shift> lsShifts = Utils.readShiftsFromCSVDiffTimes(lsResults, travelTimesNight, travelTimesDay);
 
         Utils.printShiftStatistics(lsShifts, instance, totalShiftLength);
-        //Utils.checkFeasibility(lsShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(lsShifts, instance, totalShiftLength);
 
-        double lsObj = Utils.totalObjective(lsShifts);
+        double lsObj = objectiveBasic.shifts(lsShifts)/60.0;;
         System.out.println("\nObjective: " + lsObj + " hours.");
 
         // LS WITH SA
         System.out.println("\nLocal search with SA solution:");
 
-        String saResults = "src/results/results_SA_gridsearch_best_Newv2_feasible.csv";
+        String saResults = "src/results/results_SA_feasible.csv";
 
-        List<Shift> saShifts = Utils.readShiftsFromCSV(saResults, travelTimes);
+        List<Shift> saShifts = Utils.readShiftsFromCSVDiffTimes(saResults, travelTimesNight, travelTimesDay);
 
         Utils.printShiftStatistics(saShifts, instance, totalShiftLength);
-        //Utils.checkFeasibility(saShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(saShifts, instance, totalShiftLength);
 
-        double saObj = Utils.totalObjective(saShifts);
+        double saObj = objectiveBasic.shifts(saShifts)/60.0;;
         System.out.println("\nObjective: " + saObj + " hours.");
+        
+        System.out.println("\nFinal solution:");
+
+        String finalResults = "src/results/results_final_feasible.csv";
+
+        List<Shift> finalShifts = Utils.readShiftsFromCSVDiffTimes(finalResults, travelTimesNight, travelTimesDay);
+
+        Utils.printShiftStatistics(finalShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(finalShifts, instance, totalShiftLength);System.out.println("\nLocal search with SA solution:");
+
+        double finalObj = objectiveBasic.shifts(finalShifts)/60.0;;
+        System.out.println("\nObjective: " + finalObj + " hours.");
 
         // Balanced LS
         System.out.println("\nBalanced solution:");
 
         String baLSResults = "src/results/results_Balanced_0.003_0.002_feasible.csv";
 
-        List<Shift> baLSShifts = Utils.readShiftsFromCSV(baLSResults, travelTimes);
+        List<Shift> baLSShifts = Utils.readShiftsFromCSVDiffTimes(baLSResults, travelTimesNight, travelTimesDay);
 
         Utils.printShiftStatistics(baLSShifts, instance, totalShiftLength);
-        //Utils.checkFeasibility(baLSShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(baLSShifts, instance, totalShiftLength);
 
-        double baLSObj = Utils.totalObjective(baLSShifts);
+        double baLSObj = objectiveBasic.shifts(baLSShifts)/60.0;;
         System.out.println("\nObjective: " + baLSObj + " hours.");
 
 
@@ -116,12 +108,12 @@ public class EvaluateSolutions {
         // All objectives
         System.out.println("\nAll objectives:");
         System.out.println("Initial objective: " + initObj + " hours.");
-        System.out.println("Greedy objective: " + greedyObj + " hours.");
-        System.out.println("Improvement: " + (initObj - greedyObj) + " hours.");
         System.out.println("LS objective: " + lsObj + " hours.");
         System.out.println("Improvement: " + (initObj - lsObj) + " hours.");
         System.out.println("SA objective: " + saObj + " hours.");
         System.out.println("Improvement: " + (initObj - saObj) + " hours.");
+        System.out.println("Final objective: " + finalObj + " hours.");
+        System.out.println("Improvement: " + (initObj - finalObj) + " hours.");
         System.out.println("Balanced LS objective: " + baLSObj + " hours.");
         System.out.println("Improvement: " + (initObj - baLSObj) + " hours.");
 

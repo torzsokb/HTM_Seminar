@@ -12,9 +12,15 @@ public class SolveBalancedSA {
     public static void main(String[] args) throws Exception {
         String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
+        
+        String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
+        String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
 
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
+
+        double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
+        double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
 
         // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
@@ -34,7 +40,7 @@ public class SolveBalancedSA {
         // BALANCED LOCAL SEARCH 
 
         ObjectiveFunction objectiveBasic = Objective.totalLength();
-        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.005, 0.004);
+        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.003, 0.002);
 
         LocalSearch ls_balanced = new LocalSearch(
                 neighborhoods,
@@ -47,15 +53,15 @@ public class SolveBalancedSA {
                 false
         );
 
-        List<Shift> initial = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2_feasible.csv", travelTimes);
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_final_feasible.csv", travelTimesNight, travelTimesDay);
         double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
 
 
         long startBLS = System.currentTimeMillis();
         System.out.println("\nRunning balanced local search...");
-        List<Shift> improved_balanced = ls_balanced.run(initial, instance, travelTimes);
+        List<Shift> improved_balanced = ls_balanced.runDiffTimes(initial, instance, travelTimesNight, travelTimesDay);
 
-        Utils.recomputeAllShifts(improved_balanced, instance, travelTimes);
+        Utils.recomputeAllShiftsDiffTimes(improved_balanced, instance, travelTimesNight, travelTimesDay);
 
         double new_obj_value_balanced = objectiveBasic.shifts(improved_balanced)/60.0;
 

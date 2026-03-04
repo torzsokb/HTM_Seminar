@@ -16,21 +16,15 @@ public class FindingBestOrderLocalSearch {
     public static void main(String[] args) throws Exception {
         String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
+        
+        String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
+        String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
 
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
-        double[][] travelTimesDay = new double[travelTimes.length][travelTimes.length];
-        double[][] travelTimesNight = new double[travelTimes.length][travelTimes.length];
-        for (int i = 0; i < travelTimes.length; i++) {
-            for (int j = 0; j < travelTimes.length; j++) {
-                double dayTravel = travelTimes[i][j] * 1.606862669;
-                double nightTravel = travelTimes[i][j] * 1.184004072;
-                travelTimesDay[i][j] = dayTravel;
-                travelTimesNight[i][j] = nightTravel;
-
-            }
-        }
+        double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
+        double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
 
         //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
         ObjectiveFunction objectiveBasic = Objective.totalLength();

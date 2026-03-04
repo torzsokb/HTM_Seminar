@@ -10,11 +10,17 @@ public class SolveGreedy {
     static final double totalShiftLength = 8 * 60;
 
     public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all.txt";
+        String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
+        
+        String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
+        String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
 
-        HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
+        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
+
+        double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
+        double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
 
         List<Integer> nightIdx = Utils.getAllowedIndices(instance, 1);
         List<Integer> dayIdx   = Utils.getAllowedIndices(instance, 0);

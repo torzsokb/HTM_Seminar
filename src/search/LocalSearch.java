@@ -2,6 +2,11 @@ package search;
 
 import core.HTMInstance;
 import core.Shift;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
 import core.Utils;
 
@@ -116,7 +121,7 @@ public class LocalSearch {
                 }
 
                 if (iteration % 100 == 0) {
-                    System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
+                    // System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
                 }
         
                 if (improved) break; 
@@ -135,12 +140,14 @@ public class LocalSearch {
         List<Shift> shifts = new ArrayList<>(initialShifts);
         boolean improved = true;
         int iteration = 0;
+        List<Double> allTemperatures = new ArrayList<>();
 
         while (improved && iteration < maxIterations) {
             iteration++;
             if (useSimulatedAnnealing) {
                 Acceptance.updateTemperature(iteration);
-                //System.out.println("Temperature: " + Acceptance.getTemperature());
+                // System.out.println("Temperature: " + Acceptance.getTemperature());
+                allTemperatures.add(Acceptance.getTemperature());
             }
 
             improved = false;
@@ -206,14 +213,32 @@ public class LocalSearch {
                 }
 
                 if (iteration % 100 == 0) {
-                    System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
+                    // System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
                 }
         
                 if (improved) break; 
             }
         
         }
-        
+        if (useSimulatedAnnealing) {
+            try {
+                temperaturesToFile(allTemperatures, "src/results/results_SA_feasible_alltemps.txt");
+            } catch (IOException e) {
+                throw new UncheckedIOException("\nFailed to temperatures to a file", e);
+            }
+        }
         return shifts;
     }
+
+
+public static void temperaturesToFile(List<Double> values, String filename) throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+        for (Double d : values) {
+            writer.write(d.toString());
+            writer.newLine();
+        }
+    }
+
+    System.out.println("Wrote temperatures to file " + filename);
+}
 }
