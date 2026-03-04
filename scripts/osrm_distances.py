@@ -14,7 +14,7 @@ base_url = "http://localhost:5001"
 # coordinates = list(zip(df_stops.latitude, df_stops.longitude))
 # coordinates = [(52.113567, 4.283832), (52.110579, 4.290129), (52.110126, 4.296792), (52.110579, 4.290129)]
 
-df = pd.read_csv("data/inputs/cleaned/HTM_data_collapsed_all.csv")
+df = pd.read_csv("data/inputs/HTM_Data_abriTypeStop.csv")
 coordinates = list(zip(df.longitude, df.latitude))
 coords_string = ";".join([f"{lon},{lat}" for lon, lat in coordinates])
 params = {"annotations": "duration,distance"}
