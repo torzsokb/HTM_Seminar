@@ -44,7 +44,7 @@ public class EvaluateSolutions {
 
         // Make initial shifts feasible 
         System.out.println("\nInitial feasible solution:");
-        Utils.makeFeasible(initShifts, instance, travelTimesNight, travelTimesDay);
+        // Utils.makeFeasible(initShifts, instance, travelTimesNight, travelTimesDay);
 
         Utils.printShiftStatistics(initShifts, instance, totalShiftLength);
         Utils.checkFeasibility(initShifts, instance, totalShiftLength);
@@ -118,7 +118,9 @@ public class EvaluateSolutions {
         System.out.println("Improvement: " + (initObj - baLSObj) + " hours.");
 
         // For most efficient and balanced, collect lengths and cleaning times 
-        Utils.printCleaningAndLength(saShifts, "src/results/SA_stats_feasible.csv");
+        Utils.printCleaningAndLength(finalShifts, "src/results/SA_stats_feasible.csv");
         Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats_feasible.csv");
+
+        Utils.printCleaningAndLength(initShifts, "src/results/init_stats_feasible.csv");
     }
 }

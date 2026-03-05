@@ -39,7 +39,7 @@ public class SolveBalancedSA {
 
         // BALANCED LOCAL SEARCH 
 
-        ObjectiveFunction objectiveBasic = Objective.totalLength();
+        ObjectiveFunction objectiveBasic = Objective.totalLength(); 
         ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.003, 0.002);
 
         LocalSearch ls_balanced = new LocalSearch(
@@ -55,6 +55,8 @@ public class SolveBalancedSA {
 
         List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_final_feasible.csv", travelTimesNight, travelTimesDay);
         double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
+
+        Utils.printShiftStatistics(initial, instance, totalShiftLength);
 
 
         long startBLS = System.currentTimeMillis();

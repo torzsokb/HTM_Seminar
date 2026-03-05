@@ -15,18 +15,17 @@ else:
     kernel = np.ones(window) / window
     temps_smooth = np.convolve(temps, kernel, mode="same")
 
-plt.figure(figsize=(12, 4))
+
 plt.plot(iterations, temps_smooth, color="#fe44ba")
 plt.xlabel("Iteration")
 plt.ylabel("Temperature")
-plt.title("SA oscillating temperature")
 
 plt.ylim(bottom=0.0)
 plt.xlim(left=0, right=len(temps))
 
 # Save
-# plt.tight_layout()
-# plt.savefig("Figures/Figure_SAtemperatures.png", dpi=300)
+plt.tight_layout()
+plt.savefig("Figures/Figure_SAtemperatures_example.png", dpi=300)
 
 plt.show()
 
@@ -39,23 +38,23 @@ bal = pd.read_csv("src/results/Balanced_stats_feasible.csv")
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
 # ---- Plot 1: Total shift length ----
-axes[0].hist(sa["totalLength"], bins=20, alpha=0.5, label="LNS + SA", density = True, color = "#fe72cb")
-axes[0].hist(bal["totalLength"], bins=20, alpha=0.5, label="Balanced", density = True, color = "#d98fea")
+axes[0].hist(sa["totalLength"], bins=20, alpha=0.5, label="LNS + SA",  color = "#fe72cb")
+axes[0].hist(bal["totalLength"], bins=20, alpha=0.5, label="Balanced", color = "#d98fea")
 axes[0].set_title("Shift length distribution")
 axes[0].set_xlabel("Hours")
 axes[0].set_ylabel("Density")
 axes[0].legend()
 
 # ---- Plot 2: Cleaning time ----
-axes[1].hist(sa["totalCleaning"], bins=20, alpha=0.5, label="LNS + SA", density = True, color = "#fe72cb")
-axes[1].hist(bal["totalCleaning"], bins=20, alpha=0.5, label="Balanced", density = True, color = "#d98fea")
+axes[1].hist(sa["totalCleaning"], bins=20, alpha=0.5, label="LNS + SA",  color = "#fe72cb")
+axes[1].hist(bal["totalCleaning"], bins=20, alpha=0.5, label="Balanced",  color = "#d98fea")
 axes[1].set_title("Cleaning time distribution")
 axes[1].set_xlabel("Hours")
-axes[1].set_ylabel("Density")
+axes[1].set_ylabel("Number of shifts")
 axes[1].legend()
 
 # Layout + save
-# plt.tight_layout()
-# plt.savefig("Figures/Figure_distribution_LNSSAvsBalanced_feasible.png", dpi=300)
+plt.tight_layout()
+plt.savefig("Figures/Figure_distribution_LNSSAvsBalanced_feasible.png", dpi=300)
 
 plt.show()

@@ -26,7 +26,7 @@ public class SolveLocalSearch {
         ObjectiveFunction objectiveBasic = Objective.totalLength();
 
         // Choose initial shifts to use 
-        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_SA_feasible.csv", travelTimesNight, travelTimesDay);
 
         // Make sure they are feasible 
         Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
@@ -43,11 +43,11 @@ public class SolveLocalSearch {
         
         // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new IntraShift(),
-            new IntraSwap(),
             new Intra2Opt(),
-            new Inter2OptStar(),
             new InterSwap(),
+            new IntraSwap(),
+            new IntraShift(),
+            new Inter2OptStar(),
             new InterShift()
         );
 
@@ -59,7 +59,7 @@ public class SolveLocalSearch {
                 neighborhoods,
                 acceptGreedy,
                 compatibility,
-                ImprovementChoice.FIRST,
+                ImprovementChoice.BEST,
                 1000,       
                 totalShiftLength,
                 objectiveBasic,
@@ -89,7 +89,7 @@ public class SolveLocalSearch {
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
 
     
-        //Utils.resultsToCSV(improved, instance, "src/results/results_LS_feasible.csv");
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_feasible.csv");
 
         // Sanity check
         /*
