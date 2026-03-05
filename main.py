@@ -159,7 +159,7 @@ def reorder_routes():
     with open("data/inputs/cleaned/distance_info_cleanedv2.json", "r") as f:
         distances = json.load(f)
 
-    df = pd.read_csv("data/inputs/cleaned/HTM_CollapsedData.csv")
+    df = pd.read_csv("src/results/HTM_data_initRes_typeHalte.csv")
     routes = list(df["Route"].unique())
     routes = routes[1:]
     new_order = {"Depot": 0}
