@@ -183,7 +183,7 @@ def solve_tsp_lazy_constr(stops: list, distances: dict, route_name: str=None, da
     speed_setting = "time_day" if day_shift else "time_night"
 
     old_time = total_travel_time(distances, stops, day_shift)
-    print(f"old travel time: {old_time}")
+    
 
 
 
@@ -194,11 +194,12 @@ def solve_tsp_lazy_constr(stops: list, distances: dict, route_name: str=None, da
     
     with gp.Env() as env, gp.Model(env=env) as m:
 
-        x = m.addVars(arc_costs.keys(), obj=arc_costs, vtype=GRB.BINARY, name="x")
+        m.params.LogToConsole = 0
         m.ModelSense = GRB.MINIMIZE
         m.params.LazyConstraints = 1
-        m.params.OutputFlag = 0
 
+        x = m.addVars(arc_costs.keys(), obj=arc_costs, vtype=GRB.BINARY, name="x")
+    
         for node in nodes:
 
             outflow = gp.LinExpr()
@@ -217,7 +218,7 @@ def solve_tsp_lazy_constr(stops: list, distances: dict, route_name: str=None, da
         cb = TSPCallback(nodes, x)
         m.optimize(cb)
 
-        print(f"new time: {m.ObjVal / 60:.2f}")
+        print(f"old time: {old_time:.2f} new time: {m.ObjVal / 60:.2f} improvement: {(old_time - m.ObjVal / 60):.2f}")
         values = m.getAttr("x", x)
         selected_arcs = [(i, j) for (i, j), v in values.items() if v >= 0.5]
         tour = find_cycles(selected_arcs)[0]
