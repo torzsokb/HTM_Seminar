@@ -431,7 +431,7 @@ public class Utils {
         Shift s = shifts.get(idx);
         if (s.totalTime > maxShiftDurationMinutes) {
             System.out.printf("Shift %d violates duration: %.2f min%n",
-                    idx, s.totalTime);
+                    (idx + 1), s.totalTime);
             violatedDuration++;
             feasible = false;
         }

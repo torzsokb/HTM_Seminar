@@ -93,7 +93,7 @@ public class EvaluateSolutions {
         // Balanced LS
         System.out.println("\nBalanced solution:");
 
-        String baLSResults = "src/results/results_Balanced_0.003_0.002_feasible.csv";
+        String baLSResults = "src/results/results_Balanced_0.002_0.001_feasible.csv";
 
         List<Shift> baLSShifts = Utils.readShiftsFromCSVDiffTimes(baLSResults, travelTimesNight, travelTimesDay);
 

@@ -25,6 +25,8 @@ public class SolveFullModel {
         //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
         ObjectiveFunction objectiveBasic = Objective.totalLength();
 
+        double minNumberOfStops = 5;
+
         // Choose initial shifts to use 
         List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
 
@@ -114,14 +116,14 @@ public class SolveFullModel {
                 useSimulatedAnnealing
         );
 
-
+        System.out.println("Running OSA (phase 2)...");
         List<Shift> improved_SA = ls_SA.runDiffTimes(improved, instance, travelTimesNight, travelTimesDay);
 
         Utils.recomputeAllShiftsDiffTimes(improved_SA, instance, travelTimesNight, travelTimesDay);
 
         double new_obj_value_SA = objectiveTotalLength.shifts(improved_SA)/60.0;
 
-        System.out.println("\nSA complete.");
+        System.out.println("\nOSA complete.");
 
         System.out.println("New objective value: " + new_obj_value_SA);
         
@@ -149,10 +151,49 @@ public class SolveFullModel {
         double timeTaken = (endTime-startTime)/1000.0;
         System.out.println("Total time taken: " + (timeTaken) + " s" );
 
-        Utils.checkFeasibility(improved, instance, totalShiftLength);
-        Utils.printShiftStatistics(improved, instance, totalShiftLength);
+        Utils.checkFeasibility(improved_final, instance, totalShiftLength);
+        Utils.printShiftStatistics(improved_final, instance, totalShiftLength);
     
         // Utils.resultsToCSV(improved, instance, "src/results/results_final_feasible.csv");
+
+        // With balanced 
+        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.003, 0.002);
+
+        LocalSearch ls_balanced = new LocalSearch(
+                neighborhoods,
+                acceptGreedy,
+                compatibility,
+                ImprovementChoice.FIRST,
+                1000,       
+                totalShiftLength,
+                objectiveBalanced,
+                false
+        );
+
+        long startBLS = System.currentTimeMillis();
+        System.out.println("\nRunning balanced local search...");
+        List<Shift> improved_balanced = ls_balanced.runDiffTimes(improved_final, instance, travelTimesNight, travelTimesDay);
+
+        Utils.recomputeAllShiftsDiffTimes(improved_balanced, instance, travelTimesNight, travelTimesDay);
+
+        double new_obj_value_balanced = objectiveBasic.shifts(improved_balanced)/60.0;
+
+        System.out.println("\nBalanced local search complete.");
+
+        System.out.println("New objective value: " + new_obj_value_balanced);
+
+        double balanced_improvement = initial_obj_value - new_obj_value_balanced;
+
+        System.out.println("Improvement: " + balanced_improvement);
+        long endBLS = System.currentTimeMillis();
+        double timeTakenBLS = (endBLS-startBLS)/1000.0;
+        System.out.println("Time taken: " + (timeTakenBLS) + " s" );
+
+        Utils.checkFeasibility(improved_balanced, instance, totalShiftLength);
+        Utils.printShiftStatistics(improved_balanced, instance, totalShiftLength);
+
+
+        Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_0.003_0.002_min5.csv");
     }
 }
 
