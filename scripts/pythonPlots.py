@@ -69,16 +69,16 @@ fig, ax1 = plt.subplots(figsize=(12, 5))
 # Temperature on left y-axis
 ax1.plot(iterations, temps_smooth, color="#fe44ba", label="Temperature")
 ax1.set_xlabel("Iteration")
-ax1.set_ylabel("Temperature", color="#fe44ba")
-ax1.tick_params(axis="y", labelcolor="#fe44ba")
+ax1.set_ylabel("Temperature")
+ax1.tick_params(axis="y")
 ax1.set_ylim(bottom=0.0)
 ax1.set_xlim(0, len(temps)-1)
 
 # Objective on right y-axis
 ax2 = ax1.twinx()
 ax2.plot(iterationsObj, obj, color="#b744fe", label="Objective")
-ax2.set_ylabel("Objective", color="#b744fe")
-ax2.tick_params(axis="y", labelcolor="#b744fe")
+ax2.set_ylabel("Objective")
+ax2.tick_params(axis="y")
 ax2.set_xlim(0, len(obj)-1)
 
 # One combined legend
@@ -186,4 +186,4 @@ axes[1,1].legend()
 # plt.tight_layout()
 # plt.savefig("Figures/Figure_distribution_all_draftversion_4x4.png", dpi=300)
 
-plt.show()
+#plt.show()
