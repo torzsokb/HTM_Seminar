@@ -173,7 +173,8 @@ def reorder_routes():
 
 
     df["Order"] = df["ID_MAXIMO"].map(new_order)
-    df.to_csv("data/outputs/HTM_CollapsedData_reordered_final.csv")
+    df = df.sort_values(["Route", "Order"], ascending=True)
+    df.to_csv("data/outputs/HTM_CollapsedData_reordered_final.csv", index=False)
 
     
 
