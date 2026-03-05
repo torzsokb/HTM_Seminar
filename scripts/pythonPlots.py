@@ -29,6 +29,67 @@ plt.xlim(left=0, right=len(temps))
 
 plt.show()
 
+##### TEMPERATURES vs OBJECTIVES  FIGURE FOR THE SA #####
+obj = np.loadtxt("src/results/results_SA_feasible_allobj.txt")
+iterationsObj = np.arange(len(obj))
+
+# Window for smooth curves, must be odd, increase for extra smoothness
+windowObj = 51  
+windowObj = min(windowObj, len(obj) if len(obj) % 2 == 1 else len(obj) - 1)  
+if windowObj < 3:
+    obj_smooth = obj
+else:
+    kernel = np.ones(windowObj) / windowObj
+    obj_smooth = np.convolve(obj, kernel, mode="same")
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+axes[0].plot(iterations, temps_smooth, color="#fe44ba")
+axes[0].set_xlabel("Iteration")
+axes[0].set_ylabel("Temperature")
+
+axes[0].set_ylim(bottom=0.0)
+axes[0].set_xlim(left=0, right=len(temps))
+
+axes[1].plot(iterationsObj, obj, color="#b744fe")
+axes[1].set_xlabel("Iteration")
+axes[1].set_ylabel("Objective function")
+
+#axes[1].set_ylim(bottom=0.0)
+axes[1].set_xlim(left=0, right=len(obj))
+
+# Save
+plt.tight_layout()
+plt.savefig("Figures/Figure_SA_tempvsobj.png", dpi=300)
+
+plt.show()
+
+fig, ax1 = plt.subplots(figsize=(12, 5))
+
+# Temperature on left y-axis
+ax1.plot(iterations, temps_smooth, color="#fe44ba", label="Temperature")
+ax1.set_xlabel("Iteration")
+ax1.set_ylabel("Temperature", color="#fe44ba")
+ax1.tick_params(axis="y", labelcolor="#fe44ba")
+ax1.set_ylim(bottom=0.0)
+ax1.set_xlim(0, len(temps)-1)
+
+# Objective on right y-axis
+ax2 = ax1.twinx()
+ax2.plot(iterationsObj, obj, color="#b744fe", label="Objective")
+ax2.set_ylabel("Objective", color="#b744fe")
+ax2.tick_params(axis="y", labelcolor="#b744fe")
+ax2.set_xlim(0, len(obj)-1)
+
+# One combined legend
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper right")
+
+plt.tight_layout()
+plt.savefig("Figures/Figure_SA_tempvsobj_overlap.png", dpi=300)
+plt.show()
+
 ##### DISTRIBUTION TIMES BALANCED VS NON-BALANCED #####
 # Load data
 sa = pd.read_csv("src/results/SA_stats_feasible.csv")
@@ -57,7 +118,7 @@ axes[1].legend()
 # plt.tight_layout()
 # plt.savefig("Figures/Figure_distribution_LNSSAvsBalanced_draftversion.png", dpi=300)
 
-plt.show()
+#plt.show()
 
 ##### DISTRIBUTION TIMES BALANCED VS NON-BALANCED VS INITIAL #####
 # Load data
@@ -88,7 +149,7 @@ axes[1].legend()
 # plt.tight_layout()
 # plt.savefig("Figures/Figure_distribution_all_draftversion.png", dpi=300)
 
-plt.show()
+#plt.show()
 
 ######## Create figure with 4 plots ########
 fig, axes = plt.subplots(2, 2, figsize=(10, 6))
@@ -122,7 +183,7 @@ axes[1,1].set_ylabel("Density")
 axes[1,1].legend()
 
 # Layout + save
-plt.tight_layout()
-plt.savefig("Figures/Figure_distribution_all_draftversion_4x4.png", dpi=300)
+# plt.tight_layout()
+# plt.savefig("Figures/Figure_distribution_all_draftversion_4x4.png", dpi=300)
 
 plt.show()

@@ -28,7 +28,7 @@ public class EvaluateSolutions {
 
         // INIT SOLUTION
         System.out.println("\nInitial solution:");
-        // Feasible version (5 + 3 = 8 & 5 + 10 = 15) 
+        // Feasible version
         String initResults = "src/results/HTM_data_initRes_typeHalte.csv";
 
         // Old version (5 + 8 = 13 & 5 + 15 = 20)
@@ -51,6 +51,20 @@ public class EvaluateSolutions {
 
         double initObj = objectiveBasic.shifts(initShifts)/60.0;;
         System.out.println("\nObjective: " + initObj + " hours.");
+
+
+        // TSP
+        System.out.println("\nTSP solution:");
+
+        String tspResults = "data/outputs/HTM_CollapsedData_reordered_final.csv";
+
+        List<Shift> tspShifts = Utils.readShiftsFromCSVDiffTimes(tspResults, travelTimesNight, travelTimesDay);
+
+        Utils.printShiftStatistics(tspShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(tspShifts, instance, totalShiftLength);
+
+        double tspObj = objectiveBasic.shifts(tspShifts)/60.0;;
+        System.out.println("\nObjective: " + tspObj + " hours.");
 
         // LS
         System.out.println("\nLocal search solution:");
@@ -108,6 +122,8 @@ public class EvaluateSolutions {
         // All objectives
         System.out.println("\nAll objectives:");
         System.out.println("Initial objective: " + initObj + " hours.");
+        System.out.println("TSP objective: " + tspObj + " hours.");
+        System.out.println("Improvement: " + (initObj - tspObj) + " hours.");
         System.out.println("LS objective: " + lsObj + " hours.");
         System.out.println("Improvement: " + (initObj - lsObj) + " hours.");
         System.out.println("SA objective: " + saObj + " hours.");
@@ -122,5 +138,22 @@ public class EvaluateSolutions {
         Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats_feasible.csv");
 
         Utils.printCleaningAndLength(initShifts, "src/results/init_stats_feasible.csv");
+
+
+
+        /*
+        List<Shift> minShifts = Utils.readShiftsFromCSVDiffTimes("src/results/results_minShifts_feasible.csv", travelTimesNight, travelTimesDay);
+
+        Utils.recomputeAllShiftsDiffTimes(minShifts, instance, travelTimesNight, travelTimesDay);
+
+        for (Shift shift : minShifts) {
+            if (shift.serviceTime <= 0.001) {
+                minShifts.remove(shift);
+            }
+        }
+
+        Utils.printShiftStatistics(minShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(minShifts, instance, totalShiftLength);
+         */
     }
 }

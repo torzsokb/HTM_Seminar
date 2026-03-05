@@ -101,7 +101,8 @@ public class SolveSA {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         
-        Utils.resultsToCSV(improved, instance, "src/results/results_SA_feasible.csv");
+        // Utils.resultsToCSV(improved, instance, "src/results/results_SA_feasible.csv");
+        
         // for (Shift shift : improved) {
         //     System.out.println(Utils.formatRoute(instance, shift.route));
         // }
