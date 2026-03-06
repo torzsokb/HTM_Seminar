@@ -230,7 +230,7 @@ def solve_tsp_lazy_constr(stops: list, distances: dict, route_name: str=None, da
         for i in range(n):
             placement_arr[tour[i]] = i
         # print(placement_arr)
-        return placement_arr
+        return placement_arr, m.ObjVal / 60
 
 
 
