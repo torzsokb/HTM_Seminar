@@ -130,15 +130,16 @@ public class SolveFullModel {
         double extraImprovement = new_obj_value - new_obj_value_SA;
         System.out.println("Extra improvement " + extraImprovement);
 
-        Utils.printShiftStatistics(improved, instance, totalShiftLength);
+        Utils.printShiftStatistics(improved_SA, instance, totalShiftLength);
 
-        Utils.checkFeasibility(improved, instance, totalShiftLength);
+        Utils.checkFeasibility(improved_SA, instance, totalShiftLength);
         
-        //Utils.resultsToCSV(improved, instance, "src/results/results_SA_feasible.csv");
+        //Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_feasible.csv");
 
         // PHASE 3: LS again 
         System.out.println("\nRunning local search (phase 3)...");
         List<Shift> improved_final = ls.runDiffTimes(improved_SA, instance, travelTimesNight, travelTimesDay);
+
 
         double final_objective_value = objectiveTotalLength.shifts(improved_final)/60.0;
         System.out.println("Final objective value: " + final_objective_value);
@@ -154,9 +155,10 @@ public class SolveFullModel {
         Utils.checkFeasibility(improved_final, instance, totalShiftLength);
         Utils.printShiftStatistics(improved_final, instance, totalShiftLength);
     
-        // Utils.resultsToCSV(improved, instance, "src/results/results_final_feasible.csv");
+        Utils.resultsToCSV(improved_final, instance, "src/results/results_minShifts_feasible.csv");
 
         // With balanced 
+        /*
         ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.003, 0.002);
 
         LocalSearch ls_balanced = new LocalSearch(
@@ -194,6 +196,9 @@ public class SolveFullModel {
 
 
         Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_0.003_0.002_min5.csv");
+        
+        */
+        
     }
 }
 

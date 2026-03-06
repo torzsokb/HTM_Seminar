@@ -141,6 +141,7 @@ public class LocalSearch {
         boolean improved = true;
         int iteration = 0;
         List<Double> allTemperatures = new ArrayList<>();
+        List<Double> allObjectives = new ArrayList<>();
 
         while (improved && iteration < maxIterations) {
             iteration++;
@@ -215,6 +216,8 @@ public class LocalSearch {
                 if (iteration % 100 == 0) {
                     // System.out.println("Objective at iteration " + iteration + " is: " + Utils.totalObjective(shifts));
                 }
+
+                allObjectives.add(Utils.totalObjective(shifts));
         
                 if (improved) break; 
             }
@@ -223,6 +226,8 @@ public class LocalSearch {
         if (useSimulatedAnnealing) {
             try {
                 temperaturesToFile(allTemperatures, "src/results/results_SA_feasible_alltemps.txt");
+
+                temperaturesToFile(allObjectives, "src/results/results_SA_feasible_allobj.txt");
             } catch (IOException e) {
                 throw new UncheckedIOException("\nFailed to temperatures to a file", e);
             }
