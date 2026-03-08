@@ -24,12 +24,12 @@ public class SolveBalancedSA {
 
         // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new Inter2OptStar(),
-            new InterShift(),
-            new IntraShift(),
             new Intra2Opt(),
+            new InterSwap(),
             new IntraSwap(),
-            new InterSwap()
+            new IntraShift(),
+            new Inter2OptStar(),
+            new InterShift()
         );
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
@@ -40,13 +40,13 @@ public class SolveBalancedSA {
         // BALANCED LOCAL SEARCH 
 
         ObjectiveFunction objectiveBasic = Objective.totalLength(); 
-        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.003, 0.002);
+        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.002, 0.001);
 
         LocalSearch ls_balanced = new LocalSearch(
                 neighborhoods,
                 acceptGreedy,
                 compatibility,
-                ImprovementChoice.FIRST,
+                ImprovementChoice.BEST,
                 1000,       
                 totalShiftLength,
                 objectiveBalanced,
@@ -82,7 +82,7 @@ public class SolveBalancedSA {
         Utils.printShiftStatistics(improved_balanced, instance, totalShiftLength);
 
 
-        Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_0.003_0.002_feasible.csv");
+        Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_0.002_0.001_feasible.csv");
 
     }
 }

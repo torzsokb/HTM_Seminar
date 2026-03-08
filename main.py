@@ -1,7 +1,8 @@
-from models.tsp_solver import solve_tsp_mtz
+from models.tsp_solver import solve_tsp_mtz, solve_tsp_lazy_constr
 import json
 import pandas as pd
 from tabulate import tabulate
+import time
 
 def main():
 
@@ -14,11 +15,11 @@ def main():
     # print(tabulate(df_old_routes.round(2), headers="keys"))
     # print(tabulate(df_old_routes.describe().round(2), headers="keys"))
 
-    df_clustered_routes = pd.read_csv("data/outputs/clustered_tsp_timesv2.csv")
-    df_clustered_routes.set_index("cluster", inplace=True, drop=True, append=False)
-    df_clustered_routes.drop(columns="Unnamed: 0", inplace=True)
-    print(tabulate(df_clustered_routes.round(2), headers="keys"))
-    print(tabulate(df_clustered_routes.describe().round(2), headers="keys"))
+    # df_clustered_routes = pd.read_csv("data/outputs/clustered_tsp_timesv2.csv")
+    # df_clustered_routes.set_index("cluster", inplace=True, drop=True, append=False)
+    # df_clustered_routes.drop(columns="Unnamed: 0", inplace=True)
+    # print(tabulate(df_clustered_routes.round(2), headers="keys"))
+    # print(tabulate(df_clustered_routes.describe().round(2), headers="keys"))
 
     # df1 = pd.read_csv("data/outputs/HTM_ClusteredData_reordered.csv")
     # df2 = pd.read_csv("data/inputs/cleaned/HTM_CollapsedDatav2.csv")
@@ -28,7 +29,7 @@ def main():
     
 
     # pass
-
+    order_clusters()
     # reorder_routes()
     # reorder_comparison("v2")
     # clustered_route_info("v2")
@@ -131,58 +132,93 @@ def reorder_comparison(v: str=""):
 
 
 def order_clusters():
-    with open("data/inputs/cleaned/distance_info_cleaned.json", "r") as f:
+    with open("data/inputs/cleaned/distance_info_cleanedv2.json", "r") as f:
         distances = json.load(f)
 
 
     df = pd.read_csv("data/inputs/cleaned/HTM_ClusteredData.csv")
+    df2 = pd.read_csv("src/results/HTM_data_initRes_typeHalte.csv")
+    df["Service_time"] = df2["Service_time"]
     clusters = list(df["cluster"].unique())
     clusters = clusters[1:]
     new_order = {"Depot": 0}
 
+    total_time = 0
+    original_travel_time = 0
+    shift_lengths = []
+
 
     for cluster in clusters:
-        locations = list(df[df["cluster"] == cluster]["ID_MAXIMO"])
-        order = solve_tsp_mtz(locations, distances, warmstart=True, heur=True, time_limit=300)
-        print(order)
-        print(len(order))
-        for i in range(1, len(locations)):
-            new_order[locations[i]] = order[i]
+
+        df_c = df[df["cluster"] == cluster]
+        service_time = df_c["Service_time"].sum()
+        day_shift = df_c["Night_shift"].mean() == 0
+        stops = list(df_c["ID_MAXIMO"])
+
+        order, obj = solve_tsp_lazy_constr(stops, distances, f"cluster_{cluster}", day_shift)
+        for i in range(1, len(stops)):
+            new_order[stops[i]] = order[i]
+
+        total_time += obj
+        shift_lengths.append(obj + service_time)
+        
 
 
     df["cluster_order"] = df["ID_MAXIMO"].map(new_order)
     df.to_csv("data/outputs/HTM_ClusteredData_reordered.csv")
 
+    print(f"total travel time: {total_time}")
+    for i, cluster in enumerate(clusters):
+        print(f"cluster {cluster}\ttotal time: {shift_lengths[i]:.2f}\tvilation: {max(0, (shift_lengths[i] - 7*60)):.2f}")
+
 
 def reorder_routes():
-    with open("data/inputs/cleaned/distance_info_cleaned.json", "r") as f:
+
+    with open("data/inputs/cleaned/distance_info_cleanedv2.json", "r") as f:
         distances = json.load(f)
 
-
-    df = pd.read_csv("data/inputs/cleaned/HTM_CollapsedData.csv")
-    routes = list(df["Route"].unique())
+    df = pd.read_csv("src/results/HTM_data_initRes_typeHalte.csv")
+    routes = df["Route"].dropna().astype(str).unique().tolist()
     routes = routes[1:]
     new_order = {"Depot": 0}
+    total_time = 0
+    original_travel_time = 0
 
+    start_time = time.time()
 
     for route in routes:
-        locations = list(df[df["Route"] == route]["ID_MAXIMO"])
-        order = solve_tsp_mtz(locations, distances, warmstart=True, heur=False, time_limit=300)
-        for i in range(1, len(locations)):
-            new_order[locations[i]] = order[i]
+        stops = list(df[df["Route"] == route]["ID_MAXIMO"])
+        order, obj = solve_tsp_lazy_constr(stops, distances, route)
+        for i in range(1, len(stops)):
+            new_order[stops[i]] = order[i]
+        total_time += obj
+        original_travel_time += total_travel_time(distances, stops, (route[4] == "D"))
+    
+    end_time = time.time()
+
+    print(f"total computation time: {(end_time - start_time)}")
+    print(f"total original travel time: {original_travel_time}")
+    print(f"total updated travel time: {total_time}")
+    
 
 
-    df["TSP_Order"] = df["ID_MAXIMO"].map(new_order)
-    df.to_csv("data/outputs/HTM_CollapsedData_reordered.csv")
+    df["Order"] = df["ID_MAXIMO"].map(new_order)
+    df = df.sort_values(["Route", "Order"], ascending=True)
+    df.to_csv("data/outputs/HTM_CollapsedData_reordered_final.csv", index=False)
 
     
 
-def total_travel_time(distances: dict, locations: list) -> float:
-    total_time = distances["Depot"][locations[0]]["time"]
-    for i in range(1, len(locations)):
-        total_time += distances[locations[i-1]][locations[i]]["time"]
-    total_time += distances[locations[-1]]["Depot"]["time"]
-    return total_time
+def total_travel_time(distances: dict, stops: list, day_shift: bool) -> float:
+
+    metric = "time_day" if day_shift else "time_night"
+
+    total_time = distances["Depot"][stops[0]][metric]
+    total_time += distances[stops[-1]]["Depot"][metric]
+    
+    for i in range(1, len(stops)):
+        total_time += distances[stops[i-1]][stops[i]][metric]
+
+    return total_time / 60
 
     
 

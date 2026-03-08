@@ -4,11 +4,8 @@ import json
 import datetime
 import math
 
-REFERENCE_DEPARTURE_TIME = datetime.datetime(2026, 2, 2, 15)
-TRAFFIC_MODEL = "pessimistic"
-DEPOT_LAT = 0.0
-DEPOT_LONG = 0.0
-BATCH_SIZE = 10
+
+BATCH_SIZE = 31
 
 maps_key = "AIzaSyA7zbsadbUBeP2g2-g4fom1Sl0cVFUPl54"
 gmaps = googlemaps.Client(key=maps_key)
@@ -17,10 +14,9 @@ df = pd.read_excel("data/inputs/raw/Data_POH_5WK_REINIGEN_ABRI_EN_HEKWERK.xlsx",
 df_stops = df["Halteinfo"]
 
 locations = list(df_stops["ID_MAXIMO"])
-locations.insert(0, "DEPOT")
 
 coordinates = list(zip(df_stops.latitude, df_stops.longitude))
-coordinates.insert(0, (DEPOT_LAT, DEPOT_LONG))
+
 
 
 for i in range(math.ceil(len(locations) / BATCH_SIZE)):

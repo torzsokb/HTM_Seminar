@@ -105,7 +105,7 @@ def optimise_cleaning_times(
         day_time = shift[4] == "D"
         travel_time = total_travel_time(
             distances=distances,
-            locations=list(df_r["ID_MAXIMO"]),
+            stops=list(df_r["ID_MAXIMO"]),
             day_time=day_time
         )
 
@@ -218,15 +218,15 @@ def optimise_cleaning_times(
     model.dispose()
     return optimised_times
 
-def total_travel_time(distances: dict, locations: list, day_time: bool) -> float:
+def total_travel_time(distances: dict, stops: list, day_time: bool) -> float:
 
     metric = "time_day" if day_time else "time_night"
 
-    total_time = distances["Depot"][locations[0]][metric]
-    total_time += distances[locations[-1]]["Depot"][metric]
+    total_time = distances["Depot"][stops[0]][metric]
+    total_time += distances[stops[-1]]["Depot"][metric]
     
-    for i in range(1, len(locations)):
-        total_time += distances[locations[i-1]][locations[i]][metric]
+    for i in range(1, len(stops)):
+        total_time += distances[stops[i-1]][stops[i]][metric]
 
     print(f"total time: {total_time / 60:.2f}")
 
@@ -276,14 +276,14 @@ def main():
     day_penalty = 1.606
     night_penalty = 1.18
     max_shift_duration = 7 * 60
-    min_shift_duration = 3.5 * 60
+    min_shift_duration = 0 * 60
     min_setup_time = 0
     min_tram_time = 0
     min_tram_abri_time = 0
     min_bus_time = 0
     min_bus_abri_time = 0
-    max_overtime = 120
-    overtime_penalty = 0.0
+    max_overtime = 7500
+    overtime_penalty = 1.0
 
     output = optimise_cleaning_times(
         stops_path=stops_path, dist_path=dist_path, day_penalty=day_penalty, night_penalty=night_penalty, max_shift_duration=max_shift_duration, min_shift_duration=min_shift_duration, 

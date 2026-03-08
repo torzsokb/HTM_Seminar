@@ -29,7 +29,9 @@ public class CGSolver {
 
         HTMInstance instance = Utils.readInstance(instancePath, "abri", "Night_shift");
         List<Stop> stops = instance.getStops();
+        
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
+        
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new IntraSwap(),
@@ -37,8 +39,9 @@ public class CGSolver {
             new Intra2Opt()
         );
 
-        // List<Shift> initialSol = StartingSolution.startingSolution();
+        List<Shift> initialSol = StartingSolution.startingSolution();
 
+    
         AcceptanceFunction acceptanceFunction = Acceptance.greedy();
         RouteCompatibility compatibility = Compatibility.sameNightShift();
         PricingHeuristic pricingHeuristic = new PricingHeuristic(maxDuration, minDuration, 100, neighborhoods, acceptanceFunction, compatibility, instance);
@@ -54,17 +57,17 @@ public class CGSolver {
             System.out.println(dayRMP.isNight);
             dayCG.solveSingleObj();
 
-            // SeparatedRMP nightRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration,  minDuration, 25, maxDuration * 10, true);
-            // ColumnGeneration nightCG = new ColumnGeneration(nightRMP, rh, maxIter, separated);
-            // System.out.println(nightRMP.isNight);
-            // nightCG.solveSingleObj();
+            SeparatedRMP nightRMP = new SeparatedRMP(instance, stops, travelTimes, maxDuration,  minDuration, 25, maxDuration * 10, true);
+            ColumnGeneration nightCG = new ColumnGeneration(nightRMP, rh, maxIter, separated);
+            System.out.println(nightRMP.isNight);
+            nightCG.solveSingleObj();
             
 
         } else {
             CombinedRMP RMP = new CombinedRMP(instance, stops, travelTimes, maxDuration, minDuration,25, maxDuration *61);
             ColumnGeneration CG = new ColumnGeneration(RMP, pp, maxIter, separated);
-            // boolean a = CG.CGIter();
-            // CG.addStartingSol(initialSol); 
+            boolean a = CG.CGIter();
+            CG.addStartingSol(initialSol); 
             CG.solveSingleObj();
         }   
     }    
