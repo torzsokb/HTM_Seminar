@@ -3,131 +3,163 @@ package solve;
 import core.*;
 import neighborhoods.*;
 import search.*;
+
 import java.util.*;
+import java.io.*;
 
 public class GridSearchSA {
 
-    static final double shiftLength = 7*60;
-    static final double totalShiftLength = 8*60;
+    private static final double totalShiftLength = 8 * 60;
 
-    public static void main(String[] args) throws Exception {
-        String instancePath = "src/core/data_all_feas_typeHalte.txt";
-        String travelPath   = "src/core/travel_times_collapsedv2.txt";
+    public static void runGridSearch(String instancePath,
+                                     String travelNightPath,
+                                     String travelDayPath,
+                                     String initialCSVPath,
+                                     String resultFolder) throws Exception {
 
+        // Create result folder if it does not exist
+        new File(resultFolder).mkdirs();
+
+        // Load instance and travel times
         HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
-        double[][] travelTimes = Utils.readTravelTimes(travelPath);
-       
+        double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
+        double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
+
+        ObjectiveFunction objectiveTotalLength = Objective.totalLength();
+
+        // Load initial solution
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes(initialCSVPath, travelTimesNight, travelTimesDay);
+        double initialObjValue = objectiveTotalLength.shifts(initial) / 60.0;
+
+        // Define neighborhoods
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new Intra2Opt(),
-            new Inter2OptStar(),
-            new IntraSwap(),
-            new IntraShift(),
-            new InterSwap(),
-            new InterShift()
+                new Inter2OptStar(),
+                new InterShift(),
+                new IntraShift(),
+                new Intra2Opt(),
+                new IntraSwap(),
+                new InterSwap()
         );
 
         RouteCompatibility compatibility = Compatibility.sameNightShift();
+        boolean useSimulatedAnnealing = true;
 
-        List<Shift> currentBest = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2_feasible.csv", travelTimes);
-    
-        ObjectiveFunction objectiveBasic = Objective.totalLength();
+        // Grid search ranges
+        double[] initialTemps = {0.1, 0.5, 1.0, 2.0};
+        int[] maxIterations = {100000};
+        int[] oscillations = {1, 5, 10, 50};
 
-        double initial_obj_value = objectiveBasic.shifts(currentBest);
-        // for (Shift shift : currentBest) {
-        //     System.out.println(Utils.formatRoute(instance, shift.route));
-        // }
-        double bestValue = Utils.totalObjective(currentBest);
-        System.out.println("Best value: " + bestValue);
+        double Tf = 0;
 
+        // Tracking best solution
+        double bestObjective = Double.MAX_VALUE;
+        double bestT0 = 0;
+        int bestMaxIter = 0;
+        int bestOsc = 0;
 
-        // Utils.checkFeasibility(currentBest, instance, 60*8);
+        // Prepare summary CSV
+        String summaryPath = resultFolder + "/grid_search_summary_part3.csv";
+        PrintWriter summaryWriter = new PrintWriter(new FileWriter(summaryPath));
+        summaryWriter.println("T0,maxIter,osc,finalObjective,improvement,runtimeSeconds");
 
+        for (int maxIter : maxIterations) {
+            for (double T0 : initialTemps) {
+                for (int osc : oscillations) {
 
-        // Grid of SA parameters
-        double[] temperatures = {50.0, 75.0, 100.0, 125.0, 150.0, 175.0, 200.0, 500.0, 1000.0, 2000.0, 5000.0, 10000.0};
-        double[] coolingRates  = {0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99};      
-        ImprovementChoice[] improvementChoices = {ImprovementChoice.BEST, ImprovementChoice.FIRST};
+                    System.out.println("\n=== Running SA with T0=" + T0 +
+                            ", maxIter=" + maxIter +
+                            ", osc=" + osc + " ===");
 
-        double bestTemp = 0;
-        double bestRate = 0;
-        ImprovementChoice bestChoice = ImprovementChoice.FIRST;
-        List<Shift> bestSolution = null;
+                    Acceptance.initSimulatedAnnealing(T0, Tf, maxIter, osc);
+                    AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
 
-        // Intensifying
-        boolean improvementFound = true;
-        long startingTime = System.currentTimeMillis();
+                    LocalSearch ls = new LocalSearch(
+                            neighborhoods,
+                            acceptSA,
+                            compatibility,
+                            ImprovementChoice.FIRST,
+                            maxIter,
+                            totalShiftLength,
+                            objectiveTotalLength,
+                            useSimulatedAnnealing
+                    );
 
-        while (improvementFound) {
+                    List<Shift> initialCopy = Utils.deepCopyShifts(initial);
 
-            improvementFound = false;
+                    long startTime = System.currentTimeMillis();
 
-            for (double temp : temperatures) {
-                for (double rate : coolingRates) {
-                    for (ImprovementChoice choice : improvementChoices) {
-                        currentBest = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2_feasible.csv", travelTimes);
-                        // System.out.println("\nRunning SA with Temp=" + temp + ", Rate=" + rate + ", Choice=" + choice);
+                    List<Shift> improved = ls.runDiffTimes(
+                            initialCopy,
+                            instance,
+                            travelTimesNight,
+                            travelTimesDay
+                    );
 
-                        Acceptance.initSimulatedAnnealing(0.5, 0, 1000, 50);
-                        AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
+                    long endTime = System.currentTimeMillis();
 
-                        LocalSearch ls_SA = new LocalSearch(
-                                neighborhoods,
-                                acceptSA,
-                                compatibility,
-                                choice,
-                                400,
-                                totalShiftLength,
-                                objectiveBasic,
-                                true
-                        );
+                    Utils.recomputeAllShiftsDiffTimes(
+                            improved,
+                            instance,
+                            travelTimesNight,
+                            travelTimesDay
+                    );
 
-                        List<Shift> improved_SA = ls_SA.run(currentBest, instance, travelTimes);
+                    double runtimeSeconds = (endTime - startTime) / 1000.0;
+                    double newObjValue = objectiveTotalLength.shifts(improved) / 60.0;
+                    double improvement = initialObjValue - newObjValue;
 
-                        Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
+                    System.out.println("Final objective: " + newObjValue +
+                            " | Improvement: " + improvement +
+                            " | Time: " + runtimeSeconds + "s");
 
-                        double objValue = objectiveBasic.shifts(improved_SA)/60.0;
+                    // Save individual result
+                    String resultFile = String.format(
+                            "%s/results_SA_T0%.2f_maxIter%d_osc%d.csv",
+                            resultFolder, T0, maxIter, osc
+                    );
+                    Utils.resultsToCSV(improved, instance, resultFile);
 
-                        // System.out.println("SA objective value: " + objValue);
+                    // Write to summary table
+                    summaryWriter.println(T0 + "," +
+                            maxIter + "," +
+                            osc + "," +
+                            newObjValue + "," +
+                            improvement + "," +
+                            runtimeSeconds);
 
-                        if (objValue < bestValue) {
-
-                            bestValue = objValue;
-                            bestTemp = temp;
-                            bestRate = rate;
-                            bestChoice = choice;
-                            bestSolution = improved_SA;
-                            currentBest = improved_SA;
-
-                            long totalTimeTaken = System.currentTimeMillis() - startingTime;
-                            System.out.println("Best new objective value: " + objValue);
-                            System.out.println("Best improvement: " + (initial_obj_value - objValue));
-                            System.out.println("Time taken: " + totalTimeTaken/1000.0 + " (s)");
-                            Utils.resultsToCSV(bestSolution, instance, "src/results/results_SA_gridsearch_best_Newv2_feasible.csv");
-
-                            improvementFound = true;
-
-                            // break all loops immediately
-                            break;
-                        }
+                    // Update best solution
+                    if (newObjValue < bestObjective) {
+                        bestObjective = newObjValue;
+                        bestT0 = T0;
+                        bestMaxIter = maxIter;
+                        bestOsc = osc;
                     }
-                    if (improvementFound) break;
                 }
-                if (improvementFound) break;
             }
-            
         }
-        
 
-        System.out.println("\n=== Grid Search Complete ===");
-        System.out.println("Best SA objective value: " + bestValue);
-        System.out.println("Best parameters: Temp=" + bestTemp + ", Rate=" + bestRate + ", Choice=" + bestChoice);
+        summaryWriter.close();
 
-        Utils.checkFeasibility(bestSolution, instance, totalShiftLength);
-        Utils.printShiftStatistics(bestSolution, instance, totalShiftLength);
-        Utils.resultsToCSV(bestSolution, instance, "src/results/results_SA_gridsearch_best_Newv2_feasible.csv");
+        System.out.println("\n===== GRID SEARCH COMPLETE =====");
+        System.out.println("Best objective: " + bestObjective);
+        System.out.println("Best parameters:");
+        System.out.println("T0 = " + bestT0);
+        System.out.println("maxIter = " + bestMaxIter);
+        System.out.println("osc = " + bestOsc);
+        System.out.println("Summary saved to: " + summaryPath);
+    }
 
-        // for (Shift shift : bestSolution) {
-        //     System.out.println(Utils.formatRoute(instance, shift.route));
-        // }
+    public static void main(String[] args) throws Exception {
+        String instancePath = "src/core/data_all_feas_typeHalte.txt";
+        String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
+        String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
+        String initialCSVPath = "src/results/results_LS_feasible.csv";
+        String resultFolder = "src/results/grid_search_SA";
+
+        runGridSearch(instancePath,
+                travelNightPath,
+                travelDayPath,
+                initialCSVPath,
+                resultFolder);
     }
 }
