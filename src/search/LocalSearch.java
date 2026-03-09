@@ -154,7 +154,7 @@ public class LocalSearch {
             improved = false;
 
             if (useSimulatedAnnealing) {
-                Random rnd = new Random(10);
+                Random rnd = new Random(1000*maxIterations+iteration);
                 Collections.shuffle(neighborhoods, rnd);
             }
             for (Neighborhood n : neighborhoods) {
