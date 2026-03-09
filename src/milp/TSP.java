@@ -1,19 +1,15 @@
 package milp;
-import com.gurobi.gurobi.GRB;
-import com.gurobi.gurobi.GRBCallback;
-import com.gurobi.gurobi.GRBEnv;
-import com.gurobi.gurobi.GRBException;
-import com.gurobi.gurobi.GRBLinExpr;
-import com.gurobi.gurobi.GRBModel;
-import com.gurobi.gurobi.GRBVar;
-import com.gurobi.gurobi.GRB.DoubleAttr;
+import com.gurobi.gurobi.*;
 
 import java.util.*;
 
-import core.*; 
+import core.Shift;
+import core.Utils;
+import core.HTMInstance;
+
 import neighborhoods.*; 
 import search.*;
-import java.util.*;
+
 
 public class TSP extends GRBCallback{
     
@@ -158,24 +154,21 @@ public class TSP extends GRBCallback{
 
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
-
-                    if (i == j) {
-                        vars[i][j] = model.addVar(0.0, 0.0, 0, GRB.BINARY, ("x[" + i + "," + j + "]"));
-                        continue;
-                    } 
                     
                     double obj = distances[shift.route.get(i)][shift.route.get(j)];
                     vars[i][j] = model.addVar(0.0, 1.0, obj, GRB.BINARY, ("x[" + i + "," + j + "]"));
 
                     if (j == i + 1) {
-                        vars[i][j].set(DoubleAttr.Start, 1.0);
+                        vars[i][j].set(GRB.DoubleAttr.Start, 1.0);
                     }
-                }
 
-                if (i + 1 == n) {
-                    vars[i][0].set(DoubleAttr.Start, 1.0);
+                    if (i == j) {
+                        vars[i][j].set(GRB.DoubleAttr.UB, 0.0);
+                    } 
                 }
             }
+
+            vars[n - 1][0].set(GRB.DoubleAttr.Start, 1.0);
 
             for (int i = 0; i < n; i++) {
 
@@ -233,35 +226,144 @@ public class TSP extends GRBCallback{
         }
     }
 
-    public static void optimizeAllShifts(List<Shift> shifts, double[][] travelTimesDay, double[][] travelTimesNight, HTMInstance instance) {
-        double impr = 0;
-        int optimalCounts = 0;
-        long TSPStartTime = System.currentTimeMillis();
+    public static void optimizeShift(Shift shift, double[][] distances, GRBEnv env, int flag) {
 
-        for (Shift shift : shifts) {
-            if (shift.nightShift == 1) {
-                double old_time = shift.travelTime;
-                optimizeShift(shift, travelTimesNight);
-                Utils.recomputeShift(shift, instance, travelTimesNight);
-                impr += old_time - shift.travelTime;
-                if (old_time - shift.travelTime == 0) optimalCounts++;
-                System.out.println(old_time - shift.travelTime);
-            } else {
-                double old_time = shift.travelTime;
-                optimizeShift(shift, travelTimesDay);
-                Utils.recomputeShift(shift, instance, travelTimesDay);
-                impr += old_time - shift.travelTime;
-                if (old_time - shift.travelTime == 0) optimalCounts++;
-                System.out.println(old_time - shift.travelTime);
+        int n = shift.route.size() - 1;
+
+        try {
+
+            GRBModel model = new GRBModel(env);
+            model.set(GRB.IntAttr.ModelSense, GRB.MINIMIZE);
+            model.set(GRB.IntParam.LazyConstraints, 1);
+            model.set(GRB.IntParam.LogToConsole, flag);
+
+            GRBVar[][] vars = new GRBVar[n][n];
+
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    
+                    double obj = distances[shift.route.get(i)][shift.route.get(j)];
+                    vars[i][j] = model.addVar(0.0, 1.0, obj, GRB.BINARY, ("x[" + i + "," + j + "]"));
+
+                    if (j == i + 1) {
+                        vars[i][j].set(GRB.DoubleAttr.Start, 1.0);
+                    }
+
+                    if (i == j) {
+                        vars[i][j].set(GRB.DoubleAttr.UB, 0.0);
+                    } 
+                }
             }
+
+            vars[n - 1][0].set(GRB.DoubleAttr.Start, 1.0);
+
+            for (int i = 0; i < n; i++) {
+
+                GRBLinExpr inFlow = new GRBLinExpr();
+                GRBLinExpr outFlow = new GRBLinExpr();
+
+                for (int j = 0; j < n; j++) {
+                    
+                    if (i == j) {
+                        continue;
+                    }
+
+                    inFlow.addTerm(1.0, vars[j][i]);
+                    outFlow.addTerm(1.0, vars[i][j]);
+
+                }
+
+                model.addConstr(1.0, GRB.EQUAL, outFlow, ("outflow " + i));
+                model.addConstr(1.0, GRB.EQUAL, inFlow, ("inflow " + i));
+
+            }
+
+            model.setCallback(new TSP(vars));
+            model.optimize();
+
+            if (flag == 1) {
+                System.out.println("old travel time: " + shift.travelTime + " new travel time: " + model.get(GRB.DoubleAttr.ObjVal));
+            }
+
+
+            List<Integer> updatedRoute = new ArrayList<>();
+            int[] successors = getSuccessors(model.get(GRB.DoubleAttr.X, vars));
+            int current = 0;
+
+            for (int i = 0; i < n; i++) {
+                updatedRoute.add(shift.route.get(current));
+                current = successors[current];
+            }
+
+            updatedRoute.add(0);
+
+            shift.route = updatedRoute;
+            shift.travelTime = model.get(GRB.DoubleAttr.ObjVal);
+            shift.recomputeTotalTime();
+
+            model.dispose();
+
+
+        } catch (GRBException e) {
+            System.out.println("Error code: " + e.getErrorCode() + ". " + e.getMessage());
+            e.printStackTrace();
         }
-        long TSPEndTime = System.currentTimeMillis();
-        System.out.println("tsp running time: " + (TSPEndTime - TSPStartTime));
-        System.out.println("Improvement (minutes): " + impr);
-        System.out.println("Number of already optimal routes: " + optimalCounts);
+
+    }
+
+    public static void optimizeAllShifts(List<Shift> shifts, double[][] travelTimesDay, double[][] travelTimesNight, HTMInstance instance) {
+        
+        try {
+
+            double impr = 0;
+            int optimalCounts = 0;
+            long TSPStartTime = System.currentTimeMillis();
+            int flag = 0;
+
+            GRBEnv env = new GRBEnv();
+            env.set(GRB.IntParam.LogToConsole, flag);
+            env.set(GRB.IntParam.OutputFlag, flag);
+
+            for (Shift shift : shifts) {
+
+                double old_time = shift.travelTime;
+
+                if (shift.nightShift == 1) {
+                    optimizeShift(shift, travelTimesNight, env, flag);
+                } else {
+                    optimizeShift(shift, travelTimesDay, env, flag);
+                }
+
+                double delta = old_time - shift.travelTime;
+
+                if (delta == 0) { 
+                    optimalCounts++; 
+                } else {
+                    impr += delta;
+                }
+            }
+
+            long TSPEndTime = System.currentTimeMillis();
+            System.out.println("tsp running time: " + (TSPEndTime - TSPStartTime));
+            System.out.println("Improvement (minutes): " + impr);
+            System.out.println("Number of already optimal routes: " + optimalCounts);
+
+            env.dispose();
+
+        }
+        catch (GRBException e) {
+            System.out.println("Error code: " + e.getErrorCode() + ". " + e.getMessage());
+            e.printStackTrace();
+        }
+   
     }
 
     public static void main(String[] args) throws Exception {
+
+        double shiftLength = 7*60;
+        double totalShiftLength = 8*60;
+        
+        
         String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelPath   = "src/core/travel_times_collapsedv2.txt";
 
@@ -274,10 +376,73 @@ public class TSP extends GRBCallback{
         double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
         double[][] travelTimesDay = Utils.readTravelTimes(travelDayPath);
 
-        // Choose initial shifts to use 
-        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/grid_search_SA/results_SA_T00,50_maxIter100000_osc5.csv", travelTimesNight, travelTimesDay);
+        //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
 
-        optimizeAllShifts(initial, travelTimesDay, travelTimesNight, instance);
+        // Choose initial shifts to use 
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
+
+        // Make sure they are feasible 
+        Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
+
+        double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
+
+        System.out.println("Initial solution:");
+        System.out.println("Total shifts: " + initial.size());
+        System.out.println("Total objective value: " + initial_obj_value);
+
+        Utils.checkFeasibility(initial, instance, totalShiftLength);
+
+        
+        
+        // NORMAL LOCAL SEARCH 
+        List<Neighborhood> neighborhoods = Arrays.asList(
+            new Intra2Opt(),
+            new InterSwap(),
+            new IntraSwap(),
+            new IntraShift(),
+            new Inter2OptStar(),
+            new InterShift()
+        );
+
+        AcceptanceFunction acceptGreedy = Acceptance.greedy();
+
+        RouteCompatibility compatibility = Compatibility.sameNightShift();
+
+        LocalSearch ls = new LocalSearch(
+                neighborhoods,
+                acceptGreedy,
+                compatibility,
+                ImprovementChoice.BEST,
+                1000,       
+                totalShiftLength,
+                objectiveBasic,
+                false
+        );
+        
+        long startTime = System.currentTimeMillis();
+        System.out.println("\nRunning local search...");
+        List<Shift> improved = ls.runDiffTimes(initial, instance, travelTimesNight, travelTimesDay);
+
+        Utils.recomputeAllShiftsDiffTimes(improved, instance, travelTimesNight, travelTimesDay);
+
+        double new_obj_value = objectiveBasic.shifts(improved)/60.0;
+
+        System.out.println("\nLocal search complete.");
+
+        System.out.println("New objective value: " + new_obj_value);
+
+        double improvement = initial_obj_value - new_obj_value;
+
+        System.out.println("Improvement: " + improvement);
+        long endTime = System.currentTimeMillis();
+        double timeTaken = (endTime-startTime)/1000.0;
+        System.out.println("Time taken: " + (timeTaken) + " s" );
+
+        Utils.checkFeasibility(improved, instance, totalShiftLength);
+        Utils.printShiftStatistics(improved, instance, totalShiftLength);
+
+        optimizeAllShifts(improved, travelTimesDay, travelTimesNight, instance);
     
     }
 }
