@@ -1,25 +1,32 @@
 import pandas as pd
-import googlemaps
 import json
-import datetime
 import math
+import requests
+import os
+import time
 
 
 BATCH_SIZE = 31
 
-maps_key = "AIzaSyA7zbsadbUBeP2g2-g4fom1Sl0cVFUPl54"
-gmaps = googlemaps.Client(key=maps_key)
+key = "8a92140aa65a4f0cbc625c3f4d4bbe29"
+url = f"https://api.geoapify.com/v1/routematrix?apiKey={key}"
 
-df = pd.read_excel("data/inputs/raw/Data_POH_5WK_REINIGEN_ABRI_EN_HEKWERK.xlsx", sheet_name=["Dagroutes", "Nachtroutes", "Halteinfo"])
-df_stops = df["Halteinfo"]
-
-locations = list(df_stops["ID_MAXIMO"])
-
-coordinates = list(zip(df_stops.latitude, df_stops.longitude))
+headers = {
+  'Content-Type': 'application/json',
+  'Content-Length': ''
+}
 
 
+df = pd.read_csv("src/results/HTM_data_initRes_typeHalte.csv")
+locations = list(df["ID_MAXIMO"])
+coordinates = list(zip(df.longitude, df.latitude))
+
+
+
+n_requests = 0
 
 for i in range(math.ceil(len(locations) / BATCH_SIZE)):
+
     if (i + 1) * BATCH_SIZE >= len(locations):
         origin_batch_coordinates = coordinates[i * BATCH_SIZE:]
         origin_batch_locations = locations[i * BATCH_SIZE:]
@@ -28,25 +35,58 @@ for i in range(math.ceil(len(locations) / BATCH_SIZE)):
         origin_batch_locations = locations[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
 
     for j in range(math.ceil(len(locations) / BATCH_SIZE)):
+
         if (j + 1) * BATCH_SIZE >= len(locations):
             destination_batch_coordinates = coordinates[j * BATCH_SIZE:]
             destination_batch_locations = locations[j * BATCH_SIZE:]
-            
         else:
             destination_batch_coordinates = coordinates[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
             destination_batch_locations = locations[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 
-        distance_info = gmaps.distance_matrix(
-            origin_batch_coordinates,
-            destination_batch_coordinates,
-            mode="driving",
-            departure_time=REFERENCE_DEPARTURE_TIME,
-            traffic_model=TRAFFIC_MODEL)
         
-        distance_info["destination_addresses"] = destination_batch_locations
-        distance_info["origin_addresses"] = origin_batch_locations
+        path = f"data/inputs/cleaned/distance_info_{i}_{j}.json"
         
-        with open(f"data/inputs/cleaned/distance_info_{i}_{j}.json", "w") as f:
-            json.dump(distance_info, f, indent=4)
+        if os.path.exists(path):
+            continue
+
+        if n_requests >= 15:
+            print("sleeping")
+            time.sleep(3600)
+            n_requests = 0
+
+        data = {
+            "mode": "drive",
+            "traffic": "approximated",
+            "units": "metric",
+            "sources": [],
+            "targets" : []
+        }
+
+        for lon, lat in origin_batch_coordinates:
+            data["sources"].append(
+                {"location": [lon, lat]}
+            )
+
+        for lon, lat in destination_batch_coordinates:
+            data["targets"].append(
+                {"location": [lon, lat]}
+            )
+
+        payload = json.dumps(data)
+
+        resp = requests.request(
+            method="POST", 
+            url=url, 
+            headers=headers, 
+            data=payload)
+        
+        info = resp.json()
+        info["sources"] = origin_batch_locations
+        info["targets"] = destination_batch_locations
+    
+        with open(path, "w") as f:
+            json.dump(info, f, indent=4)
+
+        n_requests += 1
 
         
