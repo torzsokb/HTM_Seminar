@@ -2,6 +2,8 @@ package solve;
 import core.*; 
 import neighborhoods.*; 
 import search.*;
+import milp.*;
+
 import java.util.*;
 
 public class SolveFullModel {
@@ -16,7 +18,7 @@ public class SolveFullModel {
         String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
         String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
 
-        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Night_shift");
+        HTMInstance instance = Utils.readInstance(instancePath, "feasible", "Type_halte");
         double[][] travelTimes = Utils.readTravelTimes(travelPath);
 
         double[][] travelTimesNight = Utils.readTravelTimes(travelNightPath);
@@ -98,8 +100,8 @@ public class SolveFullModel {
          */
 
         // Now do SA 
-        int max_iterations = 30000;
-        Acceptance.initSimulatedAnnealing(0.5, 0, max_iterations, 50);
+        int max_iterations = 100000;
+        Acceptance.initSimulatedAnnealing(0.5, 0, max_iterations, 5);
         AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
         ObjectiveFunction objectiveTotalLength = Objective.totalLength();
 
@@ -136,10 +138,13 @@ public class SolveFullModel {
         
         //Utils.resultsToCSV(improved_SA, instance, "src/results/results_SA_feasible.csv");
 
-        // PHASE 3: LS again 
-        System.out.println("\nRunning local search (phase 3)...");
-        List<Shift> improved_final = ls.runDiffTimes(improved_SA, instance, travelTimesNight, travelTimesDay);
+        // PHASE 3: TSP
+        System.out.println("\nSolving TSP (phase 3)...");
 
+        List<Shift> improved_final = Utils.deepCopyShifts(improved_SA);
+
+        TSP.optimizeAllShifts(improved_final, travelTimesDay, travelTimesNight, instance);
+        
 
         double final_objective_value = objectiveTotalLength.shifts(improved_final)/60.0;
         System.out.println("Final objective value: " + final_objective_value);
@@ -155,7 +160,7 @@ public class SolveFullModel {
         Utils.checkFeasibility(improved_final, instance, totalShiftLength);
         Utils.printShiftStatistics(improved_final, instance, totalShiftLength);
     
-        Utils.resultsToCSV(improved_final, instance, "src/results/results_minShifts_feasible.csv");
+        Utils.resultsToCSV(improved_final, instance, "src/results/results_typeHalte_final.csv");
 
         // With balanced 
         /*
