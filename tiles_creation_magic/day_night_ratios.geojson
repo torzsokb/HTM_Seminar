@@ -1,0 +1,3120 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              51.983
+            ],
+            [
+              4.3962,
+              51.983
+            ],
+            [
+              4.3962,
+              51.9651
+            ],
+            [
+              4.3671,
+              51.9651
+            ],
+            [
+              4.3671,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 100",
+        "day_ratio": 0.87999371,
+        "night_ratio": 0.97229931
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.001
+            ],
+            [
+              4.3962,
+              52.001
+            ],
+            [
+              4.3962,
+              51.983
+            ],
+            [
+              4.3671,
+              51.983
+            ],
+            [
+              4.3671,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 101",
+        "day_ratio": 0.84876485,
+        "night_ratio": 0.93512041
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.019
+            ],
+            [
+              4.3962,
+              52.019
+            ],
+            [
+              4.3962,
+              52.001
+            ],
+            [
+              4.3671,
+              52.001
+            ],
+            [
+              4.3671,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 102",
+        "day_ratio": 0.86067212,
+        "night_ratio": 0.97475713
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.037
+            ],
+            [
+              4.3962,
+              52.037
+            ],
+            [
+              4.3962,
+              52.019
+            ],
+            [
+              4.3671,
+              52.019
+            ],
+            [
+              4.3671,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 103",
+        "day_ratio": 0.90083545,
+        "night_ratio": 0.96081353
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.055
+            ],
+            [
+              4.3962,
+              52.055
+            ],
+            [
+              4.3962,
+              52.037
+            ],
+            [
+              4.3671,
+              52.037
+            ],
+            [
+              4.3671,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 104",
+        "day_ratio": 0.76987105,
+        "night_ratio": 0.90407739
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.073
+            ],
+            [
+              4.3962,
+              52.073
+            ],
+            [
+              4.3962,
+              52.055
+            ],
+            [
+              4.3671,
+              52.055
+            ],
+            [
+              4.3671,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 105",
+        "day_ratio": 0.90466184,
+        "night_ratio": 0.98554264
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.091
+            ],
+            [
+              4.3962,
+              52.091
+            ],
+            [
+              4.3962,
+              52.073
+            ],
+            [
+              4.3671,
+              52.073
+            ],
+            [
+              4.3671,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 106",
+        "day_ratio": 0.69099236,
+        "night_ratio": 0.96037932
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              52.109
+            ],
+            [
+              4.3962,
+              52.109
+            ],
+            [
+              4.3962,
+              52.091
+            ],
+            [
+              4.3671,
+              52.091
+            ],
+            [
+              4.3671,
+              52.109
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 107",
+        "day_ratio": 0.81061316,
+        "night_ratio": 0.93794899
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              51.983
+            ],
+            [
+              4.4254,
+              51.983
+            ],
+            [
+              4.4254,
+              51.9651
+            ],
+            [
+              4.3962,
+              51.9651
+            ],
+            [
+              4.3962,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 112",
+        "day_ratio": 0.94817161,
+        "night_ratio": 0.99419612
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              52.001
+            ],
+            [
+              4.4254,
+              52.001
+            ],
+            [
+              4.4254,
+              51.983
+            ],
+            [
+              4.3962,
+              51.983
+            ],
+            [
+              4.3962,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 113",
+        "day_ratio": 0.71809875,
+        "night_ratio": 0.92974303
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              52.019
+            ],
+            [
+              4.4254,
+              52.019
+            ],
+            [
+              4.4254,
+              52.001
+            ],
+            [
+              4.3962,
+              52.001
+            ],
+            [
+              4.3962,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 114",
+        "day_ratio": 0.89641917,
+        "night_ratio": 0.92446006
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              52.037
+            ],
+            [
+              4.4254,
+              52.037
+            ],
+            [
+              4.4254,
+              52.019
+            ],
+            [
+              4.3962,
+              52.019
+            ],
+            [
+              4.3962,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 115",
+        "day_ratio": 0.88470592,
+        "night_ratio": 0.9376314
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              52.055
+            ],
+            [
+              4.4254,
+              52.055
+            ],
+            [
+              4.4254,
+              52.037
+            ],
+            [
+              4.3962,
+              52.037
+            ],
+            [
+              4.3962,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 116",
+        "day_ratio": 0.87377137,
+        "night_ratio": 0.97615265
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3962,
+              52.073
+            ],
+            [
+              4.4254,
+              52.073
+            ],
+            [
+              4.4254,
+              52.055
+            ],
+            [
+              4.3962,
+              52.055
+            ],
+            [
+              4.3962,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 117",
+        "day_ratio": 0.74395826,
+        "night_ratio": 0.91439249
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              51.9651
+            ],
+            [
+              4.1921,
+              51.9651
+            ],
+            [
+              4.1921,
+              51.9471
+            ],
+            [
+              4.163,
+              51.9471
+            ],
+            [
+              4.163,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 15",
+        "day_ratio": 0.8664402,
+        "night_ratio": 0.93432761
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              51.983
+            ],
+            [
+              4.1921,
+              51.983
+            ],
+            [
+              4.1921,
+              51.9651
+            ],
+            [
+              4.163,
+              51.9651
+            ],
+            [
+              4.163,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 16",
+        "day_ratio": 0.76965994,
+        "night_ratio": 0.92920454
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              52.001
+            ],
+            [
+              4.1921,
+              52.001
+            ],
+            [
+              4.1921,
+              51.983
+            ],
+            [
+              4.163,
+              51.983
+            ],
+            [
+              4.163,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 17",
+        "day_ratio": 0.78765135,
+        "night_ratio": 0.93793901
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              52.019
+            ],
+            [
+              4.1921,
+              52.019
+            ],
+            [
+              4.1921,
+              52.001
+            ],
+            [
+              4.163,
+              52.001
+            ],
+            [
+              4.163,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 18",
+        "day_ratio": 0.82587622,
+        "night_ratio": 0.93545341
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              52.037
+            ],
+            [
+              4.1921,
+              52.037
+            ],
+            [
+              4.1921,
+              52.019
+            ],
+            [
+              4.163,
+              52.019
+            ],
+            [
+              4.163,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 19",
+        "day_ratio": 0.78539766,
+        "night_ratio": 0.93147737
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.163,
+              52.055
+            ],
+            [
+              4.1921,
+              52.055
+            ],
+            [
+              4.1921,
+              52.037
+            ],
+            [
+              4.163,
+              52.037
+            ],
+            [
+              4.163,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 20",
+        "day_ratio": 0.80872395,
+        "night_ratio": 0.97908351
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              51.9471
+            ],
+            [
+              4.2213,
+              51.9471
+            ],
+            [
+              4.2213,
+              51.9291
+            ],
+            [
+              4.1921,
+              51.9291
+            ],
+            [
+              4.1921,
+              51.9471
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 26",
+        "day_ratio": 0.79090205,
+        "night_ratio": 0.89112233
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              51.9651
+            ],
+            [
+              4.2213,
+              51.9651
+            ],
+            [
+              4.2213,
+              51.9471
+            ],
+            [
+              4.1921,
+              51.9471
+            ],
+            [
+              4.1921,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 27",
+        "day_ratio": 0.72532625,
+        "night_ratio": 0.86790424
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              51.983
+            ],
+            [
+              4.2213,
+              51.983
+            ],
+            [
+              4.2213,
+              51.9651
+            ],
+            [
+              4.1921,
+              51.9651
+            ],
+            [
+              4.1921,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 28",
+        "day_ratio": 0.77821217,
+        "night_ratio": 0.94288399
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              52.001
+            ],
+            [
+              4.2213,
+              52.001
+            ],
+            [
+              4.2213,
+              51.983
+            ],
+            [
+              4.1921,
+              51.983
+            ],
+            [
+              4.1921,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 29",
+        "day_ratio": 0.75320481,
+        "night_ratio": 0.8863265
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              52.019
+            ],
+            [
+              4.2213,
+              52.019
+            ],
+            [
+              4.2213,
+              52.001
+            ],
+            [
+              4.1921,
+              52.001
+            ],
+            [
+              4.1921,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 30",
+        "day_ratio": 0.77602525,
+        "night_ratio": 0.94470625
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              52.037
+            ],
+            [
+              4.2213,
+              52.037
+            ],
+            [
+              4.2213,
+              52.019
+            ],
+            [
+              4.1921,
+              52.019
+            ],
+            [
+              4.1921,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 31",
+        "day_ratio": 0.74833887,
+        "night_ratio": 0.93620218
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              52.055
+            ],
+            [
+              4.2213,
+              52.055
+            ],
+            [
+              4.2213,
+              52.037
+            ],
+            [
+              4.1921,
+              52.037
+            ],
+            [
+              4.1921,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 32",
+        "day_ratio": 0.8295817,
+        "night_ratio": 0.92118448
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1921,
+              52.073
+            ],
+            [
+              4.2213,
+              52.073
+            ],
+            [
+              4.2213,
+              52.055
+            ],
+            [
+              4.1921,
+              52.055
+            ],
+            [
+              4.1921,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 33",
+        "day_ratio": 0.79341359,
+        "night_ratio": 0.88477154
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              51.9291
+            ],
+            [
+              4.2504,
+              51.9291
+            ],
+            [
+              4.2504,
+              51.9111
+            ],
+            [
+              4.2213,
+              51.9111
+            ],
+            [
+              4.2213,
+              51.9291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 37",
+        "day_ratio": 0.72958899,
+        "night_ratio": 0.86295029
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              51.9471
+            ],
+            [
+              4.2504,
+              51.9471
+            ],
+            [
+              4.2504,
+              51.9291
+            ],
+            [
+              4.2213,
+              51.9291
+            ],
+            [
+              4.2213,
+              51.9471
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 38",
+        "day_ratio": 0.82230227,
+        "night_ratio": 0.90860092
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              51.9651
+            ],
+            [
+              4.2504,
+              51.9651
+            ],
+            [
+              4.2504,
+              51.9471
+            ],
+            [
+              4.2213,
+              51.9471
+            ],
+            [
+              4.2213,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 39",
+        "day_ratio": 0.82030095,
+        "night_ratio": 0.92639148
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1338,
+              51.983
+            ],
+            [
+              4.163,
+              51.983
+            ],
+            [
+              4.163,
+              51.9651
+            ],
+            [
+              4.1338,
+              51.9651
+            ],
+            [
+              4.1338,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 4",
+        "day_ratio": 0.82031687,
+        "night_ratio": 0.91866442
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              51.983
+            ],
+            [
+              4.2504,
+              51.983
+            ],
+            [
+              4.2504,
+              51.9651
+            ],
+            [
+              4.2213,
+              51.9651
+            ],
+            [
+              4.2213,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 40",
+        "day_ratio": 0.77273126,
+        "night_ratio": 0.85866504
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.001
+            ],
+            [
+              4.2504,
+              52.001
+            ],
+            [
+              4.2504,
+              51.983
+            ],
+            [
+              4.2213,
+              51.983
+            ],
+            [
+              4.2213,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 41",
+        "day_ratio": 0.7466677,
+        "night_ratio": 0.92850008
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.019
+            ],
+            [
+              4.2504,
+              52.019
+            ],
+            [
+              4.2504,
+              52.001
+            ],
+            [
+              4.2213,
+              52.001
+            ],
+            [
+              4.2213,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 42",
+        "day_ratio": 0.73770391,
+        "night_ratio": 0.91739831
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.037
+            ],
+            [
+              4.2504,
+              52.037
+            ],
+            [
+              4.2504,
+              52.019
+            ],
+            [
+              4.2213,
+              52.019
+            ],
+            [
+              4.2213,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 43",
+        "day_ratio": 0.83391251,
+        "night_ratio": 0.89713807
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.055
+            ],
+            [
+              4.2504,
+              52.055
+            ],
+            [
+              4.2504,
+              52.037
+            ],
+            [
+              4.2213,
+              52.037
+            ],
+            [
+              4.2213,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 44",
+        "day_ratio": 0.72694533,
+        "night_ratio": 0.94738552
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.073
+            ],
+            [
+              4.2504,
+              52.073
+            ],
+            [
+              4.2504,
+              52.055
+            ],
+            [
+              4.2213,
+              52.055
+            ],
+            [
+              4.2213,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 45",
+        "day_ratio": 0.71121698,
+        "night_ratio": 0.9458681
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2213,
+              52.091
+            ],
+            [
+              4.2504,
+              52.091
+            ],
+            [
+              4.2504,
+              52.073
+            ],
+            [
+              4.2213,
+              52.073
+            ],
+            [
+              4.2213,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 46",
+        "day_ratio": 0.84488739,
+        "night_ratio": 0.96315142
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              51.9291
+            ],
+            [
+              4.2796,
+              51.9291
+            ],
+            [
+              4.2796,
+              51.9111
+            ],
+            [
+              4.2504,
+              51.9111
+            ],
+            [
+              4.2504,
+              51.9291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 49",
+        "day_ratio": 0.82026976,
+        "night_ratio": 0.93121165
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1338,
+              52.001
+            ],
+            [
+              4.163,
+              52.001
+            ],
+            [
+              4.163,
+              51.983
+            ],
+            [
+              4.1338,
+              51.983
+            ],
+            [
+              4.1338,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 5",
+        "day_ratio": 0.81542738,
+        "night_ratio": 0.92297919
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              51.9471
+            ],
+            [
+              4.2796,
+              51.9471
+            ],
+            [
+              4.2796,
+              51.9291
+            ],
+            [
+              4.2504,
+              51.9291
+            ],
+            [
+              4.2504,
+              51.9471
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 50",
+        "day_ratio": 0.86189573,
+        "night_ratio": 0.92442658
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              51.9651
+            ],
+            [
+              4.2796,
+              51.9651
+            ],
+            [
+              4.2796,
+              51.9471
+            ],
+            [
+              4.2504,
+              51.9471
+            ],
+            [
+              4.2504,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 51",
+        "day_ratio": 0.87405342,
+        "night_ratio": 0.90851575
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              51.983
+            ],
+            [
+              4.2796,
+              51.983
+            ],
+            [
+              4.2796,
+              51.9651
+            ],
+            [
+              4.2504,
+              51.9651
+            ],
+            [
+              4.2504,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 52",
+        "day_ratio": 0.830762,
+        "night_ratio": 0.90790826
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.001
+            ],
+            [
+              4.2796,
+              52.001
+            ],
+            [
+              4.2796,
+              51.983
+            ],
+            [
+              4.2504,
+              51.983
+            ],
+            [
+              4.2504,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 53",
+        "day_ratio": 0.86617626,
+        "night_ratio": 0.94712032
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.019
+            ],
+            [
+              4.2796,
+              52.019
+            ],
+            [
+              4.2796,
+              52.001
+            ],
+            [
+              4.2504,
+              52.001
+            ],
+            [
+              4.2504,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 54",
+        "day_ratio": 0.87795883,
+        "night_ratio": 0.95826117
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.037
+            ],
+            [
+              4.2796,
+              52.037
+            ],
+            [
+              4.2796,
+              52.019
+            ],
+            [
+              4.2504,
+              52.019
+            ],
+            [
+              4.2504,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 55",
+        "day_ratio": 0.7687566,
+        "night_ratio": 0.95140162
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.055
+            ],
+            [
+              4.2796,
+              52.055
+            ],
+            [
+              4.2796,
+              52.037
+            ],
+            [
+              4.2504,
+              52.037
+            ],
+            [
+              4.2504,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 56",
+        "day_ratio": 0.69667193,
+        "night_ratio": 0.91357218
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.073
+            ],
+            [
+              4.2796,
+              52.073
+            ],
+            [
+              4.2796,
+              52.055
+            ],
+            [
+              4.2504,
+              52.055
+            ],
+            [
+              4.2504,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 57",
+        "day_ratio": 0.71018217,
+        "night_ratio": 0.91186432
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.091
+            ],
+            [
+              4.2796,
+              52.091
+            ],
+            [
+              4.2796,
+              52.073
+            ],
+            [
+              4.2504,
+              52.073
+            ],
+            [
+              4.2504,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 58",
+        "day_ratio": 0.69271794,
+        "night_ratio": 0.96012483
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.109
+            ],
+            [
+              4.2796,
+              52.109
+            ],
+            [
+              4.2796,
+              52.091
+            ],
+            [
+              4.2504,
+              52.091
+            ],
+            [
+              4.2504,
+              52.109
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 59",
+        "day_ratio": 0.69569104,
+        "night_ratio": 0.90105572
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1338,
+              52.019
+            ],
+            [
+              4.163,
+              52.019
+            ],
+            [
+              4.163,
+              52.001
+            ],
+            [
+              4.1338,
+              52.001
+            ],
+            [
+              4.1338,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 6",
+        "day_ratio": 0.83217757,
+        "night_ratio": 0.96985321
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2504,
+              52.1269
+            ],
+            [
+              4.2796,
+              52.1269
+            ],
+            [
+              4.2796,
+              52.109
+            ],
+            [
+              4.2504,
+              52.109
+            ],
+            [
+              4.2504,
+              52.1269
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 60",
+        "day_ratio": 0.85041118,
+        "night_ratio": 0.96833015
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              51.9291
+            ],
+            [
+              4.3088,
+              51.9291
+            ],
+            [
+              4.3088,
+              51.9111
+            ],
+            [
+              4.2796,
+              51.9111
+            ],
+            [
+              4.2796,
+              51.9291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 61",
+        "day_ratio": 0.92614676,
+        "night_ratio": 0.96148738
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              51.9651
+            ],
+            [
+              4.3088,
+              51.9651
+            ],
+            [
+              4.3088,
+              51.9471
+            ],
+            [
+              4.2796,
+              51.9471
+            ],
+            [
+              4.2796,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 63",
+        "day_ratio": 0.7931503,
+        "night_ratio": 0.93577542
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              51.983
+            ],
+            [
+              4.3088,
+              51.983
+            ],
+            [
+              4.3088,
+              51.9651
+            ],
+            [
+              4.2796,
+              51.9651
+            ],
+            [
+              4.2796,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 64",
+        "day_ratio": 0.83613022,
+        "night_ratio": 0.90477869
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.001
+            ],
+            [
+              4.3088,
+              52.001
+            ],
+            [
+              4.3088,
+              51.983
+            ],
+            [
+              4.2796,
+              51.983
+            ],
+            [
+              4.2796,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 65",
+        "day_ratio": 0.89565224,
+        "night_ratio": 0.97581862
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.019
+            ],
+            [
+              4.3088,
+              52.019
+            ],
+            [
+              4.3088,
+              52.001
+            ],
+            [
+              4.2796,
+              52.001
+            ],
+            [
+              4.2796,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 66",
+        "day_ratio": 0.70864516,
+        "night_ratio": 0.96160914
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.037
+            ],
+            [
+              4.3088,
+              52.037
+            ],
+            [
+              4.3088,
+              52.019
+            ],
+            [
+              4.2796,
+              52.019
+            ],
+            [
+              4.2796,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 67",
+        "day_ratio": 0.72242374,
+        "night_ratio": 0.96206076
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.055
+            ],
+            [
+              4.3088,
+              52.055
+            ],
+            [
+              4.3088,
+              52.037
+            ],
+            [
+              4.2796,
+              52.037
+            ],
+            [
+              4.2796,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 68",
+        "day_ratio": 0.74856195,
+        "night_ratio": 0.94651614
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.073
+            ],
+            [
+              4.3088,
+              52.073
+            ],
+            [
+              4.3088,
+              52.055
+            ],
+            [
+              4.2796,
+              52.055
+            ],
+            [
+              4.2796,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 69",
+        "day_ratio": 0.68156377,
+        "night_ratio": 0.9249927
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.1338,
+              52.037
+            ],
+            [
+              4.163,
+              52.037
+            ],
+            [
+              4.163,
+              52.019
+            ],
+            [
+              4.1338,
+              52.019
+            ],
+            [
+              4.1338,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 7",
+        "day_ratio": 0.87796469,
+        "night_ratio": 0.9553342
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.091
+            ],
+            [
+              4.3088,
+              52.091
+            ],
+            [
+              4.3088,
+              52.073
+            ],
+            [
+              4.2796,
+              52.073
+            ],
+            [
+              4.2796,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 70",
+        "day_ratio": 0.64457539,
+        "night_ratio": 0.95150094
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.109
+            ],
+            [
+              4.3088,
+              52.109
+            ],
+            [
+              4.3088,
+              52.091
+            ],
+            [
+              4.2796,
+              52.091
+            ],
+            [
+              4.2796,
+              52.109
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 71",
+        "day_ratio": 0.80019393,
+        "night_ratio": 0.98519842
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.2796,
+              52.1269
+            ],
+            [
+              4.3088,
+              52.1269
+            ],
+            [
+              4.3088,
+              52.109
+            ],
+            [
+              4.2796,
+              52.109
+            ],
+            [
+              4.2796,
+              52.1269
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 72",
+        "day_ratio": 0.71513525,
+        "night_ratio": 0.97222518
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              51.9291
+            ],
+            [
+              4.3379,
+              51.9291
+            ],
+            [
+              4.3379,
+              51.9111
+            ],
+            [
+              4.3088,
+              51.9111
+            ],
+            [
+              4.3088,
+              51.9291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 73",
+        "day_ratio": 0.81850539,
+        "night_ratio": 0.90623712
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              51.9471
+            ],
+            [
+              4.3379,
+              51.9471
+            ],
+            [
+              4.3379,
+              51.9291
+            ],
+            [
+              4.3088,
+              51.9291
+            ],
+            [
+              4.3088,
+              51.9471
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 74",
+        "day_ratio": 0.88393083,
+        "night_ratio": 0.83495435
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              51.9651
+            ],
+            [
+              4.3379,
+              51.9651
+            ],
+            [
+              4.3379,
+              51.9471
+            ],
+            [
+              4.3088,
+              51.9471
+            ],
+            [
+              4.3088,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 75",
+        "day_ratio": 0.88789898,
+        "night_ratio": 0.85925789
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              51.983
+            ],
+            [
+              4.3379,
+              51.983
+            ],
+            [
+              4.3379,
+              51.9651
+            ],
+            [
+              4.3088,
+              51.9651
+            ],
+            [
+              4.3088,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 76",
+        "day_ratio": 0.8242994,
+        "night_ratio": 0.95577336
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.001
+            ],
+            [
+              4.3379,
+              52.001
+            ],
+            [
+              4.3379,
+              51.983
+            ],
+            [
+              4.3088,
+              51.983
+            ],
+            [
+              4.3088,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 77",
+        "day_ratio": 0.81220118,
+        "night_ratio": 0.9759844
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.019
+            ],
+            [
+              4.3379,
+              52.019
+            ],
+            [
+              4.3379,
+              52.001
+            ],
+            [
+              4.3088,
+              52.001
+            ],
+            [
+              4.3088,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 78",
+        "day_ratio": 0.78484554,
+        "night_ratio": 0.93505103
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.037
+            ],
+            [
+              4.3379,
+              52.037
+            ],
+            [
+              4.3379,
+              52.019
+            ],
+            [
+              4.3088,
+              52.019
+            ],
+            [
+              4.3088,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 79",
+        "day_ratio": 0.75964473,
+        "night_ratio": 0.97182396
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.055
+            ],
+            [
+              4.3379,
+              52.055
+            ],
+            [
+              4.3379,
+              52.037
+            ],
+            [
+              4.3088,
+              52.037
+            ],
+            [
+              4.3088,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 80",
+        "day_ratio": 0.66140434,
+        "night_ratio": 0.86664078
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.073
+            ],
+            [
+              4.3379,
+              52.073
+            ],
+            [
+              4.3379,
+              52.055
+            ],
+            [
+              4.3088,
+              52.055
+            ],
+            [
+              4.3088,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 81",
+        "day_ratio": 0.67022893,
+        "night_ratio": 0.92871298
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.091
+            ],
+            [
+              4.3379,
+              52.091
+            ],
+            [
+              4.3379,
+              52.073
+            ],
+            [
+              4.3088,
+              52.073
+            ],
+            [
+              4.3088,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 82",
+        "day_ratio": 0.69489225,
+        "night_ratio": 0.96132951
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.109
+            ],
+            [
+              4.3379,
+              52.109
+            ],
+            [
+              4.3379,
+              52.091
+            ],
+            [
+              4.3088,
+              52.091
+            ],
+            [
+              4.3088,
+              52.109
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 83",
+        "day_ratio": 0.71426897,
+        "night_ratio": 0.97195398
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3088,
+              52.1269
+            ],
+            [
+              4.3379,
+              52.1269
+            ],
+            [
+              4.3379,
+              52.109
+            ],
+            [
+              4.3088,
+              52.109
+            ],
+            [
+              4.3088,
+              52.1269
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 84",
+        "day_ratio": 0.9816329,
+        "night_ratio": 0.9836762
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              51.9471
+            ],
+            [
+              4.3671,
+              51.9471
+            ],
+            [
+              4.3671,
+              51.9291
+            ],
+            [
+              4.3379,
+              51.9291
+            ],
+            [
+              4.3379,
+              51.9471
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 86",
+        "day_ratio": 0.8914876,
+        "night_ratio": 0.98017523
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              51.9651
+            ],
+            [
+              4.3671,
+              51.9651
+            ],
+            [
+              4.3671,
+              51.9471
+            ],
+            [
+              4.3379,
+              51.9471
+            ],
+            [
+              4.3379,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 87",
+        "day_ratio": 0.90280026,
+        "night_ratio": 0.97700509
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              51.983
+            ],
+            [
+              4.3671,
+              51.983
+            ],
+            [
+              4.3671,
+              51.9651
+            ],
+            [
+              4.3379,
+              51.9651
+            ],
+            [
+              4.3379,
+              51.983
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 88",
+        "day_ratio": 0.84879687,
+        "night_ratio": 0.95836734
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.001
+            ],
+            [
+              4.3671,
+              52.001
+            ],
+            [
+              4.3671,
+              51.983
+            ],
+            [
+              4.3379,
+              51.983
+            ],
+            [
+              4.3379,
+              52.001
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 89",
+        "day_ratio": 0.7209876,
+        "night_ratio": 0.91446035
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.019
+            ],
+            [
+              4.3671,
+              52.019
+            ],
+            [
+              4.3671,
+              52.001
+            ],
+            [
+              4.3379,
+              52.001
+            ],
+            [
+              4.3379,
+              52.019
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 90",
+        "day_ratio": 0.718699,
+        "night_ratio": 0.94246394
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.037
+            ],
+            [
+              4.3671,
+              52.037
+            ],
+            [
+              4.3671,
+              52.019
+            ],
+            [
+              4.3379,
+              52.019
+            ],
+            [
+              4.3379,
+              52.037
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 91",
+        "day_ratio": 0.8530144,
+        "night_ratio": 0.95680261
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.055
+            ],
+            [
+              4.3671,
+              52.055
+            ],
+            [
+              4.3671,
+              52.037
+            ],
+            [
+              4.3379,
+              52.037
+            ],
+            [
+              4.3379,
+              52.055
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 92",
+        "day_ratio": 0.84311286,
+        "night_ratio": 0.97628388
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.073
+            ],
+            [
+              4.3671,
+              52.073
+            ],
+            [
+              4.3671,
+              52.055
+            ],
+            [
+              4.3379,
+              52.055
+            ],
+            [
+              4.3379,
+              52.073
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 93",
+        "day_ratio": 0.82116428,
+        "night_ratio": 0.97173698
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.091
+            ],
+            [
+              4.3671,
+              52.091
+            ],
+            [
+              4.3671,
+              52.073
+            ],
+            [
+              4.3379,
+              52.073
+            ],
+            [
+              4.3379,
+              52.091
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 94",
+        "day_ratio": 0.75360004,
+        "night_ratio": 0.9106151
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.109
+            ],
+            [
+              4.3671,
+              52.109
+            ],
+            [
+              4.3671,
+              52.091
+            ],
+            [
+              4.3379,
+              52.091
+            ],
+            [
+              4.3379,
+              52.109
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 95",
+        "day_ratio": 0.80938545,
+        "night_ratio": 0.95550516
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3379,
+              52.1269
+            ],
+            [
+              4.3671,
+              52.1269
+            ],
+            [
+              4.3671,
+              52.109
+            ],
+            [
+              4.3379,
+              52.109
+            ],
+            [
+              4.3379,
+              52.1269
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 96",
+        "day_ratio": 0.90154986,
+        "night_ratio": 0.95882392
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.3671,
+              51.9651
+            ],
+            [
+              4.3962,
+              51.9651
+            ],
+            [
+              4.3962,
+              51.9471
+            ],
+            [
+              4.3671,
+              51.9471
+            ],
+            [
+              4.3671,
+              51.9651
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Region 99",
+        "day_ratio": 0.78674443,
+        "night_ratio": 0.82588788
+      }
+    }
+  ]
+}
