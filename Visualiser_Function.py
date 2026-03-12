@@ -66,18 +66,19 @@ def plot_routes_from_csv(csv_path,
             "#333333", "#666666", "#999999", "#882d71", "#ffed21"
         ])
     
-    for route_id, route_df in df.groupby("Route"):
-        route_df = route_df.sort_values("Order")
+    for route_id, route_df in df.groupby(route_number):
+        route_df = route_df.sort_values(order_number)
 
         if show_only == "Day":
             if route_df["Night_shift"].iloc[0] != 0:
                 continue
+
         elif show_only == "Night":
             if route_df["Night_shift"].iloc[0] != 1:
                 continue
 
-        # if route_df[route_number].iloc[0] not in ("REI-D304"):
-            # continue
+        # if route_df[route_number].iloc[0] not in (0.0, 1.0):
+        #     continue
 
         if split_day_and_night == True:
             is_night = route_df["Night_shift"].iloc[0] == 1
@@ -227,14 +228,15 @@ def plot_stops_only_from_csv(
 def main():
     csv_path = "data/inputs/cleaned/HTM_CollapsedDatav2.csv"
     csv_path_2 = "src/results/results_LS_abri.csv"
-    #plot_routes_from_csv(csv_path_2, split_day_and_night=False, OSRM=False)
 
-    plot_stops_only_from_csv(
-        csv_path,
-        output_html="stops_only.html",
-        depot_name="Depot",
-        show_only="All"
-    )
+    plot_routes_from_csv(csv_path_2, split_day_and_night=False, OSRM=False)
+
+    # plot_stops_only_from_csv(
+    #     csv_path,
+    #     output_html="stops_only.html",
+    #     depot_name="Depot",
+    #     show_only="All"
+    # )
 
 if __name__ == "__main__":
     main()
