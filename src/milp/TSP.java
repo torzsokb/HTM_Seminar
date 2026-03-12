@@ -346,7 +346,7 @@ public class TSP extends GRBCallback{
             long TSPEndTime = System.currentTimeMillis();
             System.out.println("tsp running time: " + (TSPEndTime - TSPStartTime));
             System.out.println("Improvement (minutes): " + impr);
-            System.out.println("Number of already optimal routes: " + optimalCounts);
+            System.out.println("Number of already optimal routes: " + optimalCounts + " (out of " + shifts.size() + " )");
 
             env.dispose();
 
