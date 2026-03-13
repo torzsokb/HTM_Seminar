@@ -18,10 +18,16 @@ public class InterShiftInfeas implements Neighborhood {
     private double sumL2 = 0.0;
     private double sumC = 0.0;
     private double sumC2 = 0.0;
-    private final double maxDuration = 8 * 60;
-    private final double maxOvertime = 0.0;
+    private final double maxDuration;
+    private final double maxOvertime;
+    private final double penalty;
     private int m = 0;
 
+    public InterShiftInfeas(double maxDuration, double maxOvertime, double penalty) {
+        this.penalty = penalty;
+        this.maxDuration = maxDuration;
+        this.maxOvertime = maxOvertime;
+    }
     @Override
     public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility, HTMInstance instance) {
         
@@ -66,19 +72,31 @@ public class InterShiftInfeas implements Neighborhood {
                     continue;
                 }
 
+                if (feasibleIdx == violatedIdx) {
+                    continue;
+                }
+
                 Shift feasibleShift = shifts.get(feasibleIdx);
                 
                 // if (violatedShift.route.size() < 2) {
                 //     continue;
                 // }
 
-                if (numNightShifts == MAX_NIGHT_SHIFTS && !compatibility.compatible(violatedShift, feasibleShift)) {
-                    continue;
-                }
 
                 for (int i = 1; i < violatedShift.route.size() - 1; i++) {
                     for (int j = 1; j < feasibleShift.route.size() - 1; j++) {
+
+                        if (numNightShifts < MAX_NIGHT_SHIFTS || compatibility.compatible(violatedShift, feasibleShift)) {
+                            moves.add(new Move(violatedIdx, feasibleIdx, i, j, Move.MoveType.INTER_SHIFT));
+                            continue;
+                        }
+
+                        if (instance.getStops().get(violatedShift.route.get(i)).nightShift == 1 && feasibleShift.nightShift != 1) {
+                            continue;
+                        }
+
                         moves.add(new Move(violatedIdx, feasibleIdx, i, j, Move.MoveType.INTER_SHIFT));
+                        
                     }
                 }
             }
@@ -128,12 +146,18 @@ public class InterShiftInfeas implements Neighborhood {
         double newL1 = s1.totalTime - service + deltaRemove;
         double newL2 = s2.totalTime + service + deltaInsert;
 
-        if (newL2 > maxShiftDuration) {
-            return new Evaluation(0, false);
-        }
+        // if (newL2 > maxShiftDuration) {
+        //     return new Evaluation(0, false);
+        // }
 
         double oldViolationS1 = Math.max(0, (s1.totalTime - maxDuration - maxOvertime));
         double newViolationS1 = Math.max(0, (newL1 - maxShiftDuration - maxOvertime));
+        
+
+        // double oldViolationS2 = Math.max(0, (s2.totalTime - maxDuration - maxOvertime));
+        double newViolationS2 = Math.max(0, (newL2 - maxShiftDuration - maxOvertime));
+
+        double violationDelta = (oldViolationS1 -  newViolationS1) -  newViolationS2;
 
         double newC1 = s1.serviceTime - service;
         double newC2 = s2.serviceTime + service;
@@ -156,7 +180,7 @@ public class InterShiftInfeas implements Neighborhood {
         double oldObj = sumL + lambdaL * sseLOld + lambdaC * sseCOld;
         double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCNew;
 
-        double improvement = oldObj - newObj - (5 * (oldViolationS1 -  newViolationS1));
+        double improvement = oldObj - newObj + penalty * violationDelta;
         if (Math.abs(improvement) < EPS) improvement = 0.0;
 
         return new Evaluation(improvement, true);
@@ -223,9 +247,9 @@ public class InterShiftInfeas implements Neighborhood {
         double newL1 = s1.totalTime - service + deltaRemove;
         double newL2 = s2.totalTime + service + deltaInsert;
 
-        if (newL1 > maxShiftDuration || newL2 > maxShiftDuration) {
-            return new Evaluation(0, false);
-        }
+        // if (newL2 > maxShiftDuration + 5) {
+        //     return new Evaluation(0, false);
+        // }
 
         double newC1 = s1.serviceTime - service;
         double newC2 = s2.serviceTime + service;
@@ -248,7 +272,15 @@ public class InterShiftInfeas implements Neighborhood {
         double oldObj = sumL + lambdaL * sseLOld + lambdaC * sseCOld;
         double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCNew;
 
-        double improvement = oldObj - newObj;
+        double oldViolationS1 = Math.max(0, (s1.totalTime - maxDuration - maxOvertime));
+        double newViolationS1 = Math.max(0, (newL1 - maxShiftDuration - maxOvertime));
+
+        double oldViolationS2 = Math.max(0, (s2.totalTime - maxDuration - maxOvertime));
+        double newViolationS2 = Math.max(0, (newL2 - maxShiftDuration - maxOvertime));
+
+        double violationDelta = (oldViolationS1 - newViolationS1) + (oldViolationS2 -  newViolationS2);
+
+        double improvement = oldObj - newObj + penalty * violationDelta;
         if (Math.abs(improvement) < EPS) improvement = 0.0;
 
         return new Evaluation(improvement, true);
