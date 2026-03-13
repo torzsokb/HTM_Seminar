@@ -54,6 +54,10 @@ public class InterShiftInfeas implements Neighborhood {
             }
         }
 
+        if (numViolated == 0) {
+            return moves;
+        }
+
 
 
         System.out.println("number of shifts: " + numShifts + " violated: " + numViolated);
@@ -181,7 +185,15 @@ public class InterShiftInfeas implements Neighborhood {
         double newObj = sumLNew + lambdaL * sseLNew + lambdaC * sseCNew;
 
         double improvement = oldObj - newObj + penalty * violationDelta;
-        if (Math.abs(improvement) < EPS) improvement = 0.0;
+        
+        if (Math.abs(improvement) < EPS) {
+            improvement = 0.0;
+        }
+
+        if (Math.abs(violationDelta) < EPS) {
+            return new Evaluation(0, false);
+        }
+
 
         return new Evaluation(improvement, true);
     }
@@ -281,7 +293,14 @@ public class InterShiftInfeas implements Neighborhood {
         double violationDelta = (oldViolationS1 - newViolationS1) + (oldViolationS2 -  newViolationS2);
 
         double improvement = oldObj - newObj + penalty * violationDelta;
-        if (Math.abs(improvement) < EPS) improvement = 0.0;
+
+        if (Math.abs(improvement) < EPS) {
+            improvement = 0.0;
+        }
+
+        if (violationDelta < EPS) {
+            return new Evaluation(0, false);
+        }
 
         return new Evaluation(improvement, true);
     }

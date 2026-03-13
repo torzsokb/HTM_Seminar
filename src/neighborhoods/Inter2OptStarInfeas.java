@@ -49,6 +49,10 @@ public class Inter2OptStarInfeas implements Neighborhood {
             }
         }
 
+        if (numViolated == 0) {
+            return moves;
+        }
+
         if (numNightShifts > MAX_NIGHT_SHIFTS) {
             System.out.println("Too many night shifts: " + numNightShifts);
             return moves;
@@ -64,7 +68,7 @@ public class Inter2OptStarInfeas implements Neighborhood {
                 if (!(violated[r1] || violated[r2])) {
                     continue;
                 }
-                
+
                 Shift s1 = shifts.get(r1);
                 Shift s2 = shifts.get(r2);
 
@@ -239,7 +243,13 @@ public class Inter2OptStarInfeas implements Neighborhood {
 
         double improvement = oldObj - newObj + penalty * violationDelta;
 
-        if (Math.abs(improvement) < EPS) improvement = 0.0;
+        if (Math.abs(improvement) < EPS) {
+            improvement = 0.0;
+        }
+
+        if (violationDelta < EPS) {
+            return new Evaluation(0, false);
+        }
 
         return new Evaluation(improvement, true);
     }
