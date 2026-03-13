@@ -17,7 +17,7 @@ public class IntraSwap implements Neighborhood {
     private int m = 0;
 
     @Override
-    public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
+    public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility, HTMInstance instance) {
         calculateGlobalSums(shifts);
 
         List<Move> moves = new ArrayList<>();

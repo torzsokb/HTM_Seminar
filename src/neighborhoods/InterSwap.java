@@ -20,7 +20,7 @@ public class InterSwap implements Neighborhood {
     private int m = 0;
 
     @Override
-    public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility) {
+    public List<Move> generateMoves(List<Shift> shifts, RouteCompatibility compatibility, HTMInstance instance) {
         calculateGlobalSums(shifts);
         List<Move> moves = new ArrayList<>();
         int numNightShifts = Utils.countNightShifts(shifts);
@@ -36,15 +36,23 @@ public class InterSwap implements Neighborhood {
                 Shift s1 = shifts.get(r1);
                 Shift s2 = shifts.get(r2);
 
-                if (numNightShifts == MAX_NIGHT_SHIFTS && !compatibility.compatible(s1, s2)) {
-                    continue;
-                }
 
                 List<Integer> ids1 = shifts.get(r1).route;
                 List<Integer> ids2 = shifts.get(r2).route;
 
                 for (int i = 1; i < ids1.size() -1; i++) {
                     for (int j = 1; j < ids2.size()-1; j++) {
+                        if (numNightShifts == MAX_NIGHT_SHIFTS) {
+
+                            if (instance.getStops().get(s1.route.get(i)).nightShift == 1 && s2.nightShift == 0) {
+                                continue;
+                            }
+
+                            if (instance.getStops().get(s2.route.get(j)).nightShift == 1 && s1.nightShift == 0) {
+                                continue;
+                            }
+                        }
+                        
                         moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_SWAP));
                     }
                 }

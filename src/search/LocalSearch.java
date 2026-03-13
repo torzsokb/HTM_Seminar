@@ -68,7 +68,7 @@ public class LocalSearch {
             }
             for (Neighborhood n : neighborhoods) {
 
-                List<Move> moves = n.generateMoves(shifts, compatibility);
+                List<Move> moves = n.generateMoves(shifts, compatibility, instance);
         
                 if (useSimulatedAnnealing) {
                     Collections.shuffle(moves, new Random(iteration));
@@ -159,7 +159,7 @@ public class LocalSearch {
             }
             for (Neighborhood n : neighborhoods) {
 
-                List<Move> moves = n.generateMoves(shifts, compatibility);
+                List<Move> moves = n.generateMoves(shifts, compatibility, instance);
 
                 
                 if (useSimulatedAnnealing) {
@@ -245,5 +245,5 @@ public static void temperaturesToFile(List<Double> values, String filename) thro
     }
 
     System.out.println("Wrote temperatures to file " + filename);
-}
+    }
 }
