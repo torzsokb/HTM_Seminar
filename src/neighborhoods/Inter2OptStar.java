@@ -39,9 +39,6 @@ public class Inter2OptStar implements Neighborhood {
                 Shift s1 = shifts.get(r1);
                 Shift s2 = shifts.get(r2);
 
-                if (numNightShifts == MAX_NIGHT_SHIFTS && !compatibility.compatible(s1, s2)) {
-                    continue;
-                }
 
                 List<Integer> ids1 = shifts.get(r1).route;
                 List<Integer> ids2 = shifts.get(r2).route;
@@ -50,7 +47,22 @@ public class Inter2OptStar implements Neighborhood {
 
                 for (int i = 1; i < ids1.size() - 1; i++) {
                     for (int j = 1; j < ids2.size() - 1; j++) {
+
+                        if (compatibility.compatible(s1, s2) || numNightShifts < MAX_NIGHT_SHIFTS) {
+                            moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_2OPT_STAR));
+                            continue;
+                        }
+
+                        if (Utils.containsNightStop(s2.route.subList(j + 1, s2.route.size()), instance) && s1.nightShift != 1) {
+                            continue;
+                        }
+
+                        if (Utils.containsNightStop(s1.route.subList(i + 1, s1.route.size()), instance) && s2.nightShift != 1) {
+                            continue;
+                        }
+
                         moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_2OPT_STAR));
+                        
                     }
                 }
 
