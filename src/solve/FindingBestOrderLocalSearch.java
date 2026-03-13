@@ -34,6 +34,7 @@ public class FindingBestOrderLocalSearch {
         // Choose initial shifts to use 
         List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
 
+        double real_init_obj_value = objectiveBasic.shifts(initial)/60.0;
         // Make sure they are feasible 
         Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
 
@@ -61,7 +62,7 @@ public class FindingBestOrderLocalSearch {
 
         RouteCompatibility compatibility = Compatibility.sameNightShift();
 
-        ImprovementChoice[] choices = {ImprovementChoice.FIRST, ImprovementChoice.BEST};
+        ImprovementChoice[] choices = {ImprovementChoice.BEST};
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
 
@@ -76,9 +77,12 @@ public class FindingBestOrderLocalSearch {
 
         int runCount = 0;
 
-        for (List<Neighborhood> order : allOrders) {
+        
+        for (int i = 0; i < allOrders.size(); i++) {
+            List<Neighborhood> order = allOrders.get(i);
             for (ImprovementChoice choice : choices) {
                 runCount++;
+                System.out.println("\nRun: " + runCount);
 
                 // Copy initial solution
                 List<Shift> initialCopy = Utils.deepCopyShifts(initial);
@@ -109,6 +113,8 @@ public class FindingBestOrderLocalSearch {
                     System.out.printf("New best found! Obj = %.6f | Choice = %s | Run %d%n", bestObj, bestChoice, runCount);
                     double bestImprovement = initialObj - bestObj;
                     System.out.println("Best improvement: " + bestImprovement);
+                    double realBestImprovement = real_init_obj_value - bestObj;
+                    System.out.println("Real best improvement: " + realBestImprovement);
                     System.out.println("Best neighborhood order:");
                     for (Neighborhood n : bestOrder) {
                         System.out.println(" - " + n.getClass().getSimpleName());
