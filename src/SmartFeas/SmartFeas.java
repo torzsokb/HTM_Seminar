@@ -13,12 +13,14 @@ import milp.TSP;
 
 public class SmartFeas {
 
-    private static final double penalty = 1000;
+    private static final double penalty = 0.01;
 
     public static void meakFeasibleSmart(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay, double maxDuration, double maxOvertime, boolean useTSP) {
+        
         System.out.println("\nRunning Smart Make Feasible...");
 
         long startTime = System.currentTimeMillis();
+        // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty),
@@ -34,7 +36,7 @@ public class SmartFeas {
             accept, 
             compatibility, 
             ImprovementChoice.BEST, 
-            100, 
+            50, 
             maxDuration + maxOvertime, 
             objectiveBasic, 
             false
@@ -77,6 +79,8 @@ public class SmartFeas {
         Utils.printShiftStatistics(improved, instance, 8 * 60);
         
     }
+
+
 
     public static void main(String[] args) throws IOException {
 
