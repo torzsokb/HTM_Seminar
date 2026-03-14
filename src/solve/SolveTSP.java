@@ -41,7 +41,7 @@ public class SolveTSP {
         double initial_obj_value = objectiveTotalLength.shifts(initial)/60.0;
 
         // Load SA 
-        List<Shift> saShifts = Utils.readShiftsFromCSVDiffTimes("src/results/bestGridSearchResults.csv", travelTimesNight, travelTimesDay);
+        List<Shift> saShifts = Utils.readShiftsFromCSVDiffTimes("src/results/results_SA_final.csv", travelTimesNight, travelTimesDay);
 
         double sa_obj = objectiveTotalLength.shifts(saShifts) / 60.0;
 

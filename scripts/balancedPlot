@@ -1,0 +1,76 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+##### Grid search for Balanced parameters #####
+param = pd.read_csv("src/results/GridSearchBalanced.csv")
+
+param = param.sort_values(["ratio", "LambdaL"])
+
+# Nicer labels for ratios
+def ratio_label(r):
+    inv = round(1 / r)
+    if abs(r - 1/inv) < 1e-9:
+        return f"1:{inv}"
+    return f"{r:.3f}"
+
+# Unique ratios
+ratios = sorted(param["ratio"].unique(), reverse=True)
+
+# Pick a colormap with enough distinct colors
+cmap = plt.get_cmap("tab10")
+colors = {r: cmap(i) for i, r in enumerate(ratios)}
+
+# Create three subplots
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 6), sharex=True)
+
+for r in ratios:
+    sub = param[param["ratio"] == r]
+    label = ratio_label(r)
+    color = colors[r]
+
+    # Top plot: travelTime
+    ax1.plot(
+        sub["LambdaL"],
+        sub["travelTime"],
+        marker="o",
+        color=color,
+        label=label
+    )
+
+    # Middle plot: maxShiftLength
+    ax2.plot(
+        sub["LambdaL"],
+        sub["maxShiftLength"],
+        marker="o",
+        color=color,
+        label=label
+    )
+
+# Bottom plot: varShiftLength
+    ax3.plot(
+        sub["LambdaL"],
+        sub["varShiftLength"],
+        marker="o",
+        color=color,
+        label=label
+    )
+
+# Labels and titles
+ax1.set_ylabel("Travel time")
+
+ax2.set_ylabel("Maximum shift length")
+
+ax3.set_ylabel("Variance in shift length")
+
+ax3.set_xlabel("LambdaL")
+
+
+# Put legend once, using the top plot
+ax1.legend(title="Ratio", loc="best")
+
+plt.tight_layout()
+plt.savefig("Figures/Figure_BalancedParams_full.png", dpi=300)
+plt.show()
+
+

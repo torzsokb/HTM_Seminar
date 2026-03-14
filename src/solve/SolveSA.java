@@ -47,8 +47,8 @@ public class SolveSA {
         );
         
         
-        int max_iterations = 30000;
-        Acceptance.initSimulatedAnnealing(0.5, 0, max_iterations, 50);
+        int max_iterations = 100000;
+        Acceptance.initSimulatedAnnealing(0.5, 0, max_iterations, 5);
         AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
 
         AcceptanceFunction acceptGreedy = Acceptance.greedy();
@@ -68,7 +68,7 @@ public class SolveSA {
         );
         long startTime = System.currentTimeMillis();
         
-        initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_LS_feasible.csv", travelTimesNight, travelTimesDay);
+        initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_LS_final.csv", travelTimesNight, travelTimesDay);
         
         double intital_obj = objectiveTotalLength.shifts(initial)/60.0;
 
@@ -101,8 +101,8 @@ public class SolveSA {
 
         Utils.checkFeasibility(improved, instance, totalShiftLength);
         
-        // Utils.resultsToCSV(improved, instance, "src/results/results_SA_feasible.csv");
-        
+        //Utils.resultsToCSV(improved, instance, "src/results/results_SA_final.csv");
+
         // for (Shift shift : improved) {
         //     System.out.println(Utils.formatRoute(instance, shift.route));
         // }

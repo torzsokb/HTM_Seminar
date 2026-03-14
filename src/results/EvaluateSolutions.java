@@ -74,7 +74,7 @@ public class EvaluateSolutions {
         // LS
         System.out.println("\nLocal search solution:");
 
-        String lsResults = "src/results/results_LS_feasible.csv";
+        String lsResults = "src/results/results_LS_final.csv";
 
         List<Shift> lsShifts = Utils.readShiftsFromCSVDiffTimes(lsResults, travelTimesNight, travelTimesDay);
 
@@ -87,7 +87,7 @@ public class EvaluateSolutions {
         // LS WITH SA
         System.out.println("\nLocal search with SA solution:");
 
-        String saResults = "src/results/bestGridSearchResults.csv";
+        String saResults = "src/results/results_SA_final.csv";
 
         List<Shift> saShifts = Utils.readShiftsFromCSVDiffTimes(saResults, travelTimesNight, travelTimesDay);
 
@@ -112,7 +112,7 @@ public class EvaluateSolutions {
         // Balanced LS
         System.out.println("\nBalanced solution:");
 
-        String baLSResults = "src/results/results_Balanced_TSP_0.002_0.001.csv";
+        String baLSResults = "src/results/results_Balanced_final_0.002_0.002.csv";
 
         List<Shift> baLSShifts = Utils.readShiftsFromCSVDiffTimes(baLSResults, travelTimesNight, travelTimesDay);
 
@@ -122,8 +122,20 @@ public class EvaluateSolutions {
         double baLSObj = objectiveBasic.shifts(baLSShifts)/60.0;;
         System.out.println("\nObjective: " + baLSObj + " hours.");
 
+
+        // Trams as night stops 
+        System.out.println("\nTypehalte solution:");
+        List<Shift> typeHalteShifts = Utils.readShiftsFromCSVDiffTimes("src/results/results_typeHalte_final.csv", travelTimesNight, travelTimesDay);
         
-        List<Shift> minShifts = Utils.readShiftsFromCSVDiffTimes("src/results/results_minShifts_feasible.csv", travelTimesNight, travelTimesDay);
+        Utils.printShiftStatistics(typeHalteShifts, instance, totalShiftLength);
+        Utils.checkFeasibility(typeHalteShifts, instance, totalShiftLength);
+
+        double typeHalteObj = objectiveBasic.shifts(typeHalteShifts) / 60.0;
+        System.out.println("\nObjective: " + typeHalteObj + " hours.");
+
+        // Min shifts
+        System.out.println("\nMinimum number of shifts solution:");
+        List<Shift> minShifts = Utils.readShiftsFromCSVDiffTimes("src/results/results_minShifts_final.csv", travelTimesNight, travelTimesDay);
 
         Utils.recomputeAllShiftsDiffTimes(minShifts, instance, travelTimesNight, travelTimesDay);
 
@@ -156,6 +168,9 @@ public class EvaluateSolutions {
         System.out.println("Balanced LS objective: " + baLSObj + " hours.");
         System.out.println("Improvement: " + (initObj - baLSObj) + " hours.");
 
+        System.out.println("Type halte objective: " + typeHalteObj + " hours.");
+        System.out.println("Improvement: " + (initObj - typeHalteObj) + " hours.");
+
         System.out.println("Minimum VND objective: " + minLSObj + " hours.");
         System.out.println("Improvement: " + (initObj - minLSObj) + " hours.");
 
@@ -163,5 +178,6 @@ public class EvaluateSolutions {
         Utils.printCleaningAndLength(finalShifts, "src/results/SA_stats_best.csv");
         Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats_TSP.csv");
         Utils.printCleaningAndLength(initShifts, "src/results/init_stats_feasible.csv");
+        Utils.printCleaningAndLength(minShifts, "src/results/MinShifts_stats.csv");
     }
 }

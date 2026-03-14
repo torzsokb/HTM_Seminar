@@ -3,6 +3,7 @@ import core.*;
 import neighborhoods.*; 
 import search.*;
 import java.util.*;
+import milp.*;
 
 
 public class SolveBalancedSA {
@@ -36,11 +37,10 @@ public class SolveBalancedSA {
 
         RouteCompatibility compatibility = Compatibility.sameNightShift();
 
-
         // BALANCED LOCAL SEARCH 
 
         ObjectiveFunction objectiveBasic = Objective.totalLength(); 
-        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.002, 0.001);
+        ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.002, 0.002);
 
         LocalSearch ls_balanced = new LocalSearch(
                 neighborhoods,
@@ -53,7 +53,7 @@ public class SolveBalancedSA {
                 false
         );
 
-        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_final_feasible.csv", travelTimesNight, travelTimesDay);
+        List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/results_final.csv", travelTimesNight, travelTimesDay);
         double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
 
         Utils.printShiftStatistics(initial, instance, totalShiftLength);
@@ -64,6 +64,7 @@ public class SolveBalancedSA {
         List<Shift> improved_balanced = ls_balanced.runDiffTimes(initial, instance, travelTimesNight, travelTimesDay);
 
         Utils.recomputeAllShiftsDiffTimes(improved_balanced, instance, travelTimesNight, travelTimesDay);
+
 
         double new_obj_value_balanced = objectiveBasic.shifts(improved_balanced)/60.0;
 
@@ -78,11 +79,30 @@ public class SolveBalancedSA {
         double timeTakenBLS = (endBLS-startBLS)/1000.0;
         System.out.println("Time taken: " + (timeTakenBLS) + " s" );
 
+        System.out.println("\nDoing TSP...");
+        long startTSP = System.currentTimeMillis();
+
+        // Now do a TSP on the Balanced 
+        TSP.optimizeAllShifts(improved_balanced, travelTimesDay, travelTimesNight, instance);
+
+        double obj_TSP = objectiveBasic.shifts(improved_balanced) / 60.0;
+
+        double totalImprovement = initial_obj_value - obj_TSP;
+        double tspImprovement = new_obj_value_balanced - obj_TSP;
+
+        System.out.println("\nTSP complete.");
+        System.out.println("Total Objective: " + obj_TSP);
+        System.out.println("Total Improvement: " + totalImprovement);
+        System.out.println("TSP improvement: " + tspImprovement);
+        long endTSP = System.currentTimeMillis();
+        double timeTakenTSP = (endTSP-startTSP)/1000.0;
+        System.out.println("Time taken: " + (timeTakenTSP) + " s" );
+
         Utils.checkFeasibility(improved_balanced, instance, totalShiftLength);
         Utils.printShiftStatistics(improved_balanced, instance, totalShiftLength);
 
 
-        Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_0.002_0.001_feasible.csv");
+       //Utils.resultsToCSV(improved_balanced, instance, "src/results/results_Balanced_final_0.002_0.002.csv");
 
     }
 }
