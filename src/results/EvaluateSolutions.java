@@ -56,10 +56,10 @@ public class EvaluateSolutions {
 
         // TSP
 
-        /*
+        
         System.out.println("\nTSP solution:");
 
-        String tspResults = "data/outputs/HTM_CollapsedData_reordered_final.csv";
+        String tspResults = "src/results/results_TSP.csv";
 
         List<Shift> tspShifts = Utils.readShiftsFromCSVDiffTimes(tspResults, travelTimesNight, travelTimesDay);
 
@@ -68,7 +68,7 @@ public class EvaluateSolutions {
 
         double tspObj = objectiveBasic.shifts(tspShifts)/60.0;;
         System.out.println("\nObjective: " + tspObj + " hours.");
-         */
+         
         
 
         // LS
@@ -146,12 +146,12 @@ public class EvaluateSolutions {
             }
         }
 
-        Utils.printShiftStatistics(minimumShiftsVND, instance, totalShiftLength);
-        Utils.checkFeasibility(minimumShiftsVND, instance, totalShiftLength);
 
         double minLSObj = objectiveBasic.shifts(minimumShiftsVND)/60.0;;
         System.out.println("\nObjective: " + minLSObj + " hours.");
         
+        Utils.printShiftStatistics(minimumShiftsVND, instance, totalShiftLength);
+        Utils.checkFeasibility(minimumShiftsVND, instance, totalShiftLength);
 
 
         // All objectives
@@ -179,5 +179,13 @@ public class EvaluateSolutions {
         Utils.printCleaningAndLength(baLSShifts, "src/results/Balanced_stats_TSP.csv");
         Utils.printCleaningAndLength(initShifts, "src/results/init_stats_feasible.csv");
         Utils.printCleaningAndLength(minShifts, "src/results/MinShifts_stats.csv");
+
+        // Saving all results to a new place 
+        Utils.resultsToCSV(initShifts, instance, "data/results/HTM.csv");
+        Utils.resultsToCSV(tspShifts, instance, "data/results/TSP.csv");
+        Utils.resultsToCSV(finalShifts, instance, "data/results/VND.csv");
+        Utils.resultsToCSV(baLSShifts, instance, "data/results/Balanced.csv");
+        Utils.resultsToCSV(minShifts, instance, "data/results/VNDmin.csv");
+        Utils.resultsToCSV(typeHalteShifts, instance, "data/results/VNDtype.csv");
     }
 }
