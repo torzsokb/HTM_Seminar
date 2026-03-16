@@ -12,7 +12,7 @@ import milp.TSP;
 
 
 public class SmartFeas {
-    private static final double penalty = 1;
+    private static final double penalty = 1000;
 
     public static void meakFeasibleSmart(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay, double maxDuration, double maxOvertime, boolean useTSP) {
         
@@ -81,7 +81,7 @@ public class SmartFeas {
 
     public static int meakFeasibleSmartNumMoves(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay, double maxDuration, double maxOvertime, boolean useTSP) {
         
-        System.out.println("\nRunning Smart Make Feasible...");
+        // System.out.println("\nRunning Smart Make Feasible Num Moves...");
 
         long startTime = System.currentTimeMillis();
         // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
@@ -135,10 +135,10 @@ public class SmartFeas {
         long endTime = System.currentTimeMillis();
         double timeTaken = (endTime-startTime)/1000.0;
 
-        System.out.println("\nLocal search complete.");
-        System.out.println("New objective value: " + new_obj_value);
-        System.out.println("Improvement: " + improvement);
-        System.out.println("Time taken: " + (timeTaken) + " s" );
+        // System.out.println("\nLocal search complete.");
+        // System.out.println("New objective value: " + new_obj_value);
+        // System.out.println("Improvement: " + improvement);
+        // System.out.println("Time taken: " + (timeTaken) + " s" );
 
         // Utils.checkFeasibility(improved, instance, 8 * 60);
         // Utils.printShiftStatistics(improved, instance, 8 * 60);
