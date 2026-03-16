@@ -12,8 +12,7 @@ import milp.TSP;
 
 
 public class SmartFeas {
-
-    private static final double penalty = 0.01;
+    private static final double penalty = 1;
 
     public static void meakFeasibleSmart(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay, double maxDuration, double maxOvertime, boolean useTSP) {
         
@@ -23,8 +22,8 @@ public class SmartFeas {
         // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty),
-            new InterShiftInfeas(maxDuration, maxOvertime, penalty)
+            new InterShiftInfeas(maxDuration, maxOvertime, penalty),
+            new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty)
         );
 
         AcceptanceFunction accept = Acceptance.alwaysTrue();
@@ -75,11 +74,77 @@ public class SmartFeas {
         System.out.println("Improvement: " + improvement);
         System.out.println("Time taken: " + (timeTaken) + " s" );
 
-        Utils.checkFeasibility(improved, instance, 8 * 60);
-        Utils.printShiftStatistics(improved, instance, 8 * 60);
+        // Utils.checkFeasibility(improved, instance, 8 * 60);
+        // Utils.printShiftStatistics(improved, instance, 8 * 60);
         
     }
 
+    public static int meakFeasibleSmartNumMoves(List<Shift> shifts, HTMInstance instance, double[][] travelTimesNight, double[][] travelTimesDay, double maxDuration, double maxOvertime, boolean useTSP) {
+        
+        System.out.println("\nRunning Smart Make Feasible...");
+
+        long startTime = System.currentTimeMillis();
+        // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
+
+        List<Neighborhood> neighborhoods = Arrays.asList(
+            new InterShiftInfeas(maxDuration, maxOvertime, penalty),
+            new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty)
+        );
+
+        AcceptanceFunction accept = Acceptance.alwaysTrue();
+        RouteCompatibility compatibility = Compatibility.sameNightShift();
+        ObjectiveFunction objectiveBasic = Objective.totalLength();
+
+        LocalSearch ls = new LocalSearch(
+            neighborhoods, 
+            accept, 
+            compatibility, 
+            ImprovementChoice.BEST, 
+            50, 
+            maxDuration + maxOvertime, 
+            objectiveBasic, 
+            false
+        );
+
+        double initial_obj_value = objectiveBasic.shifts(shifts)/60.0;
+
+        List<Shift> violatedShifts = new ArrayList<>();
+        List<Shift> feasibleShifts = new ArrayList<>();
+
+        for (Shift shift : shifts) {
+
+            if (shift.totalTime <= maxDuration + maxOvertime) {
+                feasibleShifts.add(shift);
+            } else {
+                violatedShifts.add(shift);
+            }            
+        }
+
+        if (useTSP) {
+            TSP.optimizeAllShifts(violatedShifts, travelTimesDay, travelTimesNight, instance);
+        }
+
+
+        List<Shift> improved = ls.runDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
+        int numMoves = ls.getMoveCount();
+
+        Utils.recomputeAllShiftsDiffTimes(improved, instance, travelTimesNight, travelTimesDay);
+
+        double new_obj_value = objectiveBasic.shifts(improved)/60.0;
+        double improvement = initial_obj_value - new_obj_value;
+        long endTime = System.currentTimeMillis();
+        double timeTaken = (endTime-startTime)/1000.0;
+
+        System.out.println("\nLocal search complete.");
+        System.out.println("New objective value: " + new_obj_value);
+        System.out.println("Improvement: " + improvement);
+        System.out.println("Time taken: " + (timeTaken) + " s" );
+
+        // Utils.checkFeasibility(improved, instance, 8 * 60);
+        // Utils.printShiftStatistics(improved, instance, 8 * 60);
+        
+        return numMoves;
+    }
 
 
     public static void main(String[] args) throws IOException {
@@ -100,11 +165,10 @@ public class SmartFeas {
         // Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
         // Utils.checkFeasibility(initial, instance, 8 * 60);
         // Utils.printShiftStatistics(initial, instance, 8 * 60);
-        meakFeasibleSmart(initial, instance, travelTimesNight, travelTimesDay, 8 * 60, 0, false);
+        int numMoves = meakFeasibleSmartNumMoves(initial, instance, travelTimesNight, travelTimesDay, 8 * 60, 0, false);
+        System.out.println("Num moves " + numMoves);
         // meakFeasibleSmart(initial, instance, travelTimesNight, travelTimesDay, 7.25 * 60, 0, true);
         // meakFeasibleSmart(initial, instance, travelTimesNight, travelTimesDay, 7.25 * 60, 0, true);
-
-
     }
     
 }
