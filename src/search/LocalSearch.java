@@ -21,7 +21,11 @@ public class LocalSearch {
     private final double maxShiftDuration;
     private final ObjectiveFunction objectiveFunction;
     private boolean useSimulatedAnnealing;
+    private int moveCount = 0;
 
+    public int getMoveCount() {
+        return moveCount;
+    }
 
     public LocalSearch(
             List<Neighborhood> neighborhoods,
@@ -63,7 +67,7 @@ public class LocalSearch {
             improved = false;
 
             if (useSimulatedAnnealing) {
-                Random rnd = new Random(10);
+                Random rnd = new Random(1000*maxIterations+iteration);
                 Collections.shuffle(neighborhoods, rnd);
             }
             for (Neighborhood n : neighborhoods) {
@@ -91,6 +95,7 @@ public class LocalSearch {
                     double improvement = eval.improvement;
 
                     if (!acceptanceFunction.accept(improvement)) continue;
+                    
 
                     // FIRST improvement
                     if (improvementChoice == ImprovementChoice.FIRST) {
@@ -100,6 +105,7 @@ public class LocalSearch {
                         shifts = n.applyMove(m, shifts, instance, travelTimes, travelTimes);
                         Utils.recomputeAllShifts(shifts, instance, travelTimes);
                         improved = true;
+                        moveCount++;
                         break;
                     }
         
@@ -118,6 +124,7 @@ public class LocalSearch {
                     shifts = n.applyMove(bestMove, shifts, instance, travelTimes, travelTimes);
                     Utils.recomputeAllShifts(shifts, instance, travelTimes);
                     improved = true;
+                    moveCount++;
                 }
 
                 if (iteration % 100 == 0) {
@@ -193,6 +200,7 @@ public class LocalSearch {
                         shifts = n.applyMove(m, shifts, instance, travelTimesNight, travelTimesDay);
                         Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
                         improved = true;
+                        moveCount++;
                         break;
                     }
         
@@ -211,6 +219,7 @@ public class LocalSearch {
                     shifts = n.applyMove(bestMove, shifts, instance, travelTimesNight, travelTimesDay);
                     Utils.recomputeAllShiftsDiffTimes(shifts, instance, travelTimesNight, travelTimesDay);
                     improved = true;
+                    moveCount++;
                 }
 
                 if (iteration % 100 == 0) {
