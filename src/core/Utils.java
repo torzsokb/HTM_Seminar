@@ -602,6 +602,17 @@ public static void generateAndCheckSeasonalityScenario(
         return shifts;
     }
 
+    public static boolean feasibleTime(List<Shift> shifts,
+        HTMInstance instance,
+        double maxShiftDurationMinutes) {
+            for (int idx = 0; idx < shifts.size(); idx++) {
+                Shift s = shifts.get(idx);
+                if (s.totalTime > maxShiftDurationMinutes) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
     public static void checkFeasibility(
         List<Shift> shifts,

@@ -24,8 +24,8 @@ public class SmartFeas {
         // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new InterShiftInfeas(maxDuration, maxOvertime, penalty),
-            new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty)
+            new InterShiftInfeas(maxDuration, maxOvertime, penalty)
+            // new Inter2OptStarInfeas(maxDuration, maxOvertime, penalty)
         );
 
         AcceptanceFunction accept = Acceptance.alwaysTrue();
@@ -86,7 +86,7 @@ public class SmartFeas {
         // System.out.println("\nRunning Smart Make Feasible Num Moves...");
 
         long startTime = System.currentTimeMillis();
-        List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
+        // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new InterShiftInfeas(maxDuration, maxOvertime, penalty),
@@ -145,8 +145,8 @@ public class SmartFeas {
         // Utils.checkFeasibility(improved, instance, 8 * 60);
         // Utils.printShiftStatistics(improved, instance, 8 * 60);
 
-        System.out.println(numMoves);
-        System.out.println(countMoves(initialCopy, improved));
+        // System.out.println(numMoves);
+        // System.out.println(countMoves(initialCopy, improved));
         
         return numMoves;
     }
