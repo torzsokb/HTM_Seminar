@@ -3,7 +3,9 @@ package SmartFeas;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import core.*;
 import search.*;
@@ -144,6 +146,44 @@ public class SmartFeas {
         // Utils.printShiftStatistics(improved, instance, 8 * 60);
         
         return numMoves;
+    }
+
+    public static int countMoves(List<Shift> initial, List<Shift> altered) {
+        
+        int numChanges = 0;
+        
+        Map<Integer, Integer> initialAssignment = new HashMap<>();
+
+        for (int i = 0; i < initial.size(); i++) {
+            Shift shift = initial.get(i);
+            
+            for (int stopID : shift.getUniqueStops()) {
+                
+                if (stopID == 0) {
+                    continue;
+                }
+
+                initialAssignment.put(stopID, i);   
+            }
+        }
+
+
+        for (int i = 0; i < altered.size(); i++) {
+            Shift shift = altered.get(i);
+
+            for (int stopID : shift.getUniqueStops()) {
+                
+                if (stopID == 0) {
+                    continue;
+                }
+
+                if (initialAssignment.get(stopID) != i) {
+                    numChanges++;
+                }
+            }
+        }
+
+        return numChanges;
     }
 
 
