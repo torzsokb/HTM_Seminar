@@ -24,79 +24,138 @@ public class StartingSolution {
         List<Shift> nightShifts = Utils.buildGreedyShifts(instance, travelTimes, nightIdx, 1, shiftLength);
         List<Shift> dayShifts   = Utils.buildGreedyShifts(instance, travelTimes, dayIdx, 0, shiftLength);
 
-        List<Shift> initial = new ArrayList<>();
-        initial.addAll(nightShifts);
-        initial.addAll(dayShifts);
+        // List<Shift> initial = new ArrayList<>();
+        // initial.addAll(nightShifts);
+        // initial.addAll(dayShifts);
 
-        //ObjectiveFunction objectiveFunction = Objective.balancedObj(0.05, 0.05);
-        ObjectiveFunction objectiveFunction = Objective.totalLength();
+        // //ObjectiveFunction objectiveBalanced = Objective.balancedObj(0.05, 0.05);
+        // ObjectiveFunction objectiveBasic = Objective.totalLength();
 
-        double initial_obj_value = objectiveFunction.shifts(initial)/60.0;
+        // double initial_obj_value = objectiveBasic.shifts(initial)/60.0;
 
-        System.out.println("Initial solution built:");
-        System.out.println("Night shifts: " + nightShifts.size());
-        System.out.println("Day shifts:   " + dayShifts.size());
-        System.out.println("Total shifts: " + initial.size());
-        System.out.println("Total objective value: " + initial_obj_value);
+        // System.out.println("Initial solution built:");
+        // System.out.println("Night shifts: " + nightShifts.size());
+        // System.out.println("Day shifts:   " + dayShifts.size());
+        // System.out.println("Total shifts: " + initial.size());
+        // System.out.println("Total objective value: " + initial_obj_value);
 
-        List<Neighborhood> neighborhoods = Arrays.asList(
-            new IntraSwap(),
-            new IntraShift(),
-            new InterShift(),
-            new InterSwap(),
-            new Intra2Opt(),
-            new Inter2OptStar()
-        );
+        // Utils.resultsToCSV(initial, instance, "src/results/results_Greedy_abri.csv");
 
-        AcceptanceFunction acceptGreedy = Acceptance.greedy();
-
-        RouteCompatibility compatibility = Compatibility.sameNightShift();
-
-        LocalSearch ls = new LocalSearch(
-                neighborhoods,
-                acceptGreedy,
-                compatibility,
-                ImprovementChoice.BEST,
-                10000,       
-                totalShiftLength,
-                objectiveFunction
-        );
-        long startTime = System.currentTimeMillis();
-        System.out.println("Running local search...");
-        List<Shift> improved = ls.run(initial, instance, travelTimes);
-
-        Utils.recomputeAllShifts(improved, instance, travelTimes);
-
-        double new_obj_value = objectiveFunction.shifts(improved)/60.0;
-
-        System.out.println("\nLocal search complete.");
-
-        System.out.println("New objective value: " + new_obj_value);
-
-        double improvement = initial_obj_value - new_obj_value;
-
-        System.out.println("Improvement: " + improvement);
-        long endTime = System.currentTimeMillis();
-        double timeTaken = (endTime-startTime)/1000.0;
-        System.out.println("Time taken: " + (timeTaken) + " s" );
-
-        Utils.printShiftStatistics(improved, instance, totalShiftLength);
-
-        Acceptance.initSimulatedAnnealing(100.0, 0.98);
-        AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
-
-        // LocalSearch ls_SA = new LocalSearch(
-        //     neighborhoods,
-        //     acceptSA,
-        //     compatibility,
-        //     ImprovementChoice.FIRST,
-        //     1000,       
-        //     totalShiftLength,
-        //     objectiveFunction
+        // List<Neighborhood> neighborhoods = Arrays.asList(
+        //     new Intra2Opt(),
+        //     new Inter2OptStar(),
+        //     new IntraSwap(),
+        //     new IntraShift(),
+        //     new InterSwap(),
+        //     new InterShift()
         // );
-        // List<Shift> improved_SA = ls_SA.run(improved, instance, travelTimes);
+
+        // AcceptanceFunction acceptGreedy = Acceptance.greedy();
+
+        // RouteCompatibility compatibility = Compatibility.sameNightShift();
+
+        // List<Shift> currentBest = Utils.readShiftsFromCSV("src/results/results_LS_abri_CG_test.csv", travelTimes);
+    
+        // // for (Shift shift : currentBest) {
+        // //     System.out.println(Utils.formatRoute(instance, shift.route));
+        // // }
+        // double bestValue = Utils.totalObjective(currentBest);
+        // System.out.println("Best value: " + bestValue);
+        // System.out.println("Best improvement: " + (initial_obj_value-bestValue));
+
+        // // Utils.checkFeasibility(currentBest, instance, 60*8);
+
+
+        // // Grid of SA parameters
+        // double[] temperatures = {50.0, 75.0, 100.0, 125.0, 150.0, 175.0, 200.0, 500.0, 1000.0, 2000.0, 5000.0, 10000.0};
+        // double[] coolingRates  = {0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99};      
+        // ImprovementChoice[] improvementChoices = {ImprovementChoice.BEST, ImprovementChoice.FIRST};
+
+        // double bestTemp = 0;
+        // double bestRate = 0;
+        // ImprovementChoice bestChoice = ImprovementChoice.FIRST;
+        // List<Shift> bestSolution = null;
+
+        // // Intensifying
+        // boolean improvementFound = true;
+        // long startingTime = System.currentTimeMillis();
+        // List<Shift> allShifts = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes);
+
+        // long timeLimit = 2 * 60 * 1000; // 10 minutes
+
+        // while (improvementFound && 
+        //     System.currentTimeMillis() - startingTime < timeLimit) {
+        //     improvementFound = false;
+
+        //     for (double temp : temperatures) {
+        //         for (double rate : coolingRates) {
+        //             for (ImprovementChoice choice : improvementChoices) {
+        //                 currentBest = Utils.readShiftsFromCSV("src/results/results_LS_abri_CG_test.csv", travelTimes);
+        //                 // System.out.println("\nRunning SA with Temp=" + temp + ", Rate=" + rate + ", Choice=" + choice);
+
+        //                 Acceptance.initSimulatedAnnealing(temp, rate);
+        //                 AcceptanceFunction acceptSA = Acceptance.simulatedAnnealing();
+
+        //                 LocalSearch ls_SA = new LocalSearch(
+        //                         neighborhoods,
+        //                         acceptSA,
+        //                         compatibility,
+        //                         choice,
+        //                         400,
+        //                         totalShiftLength,
+        //                         objectiveBasic
+        //                 );
+
+        //                 List<Shift> improved_SA = ls_SA.run(currentBest, instance, travelTimes);
+
+        //                 Utils.recomputeAllShifts(improved_SA, instance, travelTimes);
+
+        //                 double objValue = objectiveBasic.shifts(improved_SA)/60.0;
+
+        //                 // System.out.println("SA objective value: " + objValue);
+
+        //                 if (objValue < bestValue) {
+        //                     bestValue = objValue;
+        //                     bestTemp = temp;
+        //                     bestRate = rate;
+        //                     bestChoice = choice;
+        //                     bestSolution = improved_SA;
+        //                     currentBest = improved_SA;
+        //                     allShifts.addAll(currentBest);
+
+        //                     long totalTimeTaken = System.currentTimeMillis() - startingTime;
+        //                     System.out.println("Best new objective value: " + objValue);
+        //                     System.out.println("Best improvement: " + (initial_obj_value - objValue));
+        //                     System.out.println("Time taken: " + totalTimeTaken/1000.0 + " (s)");
+        //                     Utils.resultsToCSV(bestSolution, instance, "src/results/results_LS_abri_CG_test.csv");
+
+        //                     improvementFound = true;
+
+        //                     // break all loops immediately
+        //                     break;
+        //                 }
+        //             }
+        //             if (improvementFound) break;
+        //         }
+        //         if (improvementFound) break;
+        //     }
+
+        // }
         
-        return improved;
+
+        // System.out.println("\n=== Grid Search Complete ===");
+        // System.out.println("Best SA objective value: " + bestValue);
+        // System.out.println("Best parameters: Temp=" + bestTemp + ", Rate=" + bestRate + ", Choice=" + bestChoice);
+
+        // Utils.checkFeasibility(bestSolution, instance, totalShiftLength);
+        // Utils.printShiftStatistics(bestSolution, instance, totalShiftLength);
+        // Utils.resultsToCSV(bestSolution, instance, "src/results/results_SA_gridsearch_best_Newv2.csv");
+
+        List<Shift> best = Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_New.csv", travelTimes);
+        best.addAll(Utils.readShiftsFromCSV("src/results/results_SA_gridsearch_best_Newv2.csv", travelTimes));
+        // best.addAll(Utils.readShiftsFromCSV("src/results/results_SA_abri.csv", travelTimes));
+        best = Utils.readShiftsFromCSV("src/results/MIP.csv", travelTimes);
+        return best;
 }
 
 }

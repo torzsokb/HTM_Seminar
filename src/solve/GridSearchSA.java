@@ -46,7 +46,7 @@ public class GridSearchSA {
 
         // Grid search ranges
         double[] initialTemps = {0.1, 0.5, 1.0, 2.0};
-        int[] maxIterations = {100000};
+        int[] maxIterations = {10000, 20000, 50000, 100000};
         int[] oscillations = {1, 5, 10, 50};
 
         double Tf = 0;
@@ -58,7 +58,7 @@ public class GridSearchSA {
         int bestOsc = 0;
 
         // Prepare summary CSV
-        String summaryPath = resultFolder + "/grid_search_summary_part3.csv";
+        String summaryPath = resultFolder + "/grid_search_summary2.csv";
         PrintWriter summaryWriter = new PrintWriter(new FileWriter(summaryPath));
         summaryWriter.println("T0,maxIter,osc,finalObjective,improvement,runtimeSeconds");
 
@@ -142,6 +142,7 @@ public class GridSearchSA {
 
         System.out.println("\n===== GRID SEARCH COMPLETE =====");
         System.out.println("Best objective: " + bestObjective);
+        System.out.println("best improvement: " + (initialObjValue-bestObjective));
         System.out.println("Best parameters:");
         System.out.println("T0 = " + bestT0);
         System.out.println("maxIter = " + bestMaxIter);
@@ -153,7 +154,7 @@ public class GridSearchSA {
         String instancePath = "src/core/data_all_feas_typeHalte.txt";
         String travelNightPath = "data/inputs/cleaned/travel_time_night_collapsedv2.txt";
         String travelDayPath = "data/inputs/cleaned/travel_time_day_collapsedv2.txt";
-        String initialCSVPath = "src/results/results_LS_feasible.csv";
+        String initialCSVPath = "src/results/results_LS_feasibleNew.csv";
         String resultFolder = "src/results/grid_search_SA";
 
         runGridSearch(instancePath,

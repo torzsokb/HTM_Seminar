@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 import neighborhoods.InterShift;
+import search.Evaluation;
 import search.Move;
+import search.ObjectiveFunction;
 
 public class Utils {
     public static HTMInstance readInstance(
@@ -77,6 +79,241 @@ public class Utils {
         }
         return total/60.0;
     }
+
+    public static double maxShiftDuration(List<Shift> shifts) {
+        if (shifts == null || shifts.isEmpty()) {
+            System.out.println("There are no shifts");
+            return 0.0;
+        }
+        double max = Double.NEGATIVE_INFINITY;
+        double shiftType = -1.0;
+        for (Shift s : shifts) {
+            if (s.totalTime > max) {
+                max = s.totalTime;
+                shiftType = s.nightShift;
+            }
+        }
+        return max / 60.0;
+    }
+
+    public static double minShiftDuration(List<Shift> shifts) {
+        if (shifts == null || shifts.isEmpty()) {
+            System.out.println("There are no shifts");
+            return 0.0;
+        }
+        double min  = Double.POSITIVE_INFINITY;
+        double shiftType = -1.0;
+        for (Shift s : shifts) {
+            if (s.totalTime < min) {
+                min = s.totalTime;
+                shiftType = s.nightShift;
+            }
+        }
+        return min / 60.0;
+    }
+
+    public static double maxShiftDurationType(List<Shift> shifts, int nightFlag) {
+        if (shifts == null || shifts.isEmpty()) {
+            System.out.println("There are no shifts");
+            return 0.0;
+        }
+        double max = Double.NEGATIVE_INFINITY;
+        double shiftType = -1.0;
+        for (Shift s : shifts) {
+            if (s.nightShift != nightFlag) continue;
+            if (s.totalTime > max) {
+                max = s.totalTime;
+                shiftType = s.nightShift;
+            }
+        }
+        return max / 60.0;
+    }
+
+    public static double minShiftDurationType(List<Shift> shifts, int nightFlag) {
+        if (shifts == null || shifts.isEmpty()) {
+            System.out.println("There are no shifts");
+            return 0.0;
+        }
+        double min  = Double.POSITIVE_INFINITY;
+        double shiftType = -1.0;
+        for (Shift s : shifts) {
+            if (s.nightShift != nightFlag) continue;
+            if (s.totalTime < min) {
+                min = s.totalTime;
+                shiftType = s.nightShift;
+            }
+        }
+        return min / 60.0;
+    }
+
+    public static void printMinMaxTotalSolution(List<Shift> shifts) {
+        double maxShiftDuration = maxShiftDuration(shifts);
+        System.out.println("Longest shift length " + maxShiftDuration);
+        double minShiftDuration = minShiftDuration(shifts);
+        System.out.println("Shortest shift length " + minShiftDuration);
+
+        System.out.println("Day routes only");
+        double maxShiftDayDuration = maxShiftDurationType(shifts, 0);
+        System.out.println("Longest day shift length " + maxShiftDayDuration);
+        double minShiftDayDuration = minShiftDurationType(shifts, 0);
+        System.out.println("Shortest day shift length " + minShiftDayDuration);
+
+        System.out.println("Night routes only:");
+        double maxShiftNightDuration = maxShiftDurationType(shifts, 1);
+        System.out.println("Longest night shift length " + maxShiftNightDuration);
+        double minShiftNightDuration = minShiftDurationType(shifts, 1);
+        System.out.println("Shortest night shift length " + minShiftNightDuration);
+
+    }
+
+    public static double totalTravelTime(List<Shift> shifts) {
+        if (shifts == null || shifts.isEmpty()) {
+            return 0.0;
+        }
+    
+        double total = 0.0;
+        for (Shift s : shifts) {
+            if (s != null) {
+                total += s.travelTime;
+            }
+        }
+        return total/60.0;
+    }
+
+    public static double totalOverTime(List<Shift> shifts, double maxTime) {
+        if (shifts == null || shifts.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0.0;
+        for (Shift s : shifts) {
+            if (s != null) {
+                total += Math.max(s.totalTime - maxTime, 0);
+            }
+        }
+        return total/60.0;
+    }
+
+    /**
+ * Loads a map of ID_MAXIMO -> seasonality from the base data file.
+ *
+ * @param baseFilePath path to HTM_Data_withCounts.csv
+ * @return map from ID_MAXIMO to its seasonality value
+ */
+public static Map<String, Integer> loadSeasonalityMap(String baseFilePath) throws IOException {
+    Map<String, Integer> map = new LinkedHashMap<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(baseFilePath))) {
+        String header = br.readLine();
+        if (header == null) return map;
+
+        String[] cols = header.split(",", -1);
+        int idIdx  = -1, seaIdx = -1;
+        for (int i = 0; i < cols.length; i++) {
+            if (cols[i].trim().equalsIgnoreCase("ID_MAXIMO"))  idIdx  = i;
+            if (cols[i].trim().equalsIgnoreCase("seasonality")) seaIdx = i;
+        }
+        if (idIdx == -1 || seaIdx == -1) {
+            throw new IllegalArgumentException("Base file missing ID_MAXIMO or seasonality column");
+        }
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            if (line.trim().isEmpty()) continue;
+            String[] c = line.split(",", -1);
+            if (c.length <= Math.max(idIdx, seaIdx)) continue;
+
+            String id  = c[idIdx].trim();
+            String sea = c[seaIdx].trim();
+            if (id.isEmpty() || sea.isEmpty()) continue;
+
+            try {
+                // putIfAbsent keeps the first occurrence, matching Python's groupby.first()
+                map.putIfAbsent(id, Integer.parseInt(sea));
+            } catch (NumberFormatException ignored) {}
+        }
+    }
+    return map;
+}
+
+/**
+ * Reads a solution CSV, applies a +delta to Service_time for stops where
+ * seasonality == 1 (looked up via ID_MAXIMO), writes the scenario CSV,
+ * then loads the result as shifts and runs checkFeasibility.
+ *
+ * @param solutionCsvPath    path to the original solution CSV
+ * @param baseDataPath       path to HTM_Data_withCounts.csv (contains seasonality)
+ * @param outputCsvPath      where to write the scenario CSV
+ * @param delta              amount to add to Service_time (e.g. 5)
+ * @param travelTimesNight   night travel time matrix (used to reload shifts)
+ * @param travelTimesDay     day travel time matrix
+ * @param instance           HTMInstance (used for checkFeasibility)
+ * @param maxShiftMinutes    shift duration limit passed to checkFeasibility
+ */
+public static void generateAndCheckSeasonalityScenario(
+        String solutionCsvPath,
+        String baseDataPath,
+        String outputCsvPath,
+        double delta,
+        double[][] travelTimesNight,
+        double[][] travelTimesDay,
+        HTMInstance instance,
+        double maxShiftMinutes
+) throws IOException {
+
+    // 1. Build ID_MAXIMO -> seasonality lookup
+    Map<String, Integer> seasonalityMap = loadSeasonalityMap(baseDataPath);
+
+    // 2. Read solution CSV line-by-line, patch Service_time, write output
+    List<String> outputLines = new ArrayList<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(solutionCsvPath))) {
+        // Preserve header exactly
+        String header = br.readLine();
+        if (header == null) throw new IOException("Solution CSV is empty");
+        outputLines.add(header);
+
+        String[] cols = header.split(",", -1);
+        int idIdx   = -1, servIdx = -1;
+        for (int i = 0; i < cols.length; i++) {
+            if (cols[i].trim().equalsIgnoreCase("ID_MAXIMO"))    idIdx   = i;
+            if (cols[i].trim().equalsIgnoreCase("Service_time")) servIdx = i;
+        }
+        if (idIdx == -1 || servIdx == -1) {
+            throw new IllegalArgumentException("Solution CSV missing ID_MAXIMO or Service_time column");
+        }
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            if (line.trim().isEmpty()) { outputLines.add(line); continue; }
+
+            String[] c = line.split(",", -1);
+            String idMaximo = c[idIdx].trim();
+
+            Integer seasonality = seasonalityMap.get(idMaximo);
+            if (seasonality != null && seasonality == 1) {
+                try {
+                    double current = Double.parseDouble(c[servIdx].trim());
+                    c[servIdx] = String.valueOf((int)(current + delta));
+                    line = String.join(",", c);
+                } catch (NumberFormatException ignored) {}
+            }
+            outputLines.add(line);
+        }
+    }
+
+    // Write patched CSV
+    Path out = Path.of(outputCsvPath);
+    Files.createDirectories(out.getParent());
+    Files.write(out, outputLines, StandardCharsets.UTF_8);
+    System.out.println("Scenario CSV written to: " + outputCsvPath);
+
+    // 3. Reload as shifts and run your existing feasibility check
+    List<Shift> scenarioShifts = readShiftsFromCSVDiffTimes(
+            outputCsvPath, travelTimesNight, travelTimesDay
+    );
+    recomputeAllShiftsDiffTimes(scenarioShifts, instance, travelTimesNight, travelTimesDay);
+    checkFeasibility(scenarioShifts, instance, maxShiftMinutes);
+}
 
     public static void printShiftStatistics(List<Shift> shifts, HTMInstance instance, double shiftLimitMinutes) {
 
@@ -835,5 +1072,7 @@ public class Utils {
     } catch (IOException e) {
         throw new RuntimeException("Failed to write file: " + outputPath, e);
         }
-    }   
+    }
+
+
 }

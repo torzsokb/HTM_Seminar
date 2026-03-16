@@ -59,8 +59,8 @@ public class InterShiftInfeas implements Neighborhood {
         }
 
 
-
-        System.out.println("number of shifts: " + numShifts + " violated: " + numViolated);
+        // System.out.println("Using intershift");
+        // System.out.println("number of shifts: " + numShifts + " violated: " + numViolated);
 
         for (int violatedIdx = 0; violatedIdx < numShifts; violatedIdx++) {
 

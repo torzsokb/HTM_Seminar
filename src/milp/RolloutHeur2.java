@@ -405,33 +405,27 @@ public class RolloutHeur2 implements RCESPP {
      * Reduced cost = (travel + service) - sum(duals[visited customers]) - duals[0].
      * Here "visited customers" are indices in route excluding depot at ends.
      */
-    double reducedCost(
-            List<Integer> routeIdx,
-            List<Stop> stops,
-            double[][] d,
-            double[] duals,
-            int depot,
-            double travel,
-            double service
-    ) {
+    private double reducedCost(
+        List<Integer> routeIdx,
+        List<Stop> stops,
+        double[][] d,
+        double[] duals,
+        int depot,
+        double travel,
+        double service
+) {
 
-        double rc = -duals[0];
+    double rc = 0;
 
-        for (int k = 0; k < routeIdx.size() - 1; k++) {
-            int i = routeIdx.get(k);
-            int j = routeIdx.get(k + 1);
+    for (int k = 0; k < routeIdx.size() - 1; k++) {
+        int i = routeIdx.get(k);
+        int j = routeIdx.get(k + 1);
 
-            if (i == depot) {
-                continue;
-            }
-
-            rc += d[i][j];
-            if (i < duals.length) {
-                rc -= duals[i];
-            }
-        }
-        return rc;
+        rc += d[i][j];
+        rc -= duals[j];
     }
+    return rc;
+}
 
     private String signature(List<Integer> routeIdx, int depot) {
         StringBuilder sb = new StringBuilder();

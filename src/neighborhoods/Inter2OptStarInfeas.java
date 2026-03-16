@@ -58,8 +58,8 @@ public class Inter2OptStarInfeas implements Neighborhood {
             return moves;
         }
         
-
-        System.out.println("number of shifts: " + numShifts + " violated: " + numViolated);
+        // System.out.println("Using inter2opt");
+        // System.out.println("number of shifts: " + numShifts + " violated: " + numViolated);
 
         for (int r1 = 0; r1 < shifts.size(); r1++) {
             for (int r2 = r1 + 1; r2 < shifts.size(); r2++) {

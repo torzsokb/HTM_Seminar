@@ -62,7 +62,6 @@ public class Inter2OptStar implements Neighborhood {
                         }
 
                         moves.add(new Move(r1, r2, i, j, Move.MoveType.INTER_2OPT_STAR));
-                        
                     }
                 }
 

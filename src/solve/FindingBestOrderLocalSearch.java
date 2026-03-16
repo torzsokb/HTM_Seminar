@@ -78,7 +78,7 @@ public class FindingBestOrderLocalSearch {
         int runCount = 0;
 
         
-        for (int i = 0; i < allOrders.size(); i++) {
+        for (int i = 171; i < allOrders.size(); i++) {
             List<Neighborhood> order = allOrders.get(i);
             for (ImprovementChoice choice : choices) {
                 runCount++;
