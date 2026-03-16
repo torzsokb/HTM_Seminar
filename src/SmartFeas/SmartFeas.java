@@ -86,7 +86,7 @@ public class SmartFeas {
         // System.out.println("\nRunning Smart Make Feasible Num Moves...");
 
         long startTime = System.currentTimeMillis();
-        // List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
+        List<Shift> initialCopy = Utils.deepCopyShifts(shifts);
 
         List<Neighborhood> neighborhoods = Arrays.asList(
             new InterShiftInfeas(maxDuration, maxOvertime, penalty),
@@ -144,6 +144,9 @@ public class SmartFeas {
 
         // Utils.checkFeasibility(improved, instance, 8 * 60);
         // Utils.printShiftStatistics(improved, instance, 8 * 60);
+
+        System.out.println(numMoves);
+        System.out.println(countMoves(initialCopy, improved));
         
         return numMoves;
     }
@@ -157,13 +160,13 @@ public class SmartFeas {
         for (int i = 0; i < initial.size(); i++) {
             Shift shift = initial.get(i);
             
-            for (int stopID : shift.getUniqueStops()) {
+            for (Integer stop : shift.route) {
                 
-                if (stopID == 0) {
+                if (stop == 0) {
                     continue;
                 }
 
-                initialAssignment.put(stopID, i);   
+                initialAssignment.put(stop, i);   
             }
         }
 
@@ -171,13 +174,13 @@ public class SmartFeas {
         for (int i = 0; i < altered.size(); i++) {
             Shift shift = altered.get(i);
 
-            for (int stopID : shift.getUniqueStops()) {
+            for (int stop : shift.route) {
                 
-                if (stopID == 0) {
+                if (stop == 0) {
                     continue;
                 }
 
-                if (initialAssignment.get(stopID) != i) {
+                if (initialAssignment.get(stop) != i) {
                     numChanges++;
                 }
             }
