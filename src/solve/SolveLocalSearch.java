@@ -28,6 +28,8 @@ public class SolveLocalSearch {
         // Choose initial shifts to use 
         List<Shift> initial = Utils.readShiftsFromCSVDiffTimes("src/results/HTM_data_initRes_typeHalte.csv", travelTimesNight, travelTimesDay);
 
+        double HTMobj = objectiveBasic.shifts(initial)/60.0;
+
         // Make sure they are feasible 
         Utils.makeFeasible(initial, instance, travelTimesNight, travelTimesDay);
 
@@ -43,11 +45,11 @@ public class SolveLocalSearch {
         
         // NORMAL LOCAL SEARCH 
         List<Neighborhood> neighborhoods = Arrays.asList(
-            new Intra2Opt(),
             new InterSwap(),
-            new IntraSwap(),
             new IntraShift(),
+            new IntraSwap(),
             new Inter2OptStar(),
+            new Intra2Opt(),
             new InterShift()
         );
 
@@ -79,8 +81,10 @@ public class SolveLocalSearch {
         System.out.println("New objective value: " + new_obj_value);
 
         double improvement = initial_obj_value - new_obj_value;
+        double realImprovement = HTMobj - new_obj_value;
 
         System.out.println("Improvement: " + improvement);
+        System.out.println("Real improvement " + realImprovement);
         long endTime = System.currentTimeMillis();
         double timeTaken = (endTime-startTime)/1000.0;
         System.out.println("Time taken: " + (timeTaken) + " s" );
@@ -89,7 +93,7 @@ public class SolveLocalSearch {
         Utils.printShiftStatistics(improved, instance, totalShiftLength);
 
     
-        //Utils.resultsToCSV(improved, instance, "src/results/results_LS_feasible.csv");
+        Utils.resultsToCSV(improved, instance, "src/results/results_LS_feasibleNew.csv");
 
         // Sanity check
         /*

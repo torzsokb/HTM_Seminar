@@ -171,7 +171,8 @@ public class PricingHeuristic {
                 ImprovementChoice.BEST,
                 1000,
                 (int) maxShiftDuration -60,
-                objectiveFunction
+                objectiveFunction,
+                false
         );
         return ls.run(shifts, instance, travelTimes);
     }

@@ -1,43 +1,79 @@
 from pathlib import Path
 import pandas as pd
 
-# Paths
-solution_file = Path("src/results/results_Balanced_TSP_0.003_0.001.csv")
-scenario_file = Path("data/inputs/stops_with_cleaning_times.csv")
-output_dir = Path("src/core/scenario_instances/golden_scenario_csvs")
-output_dir.mkdir(parents=True, exist_ok=True)
+# -----------------------
+# Solution files
+# -----------------------
+solutions = {
+    "balanced": Path("data/results/Balanced.csv"),
+    "htm": Path("data/results/HTM.csv"),
+    "tsp": Path("data/results/TSP.csv"),
+    "vnd": Path("data/results/VND.csv"),
+    "vnd_min": Path("data/results/VNDmin.csv"),
+}
 
-# Load files
-solution = pd.read_csv(solution_file)
-scenarios = pd.read_csv(scenario_file)
+# Scenario input files
+summer_file = Path("data/inputs/cleaning_time_summer_scenarios.csv")
+autumn_file = Path("data/inputs/cleaning_time_autumn_scenarios.csv")
 
-# Keep only one row per ID_MAXIMO (duplicates have identical values)
-scenarios = scenarios.groupby("ID_MAXIMO", as_index=False).first()
+# Base output folder
+base_output_dir = Path("src/core/scenario_instances")
 
 # Columns to enforce as integers
 int_cols = ["Order", "ID", "Night_shift"]
 
 # -----------------------
-# Prepare scenario maps
+# Load scenario tables
 # -----------------------
-scenario_maps = {"summer": scenarios.set_index("ID_MAXIMO")["Summer_cleaning_time"]}
-for i in range(1, 11):
-    scenario_maps[f"autumn_{i}"] = scenarios.set_index("ID_MAXIMO")[f"Autumn_cleaning_{i}"]
+summer_df = pd.read_csv(summer_file)
+autumn_df = pd.read_csv(autumn_file)
+
+summer_df = summer_df.groupby("ID_MAXIMO", as_index=False).first()
+autumn_df = autumn_df.groupby("ID_MAXIMO", as_index=False).first()
 
 # -----------------------
-# Generate all scenario CSVs
+# Build scenario maps
 # -----------------------
-for name, cleaning_map in scenario_maps.items():
-    df = solution.copy()
-    df["Service_time"] = df["ID_MAXIMO"].map(cleaning_map).fillna(df["Service_time"])
+scenario_maps = {}
 
-    # Ensure integer columns are written as ints, filling NaN with 0
-    for col in int_cols:
-        if col in df.columns:
-            df[col] = df[col].fillna(0).astype(int)
+# Summer scenarios
+for col in summer_df.columns:
+    if col.startswith("Summer_cleaning_time_fixed"):
+        scenario_maps[col] = summer_df.set_index("ID_MAXIMO")[col]
 
-    # Save
-    output_file = output_dir / f"Golden_solution_{name}.csv"
-    df.to_csv(output_file, index=False)
+# Autumn scenarios
+for col in autumn_df.columns:
+    if col.startswith("Autumn_cleaning"):
+        scenario_maps[col] = autumn_df.set_index("ID_MAXIMO")[col]
 
-    print(f"Saved scenario: {output_file}")
+# -----------------------
+# Generate scenarios
+# -----------------------
+for solution_name, solution_path in solutions.items():
+
+    solution = pd.read_csv(solution_path)
+
+    # Create solution-specific folder
+    solution_dir = base_output_dir / solution_name.upper()
+    solution_dir.mkdir(parents=True, exist_ok=True)
+
+    for scenario_name, cleaning_map in scenario_maps.items():
+
+        df = solution.copy()
+
+        df["Service_time"] = (
+            df["ID_MAXIMO"]
+            .map(cleaning_map)
+            .fillna(df["Service_time"])
+        )
+
+        # enforce integer columns
+        for col in int_cols:
+            if col in df.columns:
+                df[col] = df[col].fillna(0).astype(int)
+
+        output_file = solution_dir / f"{scenario_name}.csv"
+
+        df.to_csv(output_file, index=False)
+
+    print(f"{solution_name}: {len(scenario_maps)} scenarios saved to {solution_dir}")

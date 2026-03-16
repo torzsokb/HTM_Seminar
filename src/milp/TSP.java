@@ -335,6 +335,7 @@ public class TSP extends GRBCallback{
                 }
 
                 double delta = old_time - shift.travelTime;
+                if (Math.abs(delta) < 1e-6) delta = 0;
 
                 if (delta == 0) { 
                     optimalCounts++; 
@@ -342,7 +343,6 @@ public class TSP extends GRBCallback{
                     impr += delta;
                 }
             }
-
             long TSPEndTime = System.currentTimeMillis();
             System.out.println("tsp running time: " + (TSPEndTime - TSPStartTime));
             System.out.println("Improvement (minutes): " + impr);
