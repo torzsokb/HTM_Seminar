@@ -14,14 +14,14 @@ public class ScenarioAnalysisRunner {
     static String baseInstance = "src/core/scenario_instances/txt_files/";
     static String baseSolutions = "src/core/scenario_instances/";
 
-    static String outputCSV = "src/core/scenario_instances/scenario_results_interShift.csv";
+    static String outputCSV = "src/core/scenario_instances/scenario_results_ALL_WINTER.csv";
 
     static String[] solutions = {
-            "BALANCED"
-            // "HTM",
-            // "TSP",
-            // "VND"
-            // "VND_MIN"
+        "Balanced",
+        "HTM",
+        "TSP",
+        "VND",
+        "VNDmin"
     };
 
     static double[] probs = {0.25, 0.5, 1.0};
@@ -39,14 +39,79 @@ public class ScenarioAnalysisRunner {
 
         writer.println("solution,season,prob,penalty,avg_totalOT,numOT,avg_totalOT15,numOT15,avg_numMoves,avg_numMoves15,avg_numStopMoved,avg_numStopMoved15,stillInfeas,stillInfeas15,avg_increaseTT");
 
-        runAutumnExperiments(writer, travelTimesNight, travelTimesDay);
-        runSummerExperiments(writer, travelTimesNight, travelTimesDay);
+        // runAutumnExperiments(writer, travelTimesNight, travelTimesDay);
+        // runSummerExperiments(writer, travelTimesNight, travelTimesDay);
+
+        runWinterExperiments(writer, travelTimesNight, travelTimesDay);
 
         writer.close();
 
         System.out.println("All experiments finished.");
     }
 
+    static void runWinterExperiments(
+        PrintWriter writer,
+        double[][] night,
+        double[][] day
+) throws Exception {
+
+    double[] trafficFlatPenalties = {1.1, 1.2, 1.3, 1.4, 1.5};
+
+    int n = night.length;
+
+    for(String sol : solutions){
+
+        for(double penalty : trafficFlatPenalties){
+
+            // Scale travel times
+            double[][] newDayTT = new double[n][n];
+            double[][] newNightTT = new double[n][n];
+
+            for(int i = 0; i < n; i++){
+                for(int j = 0; j < n; j++){
+                    newDayTT[i][j] = day[i][j] * penalty;
+                    newNightTT[i][j] = night[i][j] * penalty;
+                }
+            }
+
+            String instancePath = "src/core/data_all_feas_typeHalte.txt";
+
+            HTMInstance instance =
+                    Utils.readInstance(instancePath, "feasible", "Night_shift");
+
+            String solutionPath =
+                    "data/results/" + sol + ".csv";
+
+            Result r = checkSensitivity(
+                    instance,
+                    solutionPath,
+                    newNightTT,
+                    newDayTT
+            );
+
+            writer.println(
+                    sol + "," +
+                    "winter," +
+                    "-" + "," +
+                    penalty + "," +
+                    r.totalOT + "," +
+                    r.OTincurred + "," +
+                    r.totalOT15 + "," +
+                    r.OT15incurred + "," +
+                    r.numMoves + "," +
+                    r.numMoves15 + "," +
+                    r.stopsMoved + "," +
+                    r.stopsMoved15 + "," +
+                    r.stillInfeasible + "," +
+                    r.stillInfeasible15 + "," +
+                    r.increaseTT
+            );
+
+            System.out.println("Finished winter: " + sol +
+                    " penalty=" + penalty);
+        }
+    }
+}
     static void runAutumnExperiments(
             PrintWriter writer,
             double[][] night,
@@ -248,7 +313,7 @@ public class ScenarioAnalysisRunner {
 
         return new Result(
                 totalOT,
-                totalOT15,
+                new_tt,
                 numMoves,
                 numMoves15,
                 new_tt - initial_tt,
