@@ -122,6 +122,9 @@ routes_nights <- map_dfr(blocks_night, \(b) {
 routes_all <- bind_rows(routes_days, routes_nights) %>%
   arrange(Night_shift, Route, Order)
 
+routes_all_unique <- routes_all %>%
+  summarise(Dova_code = n_distinct(Dova_code))
+
 ## Add information from Halteinfo 
 with_Halteinfo <- routes_all %>%
   left_join(
@@ -142,6 +145,11 @@ write.csv(data_withDepot, "HTM_fullData.csv", row.names=FALSE, quote = FALSE)
 ## Find the stops with no longitude and latitude yet 
 data_final %>%
   summarise(n_unique_ID_MAXIMO = n_distinct(ID_MAXIMO))
+
+yesInfoStops <- data_final %>%
+  filter(longitude > 0) %>%                 
+  distinct(ID_MAXIMO, .keep_all = TRUE) %>%   
+  select(ID_MAXIMO, Dova_code, longitude, latitude)
 
 ## Need info on the following
 noInfoStops <- data_final %>%
@@ -173,6 +181,9 @@ data_filled <- data_withDepot %>%
   ) %>%
   select(-longitude_new, -latitude_new)
 
+data_filled_unique <- data_filled %>%
+  summarise(ID_MAXIMO = n_distinct(ID_MAXIMO))
+
 ## Check if there are still stops missing 
 missingStops <- data_filled %>%
   filter(is.na(longitude))
@@ -182,6 +193,8 @@ write.csv(data_filled, "HTM_CompleteData.csv", row.names=FALSE, quote = FALSE)
 
 
 ##### INSPECTING DATA #####
+
+
 ## Plot the stops and depot 
 scatterPlot <- ggplot(data_filled, aes(x = longitude, y = latitude)) +
   geom_point(color = "hotpink", shape = 19, na.rm = TRUE) +
@@ -313,6 +326,15 @@ data_collapsed <- data_filled %>%
   mutate(ID = row_number() - 1) %>%
   
   select(-run_id, -n_in_run, -block)
+
+data_collapsed_unique <- data_collapsed %>%
+  mutate(block = cumsum(Order == 1)) %>%
+  group_by(block, ID_MAXIMO) %>%
+  summarise(n_times = n(), .groups="drop") %>%
+  filter(n_times > 1) %>%
+  arrange(desc(n_times))
+
+
 
 ## Save Collapsed Data 
 write.csv(data_collapsed, "HTM_CollapsedData.csv", row.names=FALSE, quote = FALSE)
@@ -806,7 +828,7 @@ data_collapsed_vabri <- data_vabri %>%
   # New ID 
   mutate(ID = row_number() - 1) %>%
   
-  select(-run_id, -n_in_run, -block)
+  select(-run_id, -block)
 
 ## Save Collapsed Data 
 write.csv(data_collapsed_vabri, "HTM_CollapsedData_vabri.csv", row.names=FALSE, quote = FALSE)
@@ -815,6 +837,7 @@ write.csv(data_collapsed_vabri, "HTM_CollapsedData_vabri.csv", row.names=FALSE, 
 data_collapsed_vabri_text <- data_collapsed_vabri[, columns_for_text]
 
 write.table(data_collapsed_vabri_text,"data_collapsed_vabri.txt",sep="\t",row.names=FALSE, quote = FALSE)
+
 
 ## Plot of distribution of cleaning times 
 plotCleaningTimes <- ggplot(
@@ -860,6 +883,34 @@ type_counts <- with_typeStop %>%
   arrange(Type_halte, Night_shift)
 
 type_counts
+
+with_typeStop_full <- data_vabri %>%
+  left_join(
+    data_typeStop_unique %>% select(ID_MAXIMO, Type_halte),
+    by = "ID_MAXIMO"
+  )
+
+counts <- with_typeStop_full %>%
+  summarise(
+    tram = sum(Type_halte == "Tramhalte", na.rm = TRUE),
+    bus  = sum(Type_halte == "Bushalte", na.rm = TRUE),
+    
+    abri = sum(abri == 1, na.rm = TRUE),
+    no_abri  = sum(abri < 1, na.rm = TRUE),
+    
+    night_stops = sum(Night_shift == 1, na.rm = TRUE),
+    day_stops   = sum(Night_shift == 0, na.rm = TRUE)
+  )
+
+print(counts)
+
+
+type_counts_full <- with_typeStop_full %>%
+  filter(!is.na(Night_shift), !is.na(Type_halte)) %>%
+  count(Type_halte, Night_shift) %>%
+  arrange(Type_halte, Night_shift)
+
+type_counts_full
 
 typeStop_codeCat <- with_typeStop %>%
   left_join(
@@ -938,3 +989,223 @@ columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "lon
 data_initRes <- data_allCleaningTimes_typeStop[, columns_for_text_initRes]
 
 write.csv(data_initRes, "HTM_data_initRes.csv", row.names=FALSE, quote = FALSE)
+
+
+##### ABRIS Service times
+data_collapsed_vabri2 <- data_vabri %>%
+  mutate(block = cumsum(Order == 1)) %>%
+  
+  # Find when multiples of the same ID follow one another 
+  group_by(block) %>%
+  mutate(run_id = cumsum(ID_MAXIMO != lag(ID_MAXIMO, default = first(ID_MAXIMO)))) %>%
+  ungroup() %>%
+  
+  # Collapse those 
+  group_by(block, run_id, ID_MAXIMO) %>%
+  summarise(
+    across(everything(), ~ .x[1]),  
+    n_in_run = n(),
+    .groups = "drop"
+  ) %>%
+  
+  # Get service times 
+  mutate(Service_time = 5 + 2 * n_in_run) %>%
+  mutate(Service_time = if_else(abri == 1, 5 + 15 * n_in_run, Service_time)) %>%
+  mutate(Service_time = if_else(ID_MAXIMO == "Depot", 0, Service_time)) %>%
+  
+  # Fix the order
+  group_by(block) %>%
+  mutate(Order = row_number()) %>%
+  ungroup() %>%
+  
+  # New ID 
+  mutate(ID = row_number() - 1) %>%
+  
+  select(-run_id, -n_in_run, -block)
+
+data_collapsed_vabri3 <- data_vabri %>%
+  mutate(block = cumsum(Order == 1)) %>%
+  
+  # Find when multiples of the same ID follow one another 
+  group_by(block) %>%
+  mutate(run_id = cumsum(ID_MAXIMO != lag(ID_MAXIMO, default = first(ID_MAXIMO)))) %>%
+  ungroup() %>%
+  
+  # Collapse those 
+  group_by(block, run_id, ID_MAXIMO) %>%
+  summarise(
+    across(everything(), ~ .x[1]),  
+    n_in_run = n(),
+    .groups = "drop"
+  ) %>%
+  
+  # Get service times 
+  mutate(Service_time = 5 + 3 * n_in_run) %>%
+  mutate(Service_time = if_else(abri == 1, 5 + 15 * n_in_run, Service_time)) %>%
+  mutate(Service_time = if_else(ID_MAXIMO == "Depot", 0, Service_time)) %>%
+  
+  # Fix the order
+  group_by(block) %>%
+  mutate(Order = row_number()) %>%
+  ungroup() %>%
+  
+  # New ID 
+  mutate(ID = row_number() - 1) %>%
+  
+  select(-run_id, -n_in_run, -block)
+
+data_collapsed_vabri3b <- data_vabri %>%
+  mutate(block = cumsum(Order == 1)) %>%
+  
+  # Find when multiples of the same ID follow one another 
+  group_by(block) %>%
+  mutate(run_id = cumsum(ID_MAXIMO != lag(ID_MAXIMO, default = first(ID_MAXIMO)))) %>%
+  ungroup() %>%
+  
+  # Collapse those 
+  group_by(block, run_id, ID_MAXIMO) %>%
+  summarise(
+    across(everything(), ~ .x[1]),  
+    n_in_run = n(),
+    .groups = "drop"
+  ) %>%
+  
+  # Get service times 
+  mutate(Service_time = 5 + 3 * n_in_run) %>%
+  mutate(Service_time = if_else(abri == 1, 5 + 10 * n_in_run, Service_time)) %>%
+  mutate(Service_time = if_else(ID_MAXIMO == "Depot", 0, Service_time)) %>%
+  
+  # Fix the order
+  group_by(block) %>%
+  mutate(Order = row_number()) %>%
+  ungroup() %>%
+  
+  # New ID 
+  mutate(ID = row_number() - 1) %>%
+  
+  select(-run_id, -n_in_run, -block)
+
+
+## Initial routes columns vabris
+
+columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "longitude", "latitude", "ID", "Cleaning_time_abri2")
+data_initRes2 <- data_allCleaningTimes_typeStop_vabris[, columns_for_text_initRes]
+
+write.csv(data_initRes2, "HTM_data_initRes2.csv", row.names=FALSE, quote = FALSE)
+
+columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "longitude", "latitude", "ID", "Cleaning_time_abri3")
+data_initRes3 <- data_allCleaningTimes_typeStop_vabris[, columns_for_text_initRes]
+
+write.csv(data_initRes3, "HTM_data_initRes3.csv", row.names=FALSE, quote = FALSE)
+
+columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "longitude", "latitude", "ID", "Cleaning_time_abri3b")
+data_initRes3b <- data_allCleaningTimes_typeStop_vabris[, columns_for_text_initRes]
+
+write.csv(data_initRes3b, "HTM_data_initRes3b.csv", row.names=FALSE, quote = FALSE)
+
+
+##### N #####
+
+### Also include the type stop 
+data_vabri_typeStop <- data_vabri %>%
+  left_join(
+    data_typeStop_unique %>% select(ID_MAXIMO, Type_halte),
+    by = "ID_MAXIMO"
+  )
+
+data_collapsed_vabri_n <- data_vabri_typeStop %>%
+  mutate(block = cumsum(Order == 1)) %>%
+  group_by(block) %>%
+  mutate(run_id = cumsum(ID_MAXIMO != lag(ID_MAXIMO, default = first(ID_MAXIMO)))) %>%
+  ungroup() %>%
+  group_by(block, run_id, ID_MAXIMO) %>%
+  summarise(
+    across(everything(), ~ .x[1]),
+    n_in_run = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Service_time = case_when(
+      ID_MAXIMO == "Depot" ~ 0,
+      abri == 1 & Type_halte == "Bushalte" ~ 2 + 13 * n_in_run,
+      abri == 1 & Type_halte == "Tramhalte" ~ 2 + 15 * n_in_run,
+      abri == 0 & Type_halte == "Tramhalte" ~ 2 + 14 * n_in_run,
+      abri == 0 & Type_halte == "Bushalte" ~ 2 + 7 * n_in_run,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  group_by(block) %>%
+  mutate(Order = row_number()) %>%
+  ungroup() %>%
+  mutate(ID = row_number() - 1) %>%
+  select(-run_id, -n_in_run, -block)
+
+columns_for_text_initRes <- c("ID_MAXIMO", "Route", "Order", "Night_shift", "longitude", "latitude", "ID", "Service_time")
+data_initRes_n <- data_collapsed_vabri_n[, columns_for_text_initRes]
+
+write.csv(data_initRes_n, "HTM_data_initRes_typeHalte.csv", row.names=FALSE, quote = FALSE)
+
+
+data_allCleaningTimes_vTypeStop <- data_allCleaningTimes %>%
+  left_join(data_initRes_n %>% select(ID, Service_time) %>% rename(Cleaning_time_abri_TypeHalte = Service_time), by = "ID")
+
+### Also include the type stop 
+data_allCleaningTimes_vTypeStop <- data_allCleaningTimes_vTypeStop %>%
+  left_join(
+    data_typeStop_unique %>% select(ID_MAXIMO, Type_halte),
+    by = "ID_MAXIMO"
+  )
+
+write.csv(data_allCleaningTimes_vTypeStop, "HTM_dataCleaningTimes_vTypeStop.csv", row.names=FALSE, quote = FALSE)
+
+## Text for coding purposes
+columns_for_text_all <- c("ID", "ID_MAXIMO", "latitude", "longitude", "Night_shift", "Type_halte", "Cleaning_time_20", "Cleaning_time_code", "Cleaning_time_abri", "Cleaning_time_abri_TypeHalte")
+
+data_all_text <- data_allCleaningTimes_vTypeStop[, columns_for_text_all]
+
+write.table(data_all_text,"data_all_feas_typeHalte.txt",sep="\t",row.names=FALSE, quote = FALSE)
+
+
+##### Full data - with abri and type stop and collapsed 
+data_full <- data_collapsed_vabri %>%
+  left_join(
+    data_typeStop_unique %>% select(ID_MAXIMO, Type_halte),
+    by = "ID_MAXIMO"
+  ) 
+
+write.csv(data_full, "HTM_Data_abriTypeStop.csv", row.names=FALSE, quote = FALSE)
+
+df_full_seasonality <- data_collapsed_vabri_n %>%
+  left_join(
+    data_stops %>% select(ID_MAXIMO, CRITERIUM_SEIZOEN),
+    by = "ID_MAXIMO"
+  ) %>%
+  mutate(seasonality = if_else(is.na(CRITERIUM_SEIZOEN) | trimws(CRITERIUM_SEIZOEN) == "",0,1)) %>%
+  select(-CRITERIUM_SEIZOEN)
+
+
+counts <- df_full_seasonality %>%
+  summarise(
+    tram_abri = sum(Type_halte == "Tramhalte" & abri == 1, na.rm = TRUE),
+    bus_abri  = sum(Type_halte == "Bushalte" & abri == 1, na.rm = TRUE),
+    
+    tram_no_abri = sum(Type_halte == "Tramhalte" & abri == 0, na.rm = TRUE),
+    bus_no_abri  = sum(Type_halte == "Bushalte" & abri == 0, na.rm = TRUE),
+    
+    night_stops = sum(Night_shift == 1, na.rm = TRUE),
+    day_stops   = sum(Night_shift == 0, na.rm = TRUE),
+    
+    seasonality = sum(seasonality)
+  )
+
+print(counts)
+
+
+## Collapse df_full_seasonality with the cleaning times determined 
+write.csv(df_full_seasonality, "HTM_Data_CORRECT.csv", row.names=FALSE, quote = FALSE)
+
+
+
+
+
+
